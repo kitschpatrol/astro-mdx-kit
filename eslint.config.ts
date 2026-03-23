@@ -1,6 +1,20 @@
 import { eslintConfig } from '@kitschpatrol/eslint-config'
 
-export default eslintConfig({
-	ignores: ['references/**/*'],
-	type: 'lib',
-})
+export default eslintConfig(
+	{
+		astro: true,
+		ignores: ['references/**/*'],
+		type: 'lib',
+	},
+	{
+		files: ['playground/package.json'],
+		rules: {
+			// TODO remove after next shared-config release
+			'json-package/require-keywords': 'off',
+			'json-package/require-version': 'off',
+			// Because of link to parent
+			'json-package/valid-devDependencies': 'off',
+			'json-package/valid-package-definition': 'off',
+		},
+	},
+)
