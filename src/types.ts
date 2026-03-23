@@ -84,4 +84,17 @@ export type MdxKitOptions = {
 	 * - `string` — inject using the given property name
 	 */
 	rawMdx?: boolean | string
+	/**
+	 * Remove the wrapping `<p>` element from stand-alone images.
+	 *
+	 * In standard markdown, `![alt](src)` on its own line produces
+	 * `<p><img ...></p>`. When enabled, the paragraph wrapper is removed
+	 * so the image (or its component override) is a direct child of the
+	 * document flow.
+	 *
+	 * Runs **after** element overrides, so it also unwraps images that
+	 * have been replaced by custom components (e.g. `<Picture>`).
+	 * @default false
+	 */
+	unwrapImages?: boolean
 }

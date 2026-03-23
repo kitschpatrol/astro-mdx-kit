@@ -8,6 +8,7 @@ import type { ResolvedComponentConfig } from './utils/resolve-config.js'
 import { remarkMdxKitDirectives } from './plugins/remark-directives.js'
 import { remarkMdxKitElements } from './plugins/remark-elements.js'
 import { remarkFrontmatterInject } from './plugins/remark-frontmatter-inject.js'
+import { remarkUnwrapImages } from './plugins/remark-unwrap-images.js'
 import { resolveComponentConfig } from './utils/resolve-config.js'
 
 /**
@@ -35,7 +36,7 @@ import { resolveComponentConfig } from './utils/resolve-config.js'
  * ```
  */
 export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
-	const { directives, elements, mdast, rawMdx } = options
+	const { directives, elements, mdast, rawMdx, unwrapImages } = options
 
 	// Pre-resolve all configs at integration setup time (not per-file)
 	const resolvedDirectives: Record<string, ResolvedComponentConfig> = {}
@@ -88,6 +89,11 @@ export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 						remarkMdxKitElements,
 						{ configs: resolvedElements } satisfies RemarkElementsOptions,
 					])
+				}
+
+				// Unwrap stand-alone images after element overrides have run
+				if (unwrapImages) {
+					remarkPlugins.push(remarkUnwrapImages)
 				}
 
 				// Mdast runs last to capture the tree after our transforms
