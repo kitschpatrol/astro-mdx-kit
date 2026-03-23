@@ -2,10 +2,12 @@ import type { AstroIntegration } from 'astro'
 import remarkDirective from 'remark-directive'
 import type { RemarkDirectivesOptions } from './plugins/remark-directives.js'
 import type { RemarkElementsOptions } from './plugins/remark-elements.js'
+import type { RemarkFrontmatterInjectOptions } from './plugins/remark-frontmatter-inject.js'
 import type { MdxKitOptions } from './types.js'
 import type { ResolvedComponentConfig } from './utils/resolve-config.js'
 import { remarkMdxKitDirectives } from './plugins/remark-directives.js'
 import { remarkMdxKitElements } from './plugins/remark-elements.js'
+import { remarkFrontmatterInject } from './plugins/remark-frontmatter-inject.js'
 import { resolveComponentConfig } from './utils/resolve-config.js'
 
 /**
@@ -33,7 +35,7 @@ import { resolveComponentConfig } from './utils/resolve-config.js'
  * ```
  */
 export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
-	const { directives, elements } = options
+	const { directives, elements, mdast, rawMdx } = options
 
 	// Pre-resolve all configs at integration setup time (not per-file)
 	const resolvedDirectives: Record<string, ResolvedComponentConfig> = {}
@@ -54,6 +56,14 @@ export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 		hooks: {
 			'astro:config:setup'({ logger, updateConfig }) {
 				const remarkPlugins: unknown[] = []
+
+				// Raw MDX injection runs first to capture the original source
+				if (rawMdx) {
+					remarkPlugins.push([
+						remarkFrontmatterInject,
+						{ rawMdx } satisfies RemarkFrontmatterInjectOptions,
+					])
+				}
 
 				if (Object.keys(resolvedDirectives).length > 0) {
 					logger.info(
@@ -77,6 +87,14 @@ export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 					remarkPlugins.push([
 						remarkMdxKitElements,
 						{ configs: resolvedElements } satisfies RemarkElementsOptions,
+					])
+				}
+
+				// Mdast runs last to capture the tree after our transforms
+				if (mdast) {
+					remarkPlugins.push([
+						remarkFrontmatterInject,
+						{ mdast } satisfies RemarkFrontmatterInjectOptions,
 					])
 				}
 
