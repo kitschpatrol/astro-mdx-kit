@@ -1,3 +1,6 @@
+/* eslint-disable ts/no-empty-function */
+/* eslint-disable ts/naming-convention */
+
 import { describe, expect, it } from 'vitest'
 import { mdxKit } from '../src/integration'
 
@@ -26,34 +29,36 @@ describe('mdxKit integration', () => {
 
 		let updatedConfig: Record<string, unknown> | undefined
 		const mockHookParams = {
+			addClientDirective() {},
+			addDevToolbarApp() {},
+			addMiddleware() {},
+			addRenderer() {},
+			addWatchFile() {},
+			command: 'build' as const,
+			config: {},
+			createCodegenDir: () => new URL('file:///'),
+			injectRoute() {},
+			injectScript() {},
+			isRestart: false,
+			logger: {
+				debug() {},
+				error() {},
+				fork: () => ({ debug() {}, error() {}, info() {}, warn() {} }),
+				info() {},
+				label: 'test',
+				options: () => ({}),
+				warn() {},
+			},
 			updateConfig(config: Record<string, unknown>) {
 				updatedConfig = config
 			},
-			logger: {
-				info: () => {},
-				warn: () => {},
-				error: () => {},
-				debug: () => {},
-				fork: () => ({ info: () => {}, warn: () => {}, error: () => {}, debug: () => {} }),
-				label: 'test',
-				options: () => ({}),
-			},
-			config: {},
-			command: 'build' as const,
-			isRestart: false,
-			addRenderer: () => {},
-			addWatchFile: () => {},
-			injectScript: () => {},
-			injectRoute: () => {},
-			addMiddleware: () => {},
-			addClientDirective: () => {},
-			createCodegenDir: () => new URL('file:///'),
-			addDevToolbarApp: () => {},
 		}
 
-		integration.hooks['astro:config:setup']!(mockHookParams as never)
+		// eslint-disable-next-line ts/no-unsafe-type-assertion
+		void integration.hooks['astro:config:setup']!(mockHookParams as never)
 
 		expect(updatedConfig).toBeDefined()
+		// eslint-disable-next-line ts/no-unsafe-type-assertion
 		const markdown = updatedConfig!.markdown as { remarkPlugins: unknown[] }
 		expect(markdown.remarkPlugins).toBeDefined()
 		// Should have: remarkDirective, [remarkMdxKitDirectives, opts], [remarkMdxKitElements, opts]
@@ -67,33 +72,35 @@ describe('mdxKit integration', () => {
 
 		let updatedConfig: Record<string, unknown> | undefined
 		const mockHookParams = {
+			addClientDirective() {},
+			addDevToolbarApp() {},
+			addMiddleware() {},
+			addRenderer() {},
+			addWatchFile() {},
+			command: 'build' as const,
+			config: {},
+			createCodegenDir: () => new URL('file:///'),
+			injectRoute() {},
+			injectScript() {},
+			isRestart: false,
+			logger: {
+				debug() {},
+				error() {},
+				fork: () => ({ debug() {}, error() {}, info() {}, warn() {} }),
+				info() {},
+				label: 'test',
+				options: () => ({}),
+				warn() {},
+			},
 			updateConfig(config: Record<string, unknown>) {
 				updatedConfig = config
 			},
-			logger: {
-				info: () => {},
-				warn: () => {},
-				error: () => {},
-				debug: () => {},
-				fork: () => ({ info: () => {}, warn: () => {}, error: () => {}, debug: () => {} }),
-				label: 'test',
-				options: () => ({}),
-			},
-			config: {},
-			command: 'build' as const,
-			isRestart: false,
-			addRenderer: () => {},
-			addWatchFile: () => {},
-			injectScript: () => {},
-			injectRoute: () => {},
-			addMiddleware: () => {},
-			addClientDirective: () => {},
-			createCodegenDir: () => new URL('file:///'),
-			addDevToolbarApp: () => {},
 		}
 
-		integration.hooks['astro:config:setup']!(mockHookParams as never)
+		// eslint-disable-next-line ts/no-unsafe-type-assertion
+		void integration.hooks['astro:config:setup']!(mockHookParams as never)
 
+		// eslint-disable-next-line ts/no-unsafe-type-assertion
 		const markdown = updatedConfig!.markdown as { remarkPlugins: unknown[] }
 		// Only the elements plugin, no remarkDirective or directive transform
 		expect(markdown.remarkPlugins.length).toBe(1)

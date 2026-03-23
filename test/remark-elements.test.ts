@@ -26,8 +26,8 @@ function runPlugin(
 describe('remarkMdxKitElements — simple overrides (export const components)', () => {
 	it('injects export const components for simple element overrides', () => {
 		const tree: Root = {
+			children: [{ children: [{ type: 'text', value: 'Title' }], depth: 1, type: 'heading' }],
 			type: 'root',
-			children: [{ type: 'heading', depth: 1, children: [{ type: 'text', value: 'Title' }] }],
 		}
 
 		runPlugin(tree, { h1: 'src/components/Heading.astro' })
@@ -44,19 +44,19 @@ describe('remarkMdxKitElements — simple overrides (export const components)', 
 	it('merges into an existing export const components', () => {
 		const existingExport = createComponentsExportNode({ p: '_UserP' })
 		const tree: Root = {
-			type: 'root',
 			children: [
 				existingExport as unknown as Root['children'][number],
-				{ type: 'heading', depth: 1, children: [{ type: 'text', value: 'Title' }] },
+				{ children: [{ type: 'text', value: 'Title' }], depth: 1, type: 'heading' },
 			],
+			type: 'root',
 		}
 
 		runPlugin(tree, { h1: 'src/components/Heading.astro' })
 
 		// Should NOT create a second export — should merge into existing
-		const exportNodes = (tree.children.filter((c) => c.type === 'mdxjsEsm') as unknown as MdxjsEsm[]).filter(
-			(n) => n.value.includes('export const components'),
-		)
+		const exportNodes = (
+			tree.children.filter((c) => c.type === 'mdxjsEsm') as unknown as MdxjsEsm[]
+		).filter((n) => n.value.includes('export const components'))
 		expect(exportNodes).toHaveLength(1)
 	})
 })
@@ -64,27 +64,27 @@ describe('remarkMdxKitElements — simple overrides (export const components)', 
 describe('remarkMdxKitElements — autoImport (direct AST transform)', () => {
 	it('transforms image nodes with autoImport', () => {
 		const tree: Root = {
-			type: 'root',
 			children: [
 				{
-					type: 'paragraph',
 					children: [
 						{
-							type: 'image',
-							url: '../assets/hero.png',
 							alt: 'Hero image',
 							title: 'Hero',
+							type: 'image',
+							url: '../assets/hero.png',
 						} as Image,
 					],
+					type: 'paragraph',
 				},
 			],
+			type: 'root',
 		}
 
 		runPlugin(tree, {
 			img: {
+				autoImport: 'src',
 				component: 'Picture',
 				componentModule: 'astro:assets',
-				autoImport: 'src',
 			},
 		})
 
@@ -92,53 +92,49 @@ describe('remarkMdxKitElements — autoImport (direct AST transform)', () => {
 		const paragraph = tree.children.find((c) => c.type === 'paragraph')!
 		const jsx = (paragraph as { children: unknown[] }).children.find(
 			(c: { type: string }) => c.type === 'mdxJsxFlowElement',
-		) as unknown as MdxJsxFlowElement
+		)!
 
 		expect(jsx).toBeDefined()
 		expect(jsx.name).toBe('Picture')
 
-		// src should be an expression attribute
-		const srcAttr = jsx.attributes.find(
+		// Src should be an expression attribute
+		const srcAttribute = jsx.attributes.find(
 			(a) => a.type === 'mdxJsxAttribute' && a.name === 'src',
 		)
-		expect(srcAttr!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
+		expect(srcAttribute!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
 
-		// alt and title should be string attributes
-		const altAttr = jsx.attributes.find(
+		// Alt and title should be string attributes
+		const altAttribute = jsx.attributes.find(
 			(a) => a.type === 'mdxJsxAttribute' && a.name === 'alt',
 		)
-		expect(altAttr!.value).toBe('Hero image')
+		expect(altAttribute!.value).toBe('Hero image')
 
-		const titleAttr = jsx.attributes.find(
+		const titleAttribute = jsx.attributes.find(
 			(a) => a.type === 'mdxJsxAttribute' && a.name === 'title',
 		)
-		expect(titleAttr!.value).toBe('Hero')
+		expect(titleAttribute!.value).toBe('Hero')
 	})
 
 	it('deduplicates image imports for same src', () => {
 		const tree: Root = {
-			type: 'root',
 			children: [
 				{
+					children: [{ alt: 'First', type: 'image', url: './same.png' } as Image],
 					type: 'paragraph',
-					children: [
-						{ type: 'image', url: './same.png', alt: 'First' } as Image,
-					],
 				},
 				{
+					children: [{ alt: 'Second', type: 'image', url: './same.png' } as Image],
 					type: 'paragraph',
-					children: [
-						{ type: 'image', url: './same.png', alt: 'Second' } as Image,
-					],
 				},
 			],
+			type: 'root',
 		}
 
 		runPlugin(tree, {
 			img: {
+				autoImport: 'src',
 				component: 'Picture',
 				componentModule: 'astro:assets',
-				autoImport: 'src',
 			},
 		})
 
@@ -149,39 +145,39 @@ describe('remarkMdxKitElements — autoImport (direct AST transform)', () => {
 
 	it('skips autoImport for external URLs', () => {
 		const tree: Root = {
-			type: 'root',
 			children: [
 				{
-					type: 'paragraph',
 					children: [
 						{
+							alt: 'Remote',
 							type: 'image',
 							url: 'https://example.com/photo.jpg',
-							alt: 'Remote',
 						} as Image,
 					],
+					type: 'paragraph',
 				},
 			],
+			type: 'root',
 		}
 
 		runPlugin(tree, {
 			img: {
+				autoImport: 'src',
 				component: 'Picture',
 				componentModule: 'astro:assets',
-				autoImport: 'src',
 			},
 		})
 
 		const paragraph = tree.children.find((c) => c.type === 'paragraph')!
 		const jsx = (paragraph as { children: unknown[] }).children.find(
 			(c: { type: string }) => c.type === 'mdxJsxFlowElement',
-		) as unknown as MdxJsxFlowElement
+		)!
 
-		// src should be a plain string for URLs
-		const srcAttr = jsx.attributes.find(
+		// Src should be a plain string for URLs
+		const srcAttribute = jsx.attributes.find(
 			(a) => a.type === 'mdxJsxAttribute' && a.name === 'src',
 		)
-		expect(srcAttr!.value).toBe('https://example.com/photo.jpg')
+		expect(srcAttribute!.value).toBe('https://example.com/photo.jpg')
 
 		// Only one import (component), no asset import
 		const imports = tree.children.filter((c) => c.type === 'mdxjsEsm')
@@ -190,25 +186,25 @@ describe('remarkMdxKitElements — autoImport (direct AST transform)', () => {
 
 	it('transforms JSX <img> elements with autoImport', () => {
 		const tree: Root = {
-			type: 'root',
 			children: [
 				{
-					type: 'mdxJsxFlowElement',
-					name: 'img',
 					attributes: [
-						{ type: 'mdxJsxAttribute', name: 'src', value: './photo.webp' },
-						{ type: 'mdxJsxAttribute', name: 'alt', value: 'Photo' },
+						{ name: 'src', type: 'mdxJsxAttribute', value: './photo.webp' },
+						{ name: 'alt', type: 'mdxJsxAttribute', value: 'Photo' },
 					],
 					children: [],
+					name: 'img',
+					type: 'mdxJsxFlowElement',
 				} as unknown as Root['children'][number],
 			],
+			type: 'root',
 		}
 
 		runPlugin(tree, {
 			img: {
+				autoImport: 'src',
 				component: 'Picture',
 				componentModule: 'astro:assets',
-				autoImport: 'src',
 			},
 		})
 
@@ -218,40 +214,38 @@ describe('remarkMdxKitElements — autoImport (direct AST transform)', () => {
 
 		expect(jsx.name).toBe('Picture')
 
-		const srcAttr = jsx.attributes.find(
+		const srcAttribute = jsx.attributes.find(
 			(a) => a.type === 'mdxJsxAttribute' && a.name === 'src',
 		)
-		expect(srcAttr!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
+		expect(srcAttribute!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
 	})
 })
 
 describe('remarkMdxKitElements — mixed overrides', () => {
 	it('handles both simple and autoImport overrides together', () => {
 		const tree: Root = {
-			type: 'root',
 			children: [
-				{ type: 'heading', depth: 1, children: [{ type: 'text', value: 'Title' }] },
+				{ children: [{ type: 'text', value: 'Title' }], depth: 1, type: 'heading' },
 				{
+					children: [{ alt: 'Hero', type: 'image', url: './hero.png' } as Image],
 					type: 'paragraph',
-					children: [
-						{ type: 'image', url: './hero.png', alt: 'Hero' } as Image,
-					],
 				},
 			],
+			type: 'root',
 		}
 
 		runPlugin(tree, {
 			h1: 'src/components/Heading.astro',
 			img: {
+				autoImport: 'src',
 				component: 'Picture',
 				componentModule: 'astro:assets',
-				autoImport: 'src',
 			},
 		})
 
 		// Should have imports for both components + asset
 		const esmNodes = tree.children.filter((c) => c.type === 'mdxjsEsm')
-		expect(esmNodes.length).toBeGreaterThanOrEqual(3) // heading import + picture import + asset import
+		expect(esmNodes.length).toBeGreaterThanOrEqual(3) // Heading import + picture import + asset import
 
 		// Should have an export const components for h1
 		const exportNode = (esmNodes as unknown as MdxjsEsm[]).find((n) =>

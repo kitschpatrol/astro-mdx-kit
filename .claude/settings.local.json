@@ -1,8 +1,5 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(git:*)",
-      "WebFetch(domain:docs.astro.build)"
-    ]
-  }
+	"permissions": {
+		"allow": ["Bash(git:*)", "WebFetch(domain:docs.astro.build)"]
+	}
 }

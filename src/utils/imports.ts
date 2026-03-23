@@ -1,10 +1,10 @@
 import type { Root } from 'mdast'
 import { createEsmImportNode } from './ast.js'
 
-interface TrackedImport {
-	localName: string
+type TrackedImport = {
 	importPath: string
 	isNamed: boolean
+	localName: string
 }
 
 /**
@@ -12,21 +12,10 @@ interface TrackedImport {
  * deduplicating identical imports.
  */
 export class ImportTracker {
+	private assetCounter = 0
+	private readonly assetImports = new Map<string, string>()
 	private readonly importKeys = new Set<string>()
 	private readonly imports: TrackedImport[] = []
-	private readonly assetImports = new Map<string, string>()
-	private assetCounter = 0
-
-	/**
-	 * Register a component import.  Duplicate registrations (same
-	 * localName + importPath + kind) are silently ignored.
-	 */
-	addComponentImport(localName: string, importPath: string, isNamed: boolean): void {
-		const key = `${isNamed ? 'named' : 'default'}|${localName}|${importPath}`
-		if (this.importKeys.has(key)) return
-		this.importKeys.add(key)
-		this.imports.push({ localName, importPath, isNamed })
-	}
 
 	/**
 	 * Register an asset import (e.g. an image path).
@@ -41,8 +30,19 @@ export class ImportTracker {
 
 		const name = `_mdxKitAsset${this.assetCounter++}`
 		this.assetImports.set(assetPath, name)
-		this.imports.push({ localName: name, importPath: assetPath, isNamed: false })
+		this.imports.push({ importPath: assetPath, isNamed: false, localName: name })
 		return name
+	}
+
+	/**
+	 * Register a component import.  Duplicate registrations (same
+	 * localName + importPath + kind) are silently ignored.
+	 */
+	addComponentImport(localName: string, importPath: string, isNamed: boolean): void {
+		const key = `${isNamed ? 'named' : 'default'}|${localName}|${importPath}`
+		if (this.importKeys.has(key)) return
+		this.importKeys.add(key)
+		this.imports.push({ importPath, isNamed, localName })
 	}
 
 	/**
@@ -51,7 +51,7 @@ export class ImportTracker {
 	injectIntoTree(tree: Root): void {
 		if (this.imports.length === 0) return
 
-		const nodes = this.imports.map(({ localName, importPath, isNamed }) =>
+		const nodes = this.imports.map(({ importPath, isNamed, localName }) =>
 			createEsmImportNode(localName, importPath, isNamed),
 		)
 

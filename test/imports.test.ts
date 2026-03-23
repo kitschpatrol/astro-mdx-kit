@@ -2,15 +2,15 @@ import type { Root } from 'mdast'
 import { describe, expect, it } from 'vitest'
 import { ImportTracker, isImportablePath } from '../src/utils/imports'
 
-describe('ImportTracker', () => {
-	function makeTree(): Root {
-		return { type: 'root', children: [] }
-	}
+function makeTree(): Root {
+	return { children: [], type: 'root' }
+}
 
+describe('ImportTracker', () => {
 	it('deduplicates component imports', () => {
 		const tracker = new ImportTracker()
 		tracker.addComponentImport('Foo', '/src/Foo.astro', false)
-		tracker.addComponentImport('Foo', '/src/Foo.astro', false) // duplicate
+		tracker.addComponentImport('Foo', '/src/Foo.astro', false) // Duplicate
 
 		const tree = makeTree()
 		tracker.injectIntoTree(tree)

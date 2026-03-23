@@ -1,23 +1,23 @@
 import type { AutoImportConfig, ComponentConfig } from '../types.js'
 
-export interface ResolvedAutoImport {
+export type ResolvedAutoImport = {
 	fromProp: string
 	toProp: string
 }
 
-export interface ResolvedComponentConfig {
+export type ResolvedComponentConfig = {
+	autoImport?: ResolvedAutoImport
 	componentName: string
 	importPath: string
 	isNamedImport: boolean
-	autoImport?: ResolvedAutoImport
 }
 
-function toPascalCase(str: string): string {
-	return str
-		.replace(/\.\w+$/, '') // strip file extension
-		.replace(/[-_./\\]+(.)/g, (_, c: string) => c.toUpperCase())
+function toPascalCase(string_: string): string {
+	return string_
+		.replace(/\.\w+$/, '') // Strip file extension
+		.replaceAll(/[-_./\\]+(.)/g, (_, c: string) => c.toUpperCase())
 		.replace(/^(.)/, (_, c: string) => c.toUpperCase())
-		.replaceAll(/[^\dA-Za-z]/g, '')
+		.replaceAll(/[^\dA-Z]/gi, '')
 }
 
 /**
@@ -52,7 +52,6 @@ function resolveAutoImport(config: AutoImportConfig): ResolvedAutoImport {
 /**
  * Resolve a user-facing `ComponentConfig` into an internal
  * `ResolvedComponentConfig` with a stable component name and import path.
- *
  * @param name - The directive name or element name from the config key.
  * @param config - The user-provided component configuration.
  */
@@ -72,17 +71,17 @@ export function resolveComponentConfig(
 
 	if (config.componentModule) {
 		return {
+			autoImport,
 			componentName: config.component,
 			importPath: config.componentModule,
 			isNamedImport: true,
-			autoImport,
 		}
 	}
 
 	return {
+		autoImport,
 		componentName: `_MdxKit_${toPascalCase(name)}`,
 		importPath: resolveImportPath(config.component),
 		isNamedImport: false,
-		autoImport,
 	}
 }

@@ -41,35 +41,35 @@ describe('resolveComponentConfig', () => {
 
 	it('resolves detailed config with componentModule (named import)', () => {
 		const result = resolveComponentConfig('Picture', {
+			autoImport: 'src',
 			component: 'Picture',
 			componentModule: 'astro:assets',
-			autoImport: 'src',
 		})
 		expect(result).toEqual({
+			autoImport: { fromProp: 'src', toProp: 'src' },
 			componentName: 'Picture',
 			importPath: 'astro:assets',
 			isNamedImport: true,
-			autoImport: { fromProp: 'src', toProp: 'src' },
 		})
 	})
 
 	it('resolves detailed config without componentModule (default import)', () => {
 		const result = resolveComponentConfig('Image', {
-			component: 'src/components/custom-image',
 			autoImport: 'source',
+			component: 'src/components/custom-image',
 		})
 		expect(result).toEqual({
+			autoImport: { fromProp: 'source', toProp: 'source' },
 			componentName: '_MdxKit_Image',
 			importPath: '/src/components/custom-image',
 			isNamedImport: false,
-			autoImport: { fromProp: 'source', toProp: 'source' },
 		})
 	})
 
 	it('resolves autoImport with from/to mapping', () => {
 		const result = resolveComponentConfig('Image', {
-			component: 'src/components/image',
 			autoImport: { from: 'source', to: 'sourceImported' },
+			component: 'src/components/image',
 		})
 		expect(result.autoImport).toEqual({
 			fromProp: 'source',

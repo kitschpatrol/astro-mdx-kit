@@ -1,11 +1,11 @@
 import type { AstroIntegration } from 'astro'
 import remarkDirective from 'remark-directive'
 import type { RemarkDirectivesOptions } from './plugins/remark-directives.js'
-import { remarkMdxKitDirectives } from './plugins/remark-directives.js'
 import type { RemarkElementsOptions } from './plugins/remark-elements.js'
-import { remarkMdxKitElements } from './plugins/remark-elements.js'
 import type { MdxKitOptions } from './types.js'
 import type { ResolvedComponentConfig } from './utils/resolve-config.js'
+import { remarkMdxKitDirectives } from './plugins/remark-directives.js'
+import { remarkMdxKitElements } from './plugins/remark-elements.js'
 import { resolveComponentConfig } from './utils/resolve-config.js'
 
 /**
@@ -14,7 +14,6 @@ import { resolveComponentConfig } from './utils/resolve-config.js'
  * Add this to your `integrations` array in `astro.config.mjs`.
  * When used alongside Starlight, list it **before** Starlight so that
  * directive transforms run before Starlight's restoration plugin.
- *
  * @example
  * ```ts
  * import mdxKit from 'astro-mdx-kit'
@@ -52,9 +51,8 @@ export function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 	}
 
 	return {
-		name: 'astro-mdx-kit',
 		hooks: {
-			'astro:config:setup': ({ updateConfig, logger }) => {
+			'astro:config:setup'({ logger, updateConfig }) {
 				const remarkPlugins: unknown[] = []
 
 				if (Object.keys(resolvedDirectives).length > 0) {
@@ -62,11 +60,10 @@ export function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 						`Registering ${Object.keys(resolvedDirectives).length} directive(s): ${Object.keys(resolvedDirectives).join(', ')}`,
 					)
 
-					// remark-directive parses the :::/::/: syntax into AST nodes.
+					// Remark-directive parses the :::/::/: syntax into AST nodes.
 					// Safe to include even if Starlight already adds it — the
 					// second pass is a no-op.
-					remarkPlugins.push(remarkDirective)
-					remarkPlugins.push([
+					remarkPlugins.push(remarkDirective, [
 						remarkMdxKitDirectives,
 						{ configs: resolvedDirectives } satisfies RemarkDirectivesOptions,
 					])
@@ -92,5 +89,6 @@ export function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 				}
 			},
 		},
+		name: 'astro-mdx-kit',
 	}
 }

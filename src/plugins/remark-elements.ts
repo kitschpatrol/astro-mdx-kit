@@ -7,8 +7,8 @@ import type { MdxJsxAttribute, MdxJsxFlowElement, MdxJsxTextElement } from 'mdas
 import type { MdxjsEsm } from 'mdast-util-mdxjs-esm'
 import type { Plugin } from 'unified'
 import { visit } from 'unist-util-visit'
-import { log } from '../log.js'
 import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
+import { log } from '../log.js'
 import {
 	createComponentsExportNode,
 	createExpressionAttribute,
@@ -18,7 +18,7 @@ import {
 } from '../utils/ast.js'
 import { ImportTracker, isImportablePath } from '../utils/imports.js'
 
-export interface RemarkElementsOptions {
+export type RemarkElementsOptions = {
 	configs: Record<string, ResolvedComponentConfig>
 }
 
@@ -72,11 +72,7 @@ export const remarkMdxKitElements: Plugin<[RemarkElementsOptions], Root> = (opti
 			const componentsMappings: Record<string, string> = {}
 
 			for (const [element, config] of Object.entries(simpleOverrides)) {
-				imports.addComponentImport(
-					config.componentName,
-					config.importPath,
-					config.isNamedImport,
-				)
+				imports.addComponentImport(config.componentName, config.importPath, config.isNamedImport)
 				componentsMappings[element] = config.componentName
 			}
 
@@ -106,17 +102,17 @@ function transformImageNodes(
 
 	// Collect replacements first to avoid visiting newly created nodes
 	const replacements: Array<{
-		parent: Parameters<Parameters<typeof visit>[1]>[2]
 		index: number
 		node: Image
+		parent: Parameters<Parameters<typeof visit>[1]>[2]
 	}> = []
 
 	visit(tree, 'image', (node: Image, index, parent) => {
 		if (index === undefined || !parent) return
-		replacements.push({ parent, index, node })
+		replacements.push({ index, node, parent })
 	})
 
-	for (const { parent, index, node } of replacements) {
+	for (const { index, node, parent } of replacements) {
 		const attributes: MdxJsxAttribute[] = []
 
 		if (isImportablePath(node.url)) {
@@ -135,7 +131,7 @@ function transformImageNodes(
 		}
 
 		const jsx = createJsxFlowElement(config.componentName, attributes, [])
-		parent!.children[index] = jsx as (typeof parent.children)[number]
+		parent.children[index] = jsx as (typeof parent.children)[number]
 	}
 }
 
@@ -150,13 +146,9 @@ function transformJsxElements(
 	imports: ImportTracker,
 ): void {
 	visit(tree, (node) => {
-		if (
-			node.type !== 'mdxJsxFlowElement' &&
-			node.type !== 'mdxJsxTextElement'
-		)
-			return
+		if (node.type !== 'mdxJsxFlowElement' && node.type !== 'mdxJsxTextElement') return
 
-		const jsxNode = node as MdxJsxFlowElement | MdxJsxTextElement
+		const jsxNode = node
 		if (jsxNode.name !== elementName) return
 
 		// Rename element to component
@@ -166,27 +158,27 @@ function transformJsxElements(
 		if (config.autoImport) {
 			const { fromProp, toProp } = config.autoImport
 
-			for (const attr of jsxNode.attributes) {
-				if (attr.type !== 'mdxJsxAttribute' || attr.name !== fromProp) continue
-				if (typeof attr.value !== 'string' || !isImportablePath(attr.value)) continue
+			for (const attribute of jsxNode.attributes) {
+				if (attribute.type !== 'mdxJsxAttribute' || attribute.name !== fromProp) continue
+				if (typeof attribute.value !== 'string' || !isImportablePath(attribute.value)) continue
 
-				const importId = imports.addAssetImport(attr.value)
-				attr.name = toProp
-				attr.value = {
-					type: 'mdxJsxAttributeValueExpression',
-					value: importId,
+				const importId = imports.addAssetImport(attribute.value)
+				attribute.name = toProp
+				attribute.value = {
 					data: {
 						estree: {
-							type: 'Program',
-							sourceType: 'module',
 							body: [
 								{
+									expression: { name: importId, type: 'Identifier' },
 									type: 'ExpressionStatement',
-									expression: { type: 'Identifier', name: importId },
 								},
 							],
+							sourceType: 'module',
+							type: 'Program',
 						},
 					},
+					type: 'mdxJsxAttributeValueExpression',
+					value: importId,
 				}
 			}
 		}
@@ -201,7 +193,7 @@ function injectComponentsExport(tree: Root, mappings: Record<string, string>): v
 	// Try to merge into an existing `export const components`
 	for (const child of tree.children) {
 		if (child.type !== 'mdxjsEsm') continue
-		if (mergeIntoComponentsExport(child as MdxjsEsm, mappings)) return
+		if (mergeIntoComponentsExport(child, mappings)) return
 	}
 
 	// No existing export found — create one

@@ -21,31 +21,34 @@ function createImportEstree(localName: string, importPath: string, isNamed: bool
 	const specifiers: ImportDeclaration['specifiers'] = isNamed
 		? [
 				{
+					imported: { name: localName, type: 'Identifier' },
+					local: { name: localName, type: 'Identifier' },
 					type: 'ImportSpecifier',
-					imported: { type: 'Identifier', name: localName },
-					local: { type: 'Identifier', name: localName },
 				},
 			]
 		: [
 				{
+					local: { name: localName, type: 'Identifier' },
 					type: 'ImportDefaultSpecifier',
-					local: { type: 'Identifier', name: localName },
 				},
 			]
 
 	return {
-		type: 'Program',
-		sourceType: 'module',
 		body: [
 			{
-				type: 'ImportDeclaration',
-				specifiers,
 				source: { type: 'Literal', value: importPath },
+				specifiers,
+				type: 'ImportDeclaration',
 			},
 		],
+		sourceType: 'module',
+		type: 'Program',
 	}
 }
 
+/**
+ * TODO JSDoc description
+ */
 export function createEsmImportNode(
 	localName: string,
 	importPath: string,
@@ -56,49 +59,48 @@ export function createEsmImportNode(
 		: `import ${localName} from ${JSON.stringify(importPath)}`
 
 	return {
+		data: { estree: createImportEstree(localName, importPath, isNamed) },
 		type: 'mdxjsEsm',
 		value,
-		data: { estree: createImportEstree(localName, importPath, isNamed) },
 	}
 }
 
 /**
  * Create an `export const components = { ... }` node.
- *
  * @param mappings - Map of element names to local component identifiers.
  */
 export function createComponentsExportNode(mappings: Record<string, string>): MdxjsEsm {
 	const properties: Property[] = Object.entries(mappings).map(([key, value]) => ({
-		type: 'Property',
-		key: { type: 'Identifier', name: key },
-		value: { type: 'Identifier', name: value },
+		computed: false,
+		key: { name: key, type: 'Identifier' },
 		kind: 'init',
 		method: false,
 		shorthand: false,
-		computed: false,
+		type: 'Property',
+		value: { name: value, type: 'Identifier' },
 	}))
 
 	const estree: Program = {
-		type: 'Program',
-		sourceType: 'module',
 		body: [
 			{
-				type: 'ExportNamedDeclaration',
 				declaration: {
-					type: 'VariableDeclaration',
-					kind: 'const',
 					declarations: [
 						{
+							id: { name: 'components', type: 'Identifier' },
+							init: { properties, type: 'ObjectExpression' },
 							type: 'VariableDeclarator',
-							id: { type: 'Identifier', name: 'components' },
-							init: { type: 'ObjectExpression', properties },
 						},
 					],
+					kind: 'const',
+					type: 'VariableDeclaration',
 				},
-				specifiers: [],
 				source: null,
+				specifiers: [],
+				type: 'ExportNamedDeclaration',
 			},
 		],
+		sourceType: 'module',
+		type: 'Program',
 	}
 
 	const entries = Object.entries(mappings)
@@ -106,9 +108,9 @@ export function createComponentsExportNode(mappings: Record<string, string>): Md
 		.join(', ')
 
 	return {
+		data: { estree },
 		type: 'mdxjsEsm',
 		value: `export const components = { ${entries} }`,
-		data: { estree },
 	}
 }
 
@@ -131,21 +133,21 @@ export function mergeIntoComponentsExport(
 	for (const statement of estree.body) {
 		if (statement.type !== 'ExportNamedDeclaration') continue
 
-		const declaration = (statement as ExportNamedDeclaration).declaration
-		if (!declaration || declaration.type !== 'VariableDeclaration') continue
+		const { declaration } = statement
+		if (declaration?.type !== 'VariableDeclaration') continue
 
 		for (const declarator of declaration.declarations) {
 			if (declarator.id.type !== 'Identifier' || declarator.id.name !== 'components') continue
 
-			const newProperties: (Property | SpreadElement)[] = Object.entries(mappings).map(
+			const newProperties: Array<Property | SpreadElement> = Object.entries(mappings).map(
 				([key, value]) => ({
-					type: 'Property' as const,
-					key: { type: 'Identifier' as const, name: key },
-					value: { type: 'Identifier' as const, name: value },
+					computed: false,
+					key: { name: key, type: 'Identifier' as const },
 					kind: 'init' as const,
 					method: false,
 					shorthand: false,
-					computed: false,
+					type: 'Property' as const,
+					value: { name: value, type: 'Identifier' as const },
 				}),
 			)
 
@@ -154,11 +156,11 @@ export function mergeIntoComponentsExport(
 			} else {
 				// Wrap non-object expression: { ...ours, ...existingExpr }
 				const existingSpread: SpreadElement[] = declarator.init
-					? [{ type: 'SpreadElement', argument: declarator.init as Expression }]
+					? [{ argument: declarator.init as Expression, type: 'SpreadElement' }]
 					: []
 				declarator.init = {
-					type: 'ObjectExpression',
 					properties: [...newProperties, ...existingSpread],
+					type: 'ObjectExpression',
 				}
 			}
 
@@ -173,59 +175,75 @@ export function mergeIntoComponentsExport(
 // MDX JSX element / attribute nodes
 // ---------------------------------------------------------------------------
 
+/**
+ * Unused at the moment?
+ * @public
+ */
 export function createExpressionAttributeValue(identifier: string): MdxJsxAttribute['value'] {
 	return {
-		type: 'mdxJsxAttributeValueExpression',
-		value: identifier,
 		data: {
 			estree: {
-				type: 'Program',
-				sourceType: 'module',
 				body: [
 					{
+						expression: { name: identifier, type: 'Identifier' },
 						type: 'ExpressionStatement',
-						expression: { type: 'Identifier', name: identifier },
 					},
 				],
+				sourceType: 'module',
+				type: 'Program',
 			},
 		},
+		type: 'mdxJsxAttributeValueExpression',
+		value: identifier,
 	}
 }
 
+/**
+ * TODO JSDoc description
+ */
 export function createStringAttribute(name: string, value: string): MdxJsxAttribute {
-	return { type: 'mdxJsxAttribute', name, value }
+	return { name, type: 'mdxJsxAttribute', value }
 }
 
+/**
+ * TODO JSDoc description
+ */
 export function createExpressionAttribute(name: string, identifier: string): MdxJsxAttribute {
 	return {
-		type: 'mdxJsxAttribute',
 		name,
+		type: 'mdxJsxAttribute',
 		value: createExpressionAttributeValue(identifier),
 	}
 }
 
+/**
+ * TODO JSDoc description
+ */
 export function createJsxFlowElement(
 	name: string,
 	attributes: MdxJsxAttribute[],
 	children: RootContent[],
 ): MdxJsxFlowElement {
 	return {
-		type: 'mdxJsxFlowElement',
-		name,
 		attributes,
 		children,
+		name,
+		type: 'mdxJsxFlowElement',
 	}
 }
 
+/**
+ * TODO JSDoc description
+ */
 export function createJsxTextElement(
 	name: string,
 	attributes: MdxJsxAttribute[],
 	children: RootContent[],
 ): MdxJsxTextElement {
 	return {
-		type: 'mdxJsxTextElement',
-		name,
 		attributes,
 		children,
+		name,
+		type: 'mdxJsxTextElement',
 	}
 }

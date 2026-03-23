@@ -11,13 +11,13 @@ export type AutoImportConfig = string | { from: string; to: string }
 /**
  * Detailed configuration for a component mapping.
  */
-export interface DetailedComponentConfig {
+export type DetailedComponentConfig = {
+	/** Auto-import a prop's value as a module (e.g., for image paths). */
+	autoImport?: AutoImportConfig
 	/** Component name (for named exports) or file path (for default exports). */
 	component: string
 	/** Module to import the component from (e.g., `'astro:assets'`). When set, `component` is treated as a named export. */
 	componentModule?: string
-	/** Auto-import a prop's value as a module (e.g., for image paths). */
-	autoImport?: AutoImportConfig
 }
 
 /**
@@ -26,12 +26,12 @@ export interface DetailedComponentConfig {
  * - `string`: A file path for default import (e.g., `'src/components/block.astro'`).
  * - `DetailedComponentConfig`: Full configuration with optional module and auto-import.
  */
-export type ComponentConfig = string | DetailedComponentConfig
+export type ComponentConfig = DetailedComponentConfig | string
 
 /**
  * Options for the astro-mdx-kit integration.
  */
-export interface MdxKitOptions {
+export type MdxKitOptions = {
 	/**
 	 * Map directive names to components.
 	 *
@@ -44,13 +44,11 @@ export interface MdxKitOptions {
 	 * by how the user writes it in markdown. No need to specify the type.
 	 */
 	directives?: Record<string, ComponentConfig>
-
 	/**
 	 * Map HTML element names to components.
 	 *
 	 * Simple overrides use MDX's `export const components` mechanism.
 	 * Overrides with `autoImport` use direct AST transformation.
-	 *
 	 * @example
 	 * ```ts
 	 * elements: {
@@ -65,4 +63,3 @@ export interface MdxKitOptions {
 	 */
 	elements?: Record<string, ComponentConfig>
 }
-
