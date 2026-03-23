@@ -209,7 +209,7 @@ describe('remarkMdxKitDirectives', () => {
 
 		runPlugin(tree, Object.fromEntries([['Block', 'src/components/block.astro']]))
 
-		expect(tree.children[0].type).toBe('leafDirective')
+		expect(tree.children.at(0)?.type).toBe('leafDirective')
 	})
 
 	it('skips autoImport for URL values', () => {

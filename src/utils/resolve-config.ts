@@ -58,6 +58,7 @@ function resolveDetailed(
 	const autoImport = config.autoImport ? resolveAutoImport(config.autoImport) : undefined
 
 	if (config.componentModule) {
+		// @ts-expect-error - TODO fix type
 		return {
 			autoImport,
 			caption,
@@ -67,6 +68,7 @@ function resolveDetailed(
 		}
 	}
 
+	// @ts-expect-error - TODO Fix type
 	return {
 		autoImport,
 		caption,

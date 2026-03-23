@@ -1,7 +1,8 @@
-// @ts-check
-import { defineConfig } from 'astro/config'
+/* eslint-disable ts/naming-convention */
+
 import starlight from '@astrojs/starlight'
 import mdxKit from 'astro-mdx-kit'
+import { defineConfig } from 'astro/config'
 
 export default defineConfig({
 	integrations: [
@@ -26,21 +27,21 @@ export default defineConfig({
 			unwrapImages: true,
 		}),
 		starlight({
-			title: 'My Docs',
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/starlight' }],
 			sidebar: [
 				{
-					label: 'Guides',
 					items: [
 						// Each item here is one entry in the navigation menu.
 						{ label: 'Example Guide', slug: 'guides/example' },
 					],
+					label: 'Guides',
 				},
 				{
-					label: 'Reference',
 					autogenerate: { directory: 'reference' },
+					label: 'Reference',
 				},
 			],
+			social: [{ href: 'https://github.com/withastro/starlight', icon: 'github', label: 'GitHub' }],
+			title: 'My Docs',
 		}),
 	],
 })

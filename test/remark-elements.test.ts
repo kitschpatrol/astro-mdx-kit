@@ -266,11 +266,17 @@ describe('remarkMdxKitElements — caption modes', () => {
 
 		// First child: the image component
 		const imageChild = figure!.children[0]
+		if (imageChild === undefined) {
+			throw new Error('imageChild is undefined')
+		}
 		expect(imageChild.type).toBe('mdxJsxFlowElement')
 		expect((imageChild as MdxJsxFlowElement).name).toBe('Picture')
 
 		// Second child: figcaption
 		const figcaptionChild = figure!.children[1]
+		if (figcaptionChild === undefined) {
+			throw new Error('figcaptionChild is undefined')
+		}
 		expect(figcaptionChild.type).toBe('mdxJsxFlowElement')
 		expect((figcaptionChild as MdxJsxFlowElement).name).toBe('figcaption')
 	})

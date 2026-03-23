@@ -6,18 +6,16 @@ export default eslintConfig(
 		ignores: [
 			// Directives and attributes make a mess of MDX linting
 			'playground/**/*.mdx',
-			'playground-starlight/**/*',
+			'playground-starlight/**/*.mdx',
 			'references/**/*',
 		],
 		type: 'lib',
 	},
 	{
-		files: ['playground/package.json'],
+		files: ['playground/package.json', 'playground-starlight/package.json'],
 		rules: {
-			// TODO remove after next shared-config release
 			'json-package/require-keywords': 'off',
 			'json-package/require-version': 'off',
-			// Because of link to parent
 			'json-package/valid-devDependencies': 'off',
 			'json-package/valid-package-definition': 'off',
 		},

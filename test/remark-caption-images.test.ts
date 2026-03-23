@@ -42,13 +42,13 @@ describe('captionImagesTransform', () => {
 		expect(figure!.children).toHaveLength(2)
 
 		// First child: the original MDAST image node (preserved for Astro optimization)
-		expect(figure!.children[0].type).toBe('image')
+		expect(figure!.children.at(0)?.type).toBe('image')
 
 		// Second child: <figcaption> with caption text directly inside (no <p> wrapper)
 		const figcaption = findJsxFlowAnywhere(tree, 'figcaption')
 		expect(figcaption).toBeDefined()
 		expect(figcaption!.children).toHaveLength(1)
-		expect(figcaption!.children[0].type).toBe('text')
+		expect(figcaption!.children.at(0)?.type).toBe('text')
 	})
 
 	it('does not wrap when there is no caption', () => {
@@ -62,7 +62,7 @@ describe('captionImagesTransform', () => {
 
 		const figure = findJsxFlowAnywhere(tree, 'figure')
 		expect(figure).toBeUndefined()
-		expect(tree.children[0].type).toBe('paragraph')
+		expect(tree.children.at(0)?.type).toBe('paragraph')
 	})
 
 	it('skips paragraphs with multiple images', () => {

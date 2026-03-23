@@ -16,7 +16,8 @@ function isStandaloneImage(paragraph: Parent): boolean {
 	const meaningful = paragraph.children.filter(
 		(child) => !isWhitespaceText(child as { type: string; value?: string }),
 	)
-	return meaningful.length === 1 && isImageLike(meaningful[0] as { type: string })
+	// eslint-disable-next-line ts/no-unsafe-type-assertion
+	return meaningful.length === 1 && isImageLike(meaningful.at(0) as { type: string })
 }
 
 function unwrapParagraph(parent: { children: unknown[] }, index: number, paragraph: Parent): void {
@@ -31,7 +32,7 @@ export function unwrapImagesTransform(tree: Root): void {
 	// Walk in reverse so splicing doesn't shift unvisited indices
 	for (let index = tree.children.length - 1; index >= 0; index--) {
 		const child = tree.children[index]
-		if (child.type !== 'paragraph') continue
+		if (child?.type !== 'paragraph') continue
 		if (!isStandaloneImage(child)) continue
 
 		unwrapParagraph(tree, index, child)

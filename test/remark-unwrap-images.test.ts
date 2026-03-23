@@ -20,7 +20,7 @@ describe('remarkMdxKitUnwrapImages', () => {
 		unwrap(tree)
 
 		expect(tree.children).toHaveLength(1)
-		expect(tree.children[0].type).toBe('image')
+		expect(tree.children.at(0)?.type).toBe('image')
 	})
 
 	it('does not unwrap images that share a paragraph with other content', () => {
@@ -39,7 +39,7 @@ describe('remarkMdxKitUnwrapImages', () => {
 
 		// Paragraph should remain
 		expect(tree.children).toHaveLength(1)
-		expect(tree.children[0].type).toBe('paragraph')
+		expect(tree.children.at(0)?.type).toBe('paragraph')
 	})
 
 	it('unwraps images with only whitespace siblings', () => {
@@ -81,7 +81,7 @@ describe('remarkMdxKitUnwrapImages', () => {
 		unwrap(tree)
 
 		expect(tree.children).toHaveLength(1)
-		expect(tree.children[0].type).toBe('mdxJsxFlowElement')
+		expect(tree.children.at(0)?.type).toBe('mdxJsxFlowElement')
 	})
 
 	it('preserves non-image paragraphs', () => {
@@ -93,7 +93,7 @@ describe('remarkMdxKitUnwrapImages', () => {
 		unwrap(tree)
 
 		expect(tree.children).toHaveLength(1)
-		expect(tree.children[0].type).toBe('paragraph')
+		expect(tree.children.at(0)?.type).toBe('paragraph')
 	})
 
 	it('handles multiple stand-alone images', () => {
@@ -111,8 +111,8 @@ describe('remarkMdxKitUnwrapImages', () => {
 		unwrap(tree)
 
 		expect(tree.children).toHaveLength(3)
-		expect(tree.children[0].type).toBe('image')
-		expect(tree.children[1].type).toBe('paragraph')
-		expect(tree.children[2].type).toBe('image')
+		expect(tree.children.at(0)?.type).toBe('image')
+		expect(tree.children.at(1)?.type).toBe('paragraph')
+		expect(tree.children.at(2)?.type).toBe('image')
 	})
 })

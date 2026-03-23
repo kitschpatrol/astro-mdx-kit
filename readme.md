@@ -51,19 +51,19 @@ It's not necessarily pretty, but it _is_ portable.
 
 In addition to support for mapping directives to, `astro-mdx-kit` bundles some additional tools I end up needing most of the time:
 
-- **Directives**  
+- **Directives**\
   Map Markdown directive syntax (`:name`, `::name`, `:::name`) to Astro components.
-- **Element overrides**  
+- **Element overrides**\
   Replace HTML elements (`h1`, `img`, etc.) with custom Astro components.
-- **Auto-imports**  
+- **Auto-imports**\
   Automatically import components and assets (like images) without manual `import` statements.
-- **Image captions**  
+- **Image captions**\
   Extract caption text adjacent to images and wrap in `<figure>/<figcaption>` or pass to components.
-- **Attribute lists**  
+- **Attribute lists**\
   Kramdown-style `{:key="value"}` syntax for adding attributes to any Markdown element.
-- **Image unwrapping**  
+- **Image unwrapping**\
   Remove `<p>` wrappers from stand-alone images.
-- **Frontmatter injection**  
+- **Frontmatter injection**\
   Expose raw MDX source or the parsed AST tree in frontmatter.
 
 Available as an Astro integration, a standalone remark plugin, or as individual sub-plugins for use in any unified pipeline.

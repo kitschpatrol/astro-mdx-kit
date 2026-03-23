@@ -14,6 +14,9 @@ function asImportDeclaration(
 	index = 0,
 ): ImportDeclaration {
 	const statement = program!.body[index]
+	if (statement === undefined) {
+		throw new Error(`Expected ImportDeclaration, got ${statement}`)
+	}
 	if (statement.type !== 'ImportDeclaration')
 		throw new Error(`Expected ImportDeclaration, got ${statement.type}`)
 	return statement
@@ -24,6 +27,9 @@ function asExportNamedDeclaration(
 	index = 0,
 ): ExportNamedDeclaration {
 	const statement = program!.body[index]
+	if (statement === undefined) {
+		throw new Error(`Expected ImportDeclaration, got ${statement}`)
+	}
 	if (statement.type !== 'ExportNamedDeclaration')
 		throw new Error(`Expected ExportNamedDeclaration, got ${statement.type}`)
 	return statement
@@ -39,8 +45,9 @@ describe('createEsmImportNode', () => {
 		expect(estree.body).toHaveLength(1)
 
 		const declaration = asImportDeclaration(estree)
-		expect(declaration.specifiers[0].type).toBe('ImportDefaultSpecifier')
-		expect(declaration.specifiers[0].local.name).toBe('Foo')
+
+		expect(declaration.specifiers.at(0)?.type).toBe('ImportDefaultSpecifier')
+		expect(declaration.specifiers.at(0)?.local.name).toBe('Foo')
 		expect(declaration.source.value).toBe('/src/Foo.astro')
 	})
 
@@ -49,7 +56,7 @@ describe('createEsmImportNode', () => {
 		expect(node.value).toBe('import { Picture } from "astro:assets"')
 
 		const declaration = asImportDeclaration(node.data!.estree)
-		expect(declaration.specifiers[0].type).toBe('ImportSpecifier')
+		expect(declaration.specifiers.at(0)?.type).toBe('ImportSpecifier')
 	})
 })
 
@@ -76,10 +83,11 @@ describe('mergeIntoComponentsExport', () => {
 		const statement = asExportNamedDeclaration(existing.data!.estree)
 		const { declaration } = statement
 		if (declaration?.type !== 'VariableDeclaration') throw new Error('Expected VariableDeclaration')
-		const { init } = declaration.declarations[0]
-		expect(init?.type).toBe('ObjectExpression')
-		if (init?.type === 'ObjectExpression') {
-			expect(init.properties).toHaveLength(2)
+		const someDeclaration = declaration.declarations.at(0)
+
+		expect(someDeclaration?.init?.type).toBe('ObjectExpression')
+		if (someDeclaration?.init?.type === 'ObjectExpression') {
+			expect(someDeclaration.init.properties).toHaveLength(2)
 		}
 	})
 
