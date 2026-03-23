@@ -11,9 +11,21 @@ importers:
       '@types/node':
         specifier: ~20.19.37
         version: 20.19.37
+      hast-util-to-html:
+        specifier: ^9.0.5
+        version: 9.0.5
       lognow:
         specifier: ^0.5.2
         version: 0.5.2
+      mdast-util-to-hast:
+        specifier: ^13.2.1
+        version: 13.2.1
+      mdast-util-to-markdown:
+        specifier: ^2.1.2
+        version: 2.1.2
+      mdast-util-to-string:
+        specifier: ^4.0.0
+        version: 4.0.0
       remark-directive:
         specifier: ^4.0.0
         version: 4.0.0

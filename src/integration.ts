@@ -5,11 +5,12 @@ import type { RemarkElementsOptions } from './plugins/remark-elements.js'
 import type { RemarkFrontmatterInjectOptions } from './plugins/remark-frontmatter-inject.js'
 import type { MdxKitOptions } from './types.js'
 import type { ResolvedComponentConfig } from './utils/resolve-config.js'
+import { remarkCaptionImages } from './plugins/remark-caption-images.js'
 import { remarkMdxKitDirectives } from './plugins/remark-directives.js'
 import { remarkMdxKitElements } from './plugins/remark-elements.js'
 import { remarkFrontmatterInject } from './plugins/remark-frontmatter-inject.js'
 import { remarkUnwrapImages } from './plugins/remark-unwrap-images.js'
-import { resolveComponentConfig } from './utils/resolve-config.js'
+import { resolveComponentConfig, resolveElementConfig } from './utils/resolve-config.js'
 
 /**
  * Create the `astro-mdx-kit` Astro integration.
@@ -36,7 +37,7 @@ import { resolveComponentConfig } from './utils/resolve-config.js'
  * ```
  */
 export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
-	const { directives, elements, mdast, rawMdx, unwrapImages } = options
+	const { captionImages, directives, elements, mdast, rawMdx, unwrapImages } = options
 
 	// Pre-resolve all configs at integration setup time (not per-file)
 	const resolvedDirectives: Record<string, ResolvedComponentConfig> = {}
@@ -49,7 +50,7 @@ export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 	const resolvedElements: Record<string, ResolvedComponentConfig> = {}
 	if (elements) {
 		for (const [name, config] of Object.entries(elements)) {
-			resolvedElements[name] = resolveComponentConfig(name, config)
+			resolvedElements[name] = resolveElementConfig(name, config)
 		}
 	}
 
@@ -91,7 +92,12 @@ export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 					])
 				}
 
-				// Unwrap stand-alone images after element overrides have run
+				// Global caption handling for images not already handled by element overrides
+				if (captionImages) {
+					remarkPlugins.push(remarkCaptionImages)
+				}
+
+				// Unwrap stand-alone images after element overrides and captions
 				if (unwrapImages) {
 					remarkPlugins.push(remarkUnwrapImages)
 				}

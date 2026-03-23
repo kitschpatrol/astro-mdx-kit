@@ -4,8 +4,8 @@
 /// <reference types="mdast-util-mdx-jsx" />
 /// <reference types="mdast-util-mdxjs-esm" />
 
-import type { Image, Root } from 'mdast'
-import type { MdxJsxAttribute } from 'mdast-util-mdx-jsx'
+import type { Image, Parent as MdastParent, Root } from 'mdast'
+import type { MdxJsxAttribute, MdxJsxFlowElement } from 'mdast-util-mdx-jsx'
 import type { Plugin } from 'unified'
 import type { Parent } from 'unist'
 import { SKIP, visit } from 'unist-util-visit'
@@ -19,6 +19,7 @@ import {
 	createStringAttribute,
 	mergeIntoComponentsExport,
 } from '../utils/ast.js'
+import { buildCaptionReplacement, extractCaptionNodes } from '../utils/caption.js'
 import { ImportTracker, isImportablePath } from '../utils/imports.js'
 
 export type RemarkElementsOptions = {
@@ -103,44 +104,94 @@ export const remarkMdxKitElements: Plugin<[RemarkElementsOptions], Root> = (opti
 // Image node transformation (![alt](src))
 // ---------------------------------------------------------------------------
 
-function transformImageNodes(
-	tree: Root,
+function buildImageJsxElement(
+	node: Image,
 	config: ResolvedComponentConfig,
 	imports: ImportTracker,
-): void {
+): MdxJsxFlowElement {
 	const { autoImport } = config
-	if (!autoImport) return
+	const attributes: MdxJsxAttribute[] = []
 
-	const { fromProp, toProp } = autoImport
-
-	visit(tree, 'image', (node: Image, index, parent) => {
-		if (index === undefined || !parent) return SKIP
-
-		const attributes: MdxJsxAttribute[] = []
-
+	if (autoImport) {
+		const { fromProp, toProp } = autoImport
 		if (isImportablePath(node.url)) {
 			const importId = imports.addAssetImport(node.url)
 			attributes.push(createExpressionAttribute(toProp, importId))
-			// When remapping (from !== to), preserve the original prop as a string
 			if (fromProp !== toProp) {
 				attributes.push(createStringAttribute(fromProp, node.url))
 			}
 		} else {
 			attributes.push(createStringAttribute(toProp, node.url))
 		}
+	}
 
-		if (node.alt) {
-			attributes.push(createStringAttribute('alt', node.alt))
+	if (node.alt) {
+		attributes.push(createStringAttribute('alt', node.alt))
+	}
+
+	if (node.title) {
+		attributes.push(createStringAttribute('title', node.title))
+	}
+
+	return createJsxFlowElement(config.componentName, attributes, [])
+}
+
+function transformImageNodes(
+	tree: Root,
+	config: ResolvedComponentConfig,
+	imports: ImportTracker,
+): void {
+	// Pre-scan: identify paragraphs with multiple images (skip caption for those)
+	const multiImageParagraphs = new WeakSet<MdastParent>()
+	if (config.caption) {
+		visit(tree, 'paragraph', (node) => {
+			const imageCount = node.children.filter((child) => child.type === 'image').length
+			if (imageCount > 1) {
+				multiImageParagraphs.add(node)
+			}
+		})
+	}
+
+	// Collect paragraph-level replacements for caption mode (mark-and-sweep)
+	const paragraphReplacements = new Map<MdastParent, MdxJsxFlowElement>()
+
+	visit(tree, 'image', (node: Image, index, parent) => {
+		if (index === undefined || !parent) return SKIP
+
+		const imageJsx = buildImageJsxElement(node, config, imports)
+
+		if (!config.caption || multiImageParagraphs.has(parent)) {
+			// No caption mode or multi-image paragraph — replace image in-place
+			;(parent as Parent).children[index] = imageJsx
+			return SKIP
 		}
 
-		if (node.title) {
-			attributes.push(createStringAttribute('title', node.title))
+		const captionNodes = extractCaptionNodes(parent, index)
+
+		if (captionNodes.length === 0) {
+			// No caption content — just replace image in-place
+			;(parent as Parent).children[index] = imageJsx
+			return SKIP
 		}
 
-		const jsx = createJsxFlowElement(config.componentName, attributes, [])
-		;(parent as Parent).children[index] = jsx
+		// Schedule paragraph-level replacement
+		paragraphReplacements.set(
+			parent,
+			buildCaptionReplacement(config.caption, imageJsx, captionNodes),
+		)
 		return SKIP
 	})
+
+	// Second pass: replace paragraphs that have captions
+	if (paragraphReplacements.size > 0) {
+		visit(tree, 'paragraph', (node, index, parent) => {
+			if (index === undefined || !parent) return
+			const replacement = paragraphReplacements.get(node)
+			if (!replacement) return
+			;(parent as Parent).children[index] = replacement
+			return SKIP
+		})
+	}
 }
 
 // ---------------------------------------------------------------------------

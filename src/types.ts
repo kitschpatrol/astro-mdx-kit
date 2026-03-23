@@ -9,7 +9,34 @@
 export type AutoImportConfig = string | { from: string; to: string }
 
 /**
- * Detailed configuration for a component mapping.
+ * Configuration for passing a caption as a serialized string prop.
+ */
+export type CaptionPropConfig = {
+	/**
+	 * Serialization format for the caption text.
+	 * - `'plain'` (default) — plain text, formatting stripped
+	 * - `'raw'` — raw markdown string
+	 * - `'rendered'` — rendered HTML string
+	 */
+	format?: 'plain' | 'raw' | 'rendered'
+	/** The prop name to receive the caption string. */
+	prop: string
+}
+
+/**
+ * Caption handling mode for image elements.
+ *
+ * Controls what happens to text that follows an image in the same paragraph
+ * (e.g. `![alt](src) Caption text`).
+ *
+ * - `'figure'` — wrap image + caption in `<figure>/<figcaption>`
+ * - `'children'` — pass caption AST nodes as children of the image component
+ * - `{ prop, format? }` — serialize caption and pass as a named string prop
+ */
+export type CaptionConfig = 'children' | 'figure' | CaptionPropConfig
+
+/**
+ * Detailed configuration for mapping a directive to a component.
  */
 export type DetailedComponentConfig = {
 	/** Auto-import a prop's value as a module (e.g., for image paths). */
@@ -21,7 +48,19 @@ export type DetailedComponentConfig = {
 }
 
 /**
- * Configuration for mapping a directive or element to a component.
+ * Detailed configuration for mapping an HTML element to a component.
+ * Extends directive config with element-specific options like `caption`.
+ */
+export type DetailedElementConfig = DetailedComponentConfig & {
+	/**
+	 * Caption handling for image elements. Only applies to `img` element overrides.
+	 * @see {@link CaptionConfig}
+	 */
+	caption?: CaptionConfig
+}
+
+/**
+ * Configuration for mapping a directive to a component.
  *
  * - `string`: A file path for default import (e.g., `'src/components/block.astro'`).
  * - `DetailedComponentConfig`: Full configuration with optional module and auto-import.
@@ -29,9 +68,32 @@ export type DetailedComponentConfig = {
 export type ComponentConfig = DetailedComponentConfig | string
 
 /**
+ * Configuration for mapping an HTML element to a component.
+ *
+ * - `string`: A file path for default import.
+ * - `DetailedElementConfig`: Full configuration with optional module, auto-import, and caption.
+ */
+export type ElementConfig = DetailedElementConfig | string
+
+/**
  * Options for the astro-mdx-kit integration.
  */
 export type MdxKitOptions = {
+	/**
+	 * Wrap images that have adjacent caption text in `<figure>/<figcaption>`.
+	 *
+	 * When an image is followed by text in the same paragraph
+	 * (`![alt](src) Caption text`), the paragraph is replaced with a
+	 * `<figure>` containing the original image and a `<figcaption>`.
+	 *
+	 * The original MDAST image node is preserved inside the figure, so
+	 * Astro's built-in image optimization still applies.
+	 *
+	 * If an `img` element override also has its own `caption` config, the
+	 * element override takes precedence (it transforms the image first).
+	 * @default false
+	 */
+	captionImages?: boolean
 	/**
 	 * Map directive names to components.
 	 *
@@ -61,7 +123,7 @@ export type MdxKitOptions = {
 	 * }
 	 * ```
 	 */
-	elements?: Record<string, ComponentConfig>
+	elements?: Record<string, ElementConfig>
 	/**
 	 * Inject the MDAST (Markdown Abstract Syntax Tree) into frontmatter.
 	 *

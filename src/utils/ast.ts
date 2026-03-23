@@ -5,9 +5,10 @@
 /// <reference types="mdast-util-mdxjs-esm" />
 
 import type { Expression, ImportDeclaration, Program, Property, SpreadElement } from 'estree'
-import type { BlockContent, DefinitionContent, PhrasingContent } from 'mdast'
+import type { PhrasingContent } from 'mdast'
 import type { MdxJsxAttribute, MdxJsxFlowElement, MdxJsxTextElement } from 'mdast-util-mdx-jsx'
 import type { MdxjsEsm } from 'mdast-util-mdxjs-esm'
+import type { Node } from 'unist'
 
 // ---------------------------------------------------------------------------
 // ESM import / export nodes
@@ -219,14 +220,18 @@ export function createExpressionAttribute(name: string, identifier: string): Mdx
 export function createJsxFlowElement(
 	name: string,
 	attributes: MdxJsxAttribute[],
-	children: Array<BlockContent | DefinitionContent>,
+	children: Node[],
 ): MdxJsxFlowElement {
-	return {
+	// Children type is widened to Node[] because JSX elements can contain
+	// any mix of block, phrasing, or image content at runtime.
+	const element: MdxJsxFlowElement = {
 		attributes,
-		children,
+		// eslint-disable-next-line ts/no-unsafe-type-assertion -- Node[] is safe at runtime; narrow MDAST types are overly strict
+		children: children as MdxJsxFlowElement['children'],
 		name,
 		type: 'mdxJsxFlowElement',
 	}
+	return element
 }
 
 /**

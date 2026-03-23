@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolveComponentConfig } from '../src/utils/resolve-config'
+import { resolveComponentConfig, resolveElementConfig } from '../src/utils/resolve-config'
 
 describe('resolveComponentConfig', () => {
 	it('resolves a simple string path', () => {
@@ -86,5 +86,41 @@ describe('resolveComponentConfig', () => {
 			importPath: '/src/components/heading.astro',
 			isNamedImport: false,
 		})
+	})
+
+	it('does not include caption on directive configs', () => {
+		const result = resolveComponentConfig('MyDirective', {
+			autoImport: 'src',
+			component: 'Picture',
+			componentModule: 'astro:assets',
+		})
+		expect(result.caption).toBeUndefined()
+	})
+})
+
+describe('resolveElementConfig', () => {
+	it('resolves caption config', () => {
+		const result = resolveElementConfig('img', {
+			autoImport: 'src',
+			caption: 'figure',
+			component: 'Picture',
+			componentModule: 'astro:assets',
+		})
+		expect(result.caption).toBe('figure')
+	})
+
+	it('resolves caption prop config with format', () => {
+		const result = resolveElementConfig('img', {
+			autoImport: 'src',
+			caption: { format: 'rendered', prop: 'caption' },
+			component: 'src/components/Image.astro',
+		})
+		expect(result.caption).toEqual({ format: 'rendered', prop: 'caption' })
+	})
+
+	it('resolves element config without caption', () => {
+		const result = resolveElementConfig('h1', 'src/components/Heading.astro')
+		expect(result.caption).toBeUndefined()
+		expect(result.componentName).toBe('_MdxKit_H1')
 	})
 })

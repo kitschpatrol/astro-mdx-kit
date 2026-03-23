@@ -45,7 +45,11 @@
 	},
 	"dependencies": {
 		"@types/node": "~20.19.37",
+		"hast-util-to-html": "^9.0.5",
 		"lognow": "^0.5.2",
+		"mdast-util-to-hast": "^13.2.1",
+		"mdast-util-to-markdown": "^2.1.2",
+		"mdast-util-to-string": "^4.0.0",
 		"remark-directive": "^4.0.0",
 		"unist-util-visit": "^5.1.0"
 	},

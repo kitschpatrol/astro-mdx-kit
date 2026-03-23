@@ -1,4 +1,4 @@
-import type { AutoImportConfig, ComponentConfig } from '../types.js'
+import type { AutoImportConfig, CaptionConfig, ComponentConfig, ElementConfig } from '../types.js'
 
 export type ResolvedAutoImport = {
 	fromProp: string
@@ -7,6 +7,7 @@ export type ResolvedAutoImport = {
 
 export type ResolvedComponentConfig = {
 	autoImport?: ResolvedAutoImport
+	caption?: CaptionConfig
 	componentName: string
 	importPath: string
 	isNamedImport: boolean
@@ -49,11 +50,35 @@ function resolveAutoImport(config: AutoImportConfig): ResolvedAutoImport {
 	return { fromProp: config.from, toProp: config.to }
 }
 
+function resolveDetailed(
+	name: string,
+	config: { autoImport?: AutoImportConfig; component: string; componentModule?: string },
+	caption?: CaptionConfig,
+): ResolvedComponentConfig {
+	const autoImport = config.autoImport ? resolveAutoImport(config.autoImport) : undefined
+
+	if (config.componentModule) {
+		return {
+			autoImport,
+			caption,
+			componentName: config.component,
+			importPath: config.componentModule,
+			isNamedImport: true,
+		}
+	}
+
+	return {
+		autoImport,
+		caption,
+		componentName: `_MdxKit_${toPascalCase(name)}`,
+		importPath: resolveImportPath(config.component),
+		isNamedImport: false,
+	}
+}
+
 /**
- * Resolve a user-facing `ComponentConfig` into an internal
- * `ResolvedComponentConfig` with a stable component name and import path.
- * @param name - The directive name or element name from the config key.
- * @param config - The user-provided component configuration.
+ * Resolve a directive `ComponentConfig` into a `ResolvedComponentConfig`.
+ * Directives do not support the `caption` option.
  */
 export function resolveComponentConfig(
 	name: string,
@@ -67,21 +92,21 @@ export function resolveComponentConfig(
 		}
 	}
 
-	const autoImport = config.autoImport ? resolveAutoImport(config.autoImport) : undefined
+	return resolveDetailed(name, config)
+}
 
-	if (config.componentModule) {
+/**
+ * Resolve an element `ElementConfig` into a `ResolvedComponentConfig`.
+ * Elements support the `caption` option (for `img` overrides).
+ */
+export function resolveElementConfig(name: string, config: ElementConfig): ResolvedComponentConfig {
+	if (typeof config === 'string') {
 		return {
-			autoImport,
-			componentName: config.component,
-			importPath: config.componentModule,
-			isNamedImport: true,
+			componentName: `_MdxKit_${toPascalCase(name)}`,
+			importPath: resolveImportPath(config),
+			isNamedImport: false,
 		}
 	}
 
-	return {
-		autoImport,
-		componentName: `_MdxKit_${toPascalCase(name)}`,
-		importPath: resolveImportPath(config.component),
-		isNamedImport: false,
-	}
+	return resolveDetailed(name, config, config.caption)
 }

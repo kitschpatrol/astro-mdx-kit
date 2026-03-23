@@ -9,16 +9,16 @@ import type { MdxJsxAttribute, MdxJsxFlowElement } from 'mdast-util-mdx-jsx'
 import type { MdxjsEsm } from 'mdast-util-mdxjs-esm'
 import { visit } from 'unist-util-visit'
 import { describe, expect, it } from 'vitest'
-import type { ComponentConfig } from '../src/types'
+import type { ElementConfig } from '../src/types'
 import type { ResolvedComponentConfig } from '../src/utils/resolve-config'
 import { createElementTransform } from '../src/plugins/remark-elements'
 import { createComponentsExportNode } from '../src/utils/ast'
-import { resolveComponentConfig } from '../src/utils/resolve-config'
+import { resolveElementConfig } from '../src/utils/resolve-config'
 
-function runPlugin(tree: Root, elements: Record<string, ComponentConfig>) {
+function runPlugin(tree: Root, elements: Record<string, ElementConfig>) {
 	const configs: Record<string, ResolvedComponentConfig> = {}
 	for (const [name, config] of Object.entries(elements)) {
-		configs[name] = resolveComponentConfig(name, config)
+		configs[name] = resolveElementConfig(name, config)
 	}
 
 	createElementTransform({ configs })(tree)
@@ -225,5 +225,211 @@ describe('remarkMdxKitElements — mixed overrides', () => {
 
 		const jsx = findJsxFlowAnywhere(tree)
 		expect(jsx).toBeDefined()
+	})
+})
+
+function makeImageParagraph(captionText: string): Root {
+	const image: Image = { alt: 'Photo', type: 'image', url: './photo.png' }
+	return {
+		children: [
+			{
+				children: [image, { type: 'text', value: ` ${captionText}` }],
+				type: 'paragraph',
+			},
+		],
+		type: 'root',
+	}
+}
+
+describe('remarkMdxKitElements — caption modes', () => {
+	const figureConfig: ElementConfig = {
+		autoImport: 'src',
+		caption: 'figure',
+		component: 'Picture',
+		componentModule: 'astro:assets',
+	}
+
+	const childrenConfig: ElementConfig = {
+		autoImport: 'src',
+		caption: 'children',
+		component: 'src/components/FancyImage.astro',
+	}
+
+	it('figure mode wraps image + caption in <figure>/<figcaption>', () => {
+		const tree = makeImageParagraph('A beautiful sunset')
+		runPlugin(tree, { img: figureConfig })
+
+		const figure = tree.children.find((c): c is MdxJsxFlowElement => c.type === 'mdxJsxFlowElement')
+		expect(figure).toBeDefined()
+		expect(figure!.name).toBe('figure')
+		expect(figure!.children).toHaveLength(2)
+
+		// First child: the image component
+		const imageChild = figure!.children[0]
+		expect(imageChild.type).toBe('mdxJsxFlowElement')
+		expect((imageChild as MdxJsxFlowElement).name).toBe('Picture')
+
+		// Second child: figcaption
+		const figcaptionChild = figure!.children[1]
+		expect(figcaptionChild.type).toBe('mdxJsxFlowElement')
+		expect((figcaptionChild as MdxJsxFlowElement).name).toBe('figcaption')
+	})
+
+	it('children mode passes caption as children of the component', () => {
+		const tree = makeImageParagraph('Caption text')
+		runPlugin(tree, { img: childrenConfig })
+
+		const jsx = findJsxFlowAnywhere(tree)
+		expect(jsx).toBeDefined()
+		expect(jsx!.name).toBe('_MdxKit_Img')
+		// Should have children (a paragraph wrapping the caption)
+		expect(jsx!.children.length).toBeGreaterThan(0)
+	})
+
+	it('prop mode passes caption as a string attribute (plain text default)', () => {
+		const tree = makeImageParagraph('Plain caption')
+		runPlugin(tree, {
+			img: {
+				autoImport: 'src',
+				caption: { prop: 'caption' },
+				component: 'src/components/FancyImage.astro',
+			},
+		})
+
+		const jsx = findJsxFlowAnywhere(tree)
+		expect(jsx).toBeDefined()
+		const captionAttribute = findAttribute(jsx!, 'caption')
+		expect(captionAttribute).toBeDefined()
+		expect(captionAttribute!.value).toBe('Plain caption')
+	})
+
+	it('prop mode with format: raw passes raw markdown', () => {
+		const image: Image = { alt: 'Photo', type: 'image', url: './photo.png' }
+		const tree: Root = {
+			children: [
+				{
+					children: [
+						image,
+						{ type: 'text', value: ' ' },
+						{
+							children: [{ type: 'text', value: 'bold' }],
+							type: 'strong',
+						},
+						{ type: 'text', value: ' caption' },
+					],
+					type: 'paragraph',
+				},
+			],
+			type: 'root',
+		}
+
+		runPlugin(tree, {
+			img: {
+				autoImport: 'src',
+				caption: { format: 'raw', prop: 'caption' },
+				component: 'src/components/FancyImage.astro',
+			},
+		})
+
+		const jsx = findJsxFlowAnywhere(tree)
+		const captionAttribute = findAttribute(jsx!, 'caption')
+		expect(captionAttribute).toBeDefined()
+		// Raw markdown should contain ** for bold
+		expect(captionAttribute!.value).toContain('**bold**')
+	})
+
+	it('prop mode with format: rendered passes HTML', () => {
+		const image: Image = { alt: 'Photo', type: 'image', url: './photo.png' }
+		const tree: Root = {
+			children: [
+				{
+					children: [
+						image,
+						{ type: 'text', value: ' ' },
+						{
+							children: [{ type: 'text', value: 'bold' }],
+							type: 'strong',
+						},
+					],
+					type: 'paragraph',
+				},
+			],
+			type: 'root',
+		}
+
+		runPlugin(tree, {
+			img: {
+				autoImport: 'src',
+				caption: { format: 'rendered', prop: 'caption' },
+				component: 'src/components/FancyImage.astro',
+			},
+		})
+
+		const jsx = findJsxFlowAnywhere(tree)
+		const captionAttribute = findAttribute(jsx!, 'caption')
+		expect(captionAttribute).toBeDefined()
+		// Rendered HTML should contain <strong>
+		expect(captionAttribute!.value).toContain('<strong>')
+	})
+
+	it('does not wrap when there is no caption text', () => {
+		const image: Image = { alt: 'Photo', type: 'image', url: './photo.png' }
+		const tree: Root = {
+			children: [{ children: [image], type: 'paragraph' }],
+			type: 'root',
+		}
+
+		runPlugin(tree, { img: figureConfig })
+
+		// Should NOT produce a <figure> — just the image in the paragraph
+		const figure = tree.children.find(
+			(c): c is MdxJsxFlowElement => c.type === 'mdxJsxFlowElement' && c.name === 'figure',
+		)
+		expect(figure).toBeUndefined()
+	})
+
+	it('preserves current behavior when caption is undefined', () => {
+		const tree = makeImageParagraph('Some text')
+		runPlugin(tree, {
+			img: {
+				autoImport: 'src',
+				component: 'Picture',
+				componentModule: 'astro:assets',
+			},
+		})
+
+		// Paragraph should still exist (no figure wrapping)
+		expect(tree.children.some((c) => c.type === 'paragraph')).toBe(true)
+	})
+
+	it('skips caption extraction when paragraph has multiple images', () => {
+		const img1: Image = { alt: 'First', type: 'image', url: './a.png' }
+		const img2: Image = { alt: 'Second', type: 'image', url: './b.png' }
+		const tree: Root = {
+			children: [
+				{
+					children: [img1, { type: 'text', value: ' middle ' }, img2],
+					type: 'paragraph',
+				},
+			],
+			type: 'root',
+		}
+
+		runPlugin(tree, { img: figureConfig })
+
+		// Should NOT produce a <figure>
+		const figure = tree.children.find(
+			(c): c is MdxJsxFlowElement => c.type === 'mdxJsxFlowElement' && c.name === 'figure',
+		)
+		expect(figure).toBeUndefined()
+	})
+
+	it('figure mode still generates correct imports', () => {
+		const tree = makeImageParagraph('Caption')
+		runPlugin(tree, { img: figureConfig })
+
+		const imports = findEsm(tree.children)
+		// Component import + asset import
+		expect(imports.length).toBeGreaterThanOrEqual(2)
 	})
 })
