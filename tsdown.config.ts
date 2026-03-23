@@ -4,6 +4,9 @@ export default defineConfig({
 	attw: {
 		profile: 'esm-only',
 	},
+	deps: {
+		neverBundle: ['astro'],
+	},
 	dts: true,
 	fixedExtension: false,
 	platform: 'neutral',
