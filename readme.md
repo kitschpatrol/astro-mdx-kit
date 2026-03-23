@@ -21,27 +21,322 @@
 
 ## Overview
 
-## Getting started
+`astro-mdx-kit` is an Astro integration that enhances MDX authoring with:
 
-### Dependencies
+- **Directives** — map markdown directive syntax (`:name`, `::name`, `:::name`) to Astro components
+- **Element overrides** — replace HTML elements (`h1`, `img`, etc.) with custom components
+- **Auto-imports** — automatically import components and assets (like images) without manual `import` statements
+- **Image captions** — extract caption text adjacent to images and wrap in `<figure>/<figcaption>` or pass to components
+- **Attribute lists** — Kramdown-style `{:key="value"}` syntax for adding attributes to any markdown element
+- **Image unwrapping** — remove `<p>` wrappers from stand-alone images
+- **Frontmatter injection** — expose raw MDX source or the parsed AST tree in frontmatter
+
+Designed for Astro 4+ and compatible with Starlight.
+
+## Getting started
 
 ### Installation
 
-## Usage
+```bash
+pnpm add astro-mdx-kit
+```
 
-### API
+### Basic setup
 
-### Examples
+Add the integration to your `astro.config.mjs`:
 
-## Background
+```ts
+import mdxKit from 'astro-mdx-kit'
+import { defineConfig } from 'astro/config'
 
-### Motivation
+export default defineConfig({
+  integrations: [
+    mdxKit({
+      attributes: true,
+      captionImages: true,
+      // All options are optional — only enable what you need
+      directives: {
+        /* ... */
+      },
+      elements: {
+        /* ... */
+      },
+      unwrapImages: true,
+    }),
+  ],
+})
+```
 
-### Implementation notes
+When used alongside Starlight, list `mdxKit` **before** Starlight so that directive transforms run before Starlight's restoration plugin.
 
-### Similar projects
+## Features
 
-## The future
+### Directives
+
+Map [remark-directive](https://github.com/remarkjs/remark-directive) syntax to Astro components. All three directive forms (container, leaf, text) are supported — the type is determined automatically by how you write it in markdown.
+
+```ts
+mdxKit({
+  directives: {
+    // Simple: map directive name to a component file
+    Block: 'src/components/Block.astro',
+    // With auto-import: image paths are imported as modules
+    Picture: {
+      autoImport: 'src',
+      component: 'Picture',
+      componentModule: 'astro:assets',
+    },
+  },
+})
+```
+
+**Markdown:**
+
+```md
+::Block{icon="star"}
+
+:::Block{type="warning"}
+Content inside the directive.
+:::
+
+::Picture{src="../assets/hero.png" alt="Hero image"}
+```
+
+**What happens:**
+
+- `::Block{icon="star"}` becomes `<Block icon="star" />`
+- The component is automatically imported — no manual `import` needed
+- With `autoImport: 'src'`, the `src` prop value is converted to an ESM import so Vite can process the asset
+
+### Element overrides
+
+Replace standard HTML elements rendered by markdown with custom Astro components.
+
+```ts
+mdxKit({
+  elements: {
+    // Simple: override heading rendering
+    h1: 'src/components/Heading.astro',
+    // With auto-import: override images with Astro's Picture component
+    img: {
+      autoImport: 'src',
+      component: 'Picture',
+      componentModule: 'astro:assets',
+    },
+  },
+})
+```
+
+- **Simple overrides** (like `h1`) use MDX's `export const components` mechanism, covering both markdown syntax and raw HTML/JSX
+- **Auto-import overrides** (like `img`) use direct AST transformation so that asset paths are converted to ESM imports for Vite processing
+
+#### Auto-import prop remapping
+
+When the source attribute name differs from the target prop name, use the `{ from, to }` form:
+
+```ts
+mdxKit({
+  elements: {
+    img: {
+      autoImport: { from: 'src', to: 'srcImported' },
+      component: 'src/components/CustomImage.astro',
+    },
+  },
+})
+```
+
+This produces `<CustomImage srcImported={importedModule} src="../original/path.jpg" />` — the imported module on the `to` prop, with the original string preserved on the `from` prop.
+
+### Image captions
+
+Extract text that follows an image in the same paragraph and handle it as a caption.
+
+#### Global captions
+
+Wrap all captioned images in `<figure>/<figcaption>`:
+
+```ts
+mdxKit({
+  captionImages: true,
+})
+```
+
+**Markdown:**
+
+```md
+![Alt text](./photo.jpg) A beautiful sunset over the ocean.
+```
+
+**Output:**
+
+```html
+<figure>
+  <img src="..." alt="Alt text" />
+  <figcaption>A beautiful sunset over the ocean.</figcaption>
+</figure>
+```
+
+The original image node is preserved, so Astro's built-in image optimization still applies.
+
+#### Per-element captions
+
+When using an `img` element override, configure caption handling on the element config:
+
+```ts
+mdxKit({
+  elements: {
+    img: {
+      autoImport: 'src',
+      // Wrap in <figure>/<figcaption>
+      caption: 'figure',
+      component: 'src/components/FancyImage.astro',
+      // Or pass caption as children of the component:
+      // caption: 'children',
+      // Or serialize and pass as a string prop:
+      // caption: { prop: 'caption' },
+      // caption: { prop: 'caption', format: 'raw' },
+      // caption: { prop: 'caption', format: 'rendered' },
+    },
+  },
+})
+```
+
+**Caption modes:**
+
+| Mode                                      | Output                                                                  |
+| ----------------------------------------- | ----------------------------------------------------------------------- |
+| `'figure'`                                | `<figure><Picture .../><figcaption>Caption</figcaption></figure>`       |
+| `'children'`                              | `<Picture ...>Caption</Picture>`                                        |
+| `{ prop: 'caption' }`                     | `<Picture ... caption="Caption text" />` (plain text)                   |
+| `{ prop: 'caption', format: 'raw' }`      | `<Picture ... caption="**Bold** caption" />` (raw markdown)             |
+| `{ prop: 'caption', format: 'rendered' }` | `<Picture ... caption="<p><strong>Bold</strong> caption</p>" />` (HTML) |
+
+If both `captionImages` (global) and per-element `caption` are set, the element override takes precedence for overridden images.
+
+### Attribute lists
+
+Enable [Kramdown-style attribute list syntax](https://github.com/utelecon/remark-attribute-list) for adding attributes to markdown elements:
+
+```ts
+mdxKit({
+  attributes: true,
+})
+```
+
+**Markdown:**
+
+```md
+A paragraph with a class.
+{:.highlight}
+
+# A heading with an ID
+
+{:#intro}
+
+[A link](https://example.com){:target="\_blank" rel="noopener"}
+
+![Image](./photo.jpg){:data-lightbox="true"}
+```
+
+**Syntax rules:**
+
+- **Block elements** (headings, paragraphs, blockquotes): attributes go on the **next line** after the element
+- **Inline elements** (links, emphasis, images): attributes go **directly after** on the same line
+- ID: `{:#my-id}`, class: `{:.my-class}`, arbitrary: `{:key="value"}`
+
+Compatible with directive syntax — both can be used simultaneously.
+
+### Unwrap images
+
+Remove the `<p>` wrapper that markdown adds around stand-alone images:
+
+```ts
+mdxKit({
+  unwrapImages: true,
+})
+```
+
+By default, `![alt](src)` on its own line produces `<p><img ...></p>`. With `unwrapImages: true`, the paragraph is removed so the image is a direct child of the document flow. Works with both native images and component overrides.
+
+### Frontmatter injection
+
+Expose the raw MDX source or the parsed AST tree in frontmatter for use in layouts and components:
+
+```ts
+mdxKit({
+  // Inject the MDAST tree as frontmatter.mdast
+  mdast: true,
+  // Or use a custom key:
+  // rawMdx: 'source',
+  // Inject raw source as frontmatter.rawMdx
+  rawMdx: true,
+  // Or use a custom key:
+  // mdast: 'tree',
+})
+```
+
+- **`rawMdx`** captures the original file content **before** any transforms
+- **`mdast`** captures the AST **after** astro-mdx-kit transforms but before rehype/MDX compilation
+- Both use `??=` so they won't overwrite existing frontmatter values
+
+### Logging
+
+`astro-mdx-kit` uses [lognow](https://github.com/nicktomlin/lognow) for logging. You can inject your own logger:
+
+```ts
+import { setLogger } from 'astro-mdx-kit'
+
+setLogger(myLogger)
+```
+
+## Plugin ordering
+
+The integration registers remark plugins in this order:
+
+1. **Raw MDX injection** — captures original source
+2. **Attribute lists** — applies `{:...}` attributes to nodes
+3. **remark-directive** — parses `:::`/`::`/`:` syntax
+4. **Directive transforms** — converts directives to JSX components
+5. **Element overrides** — replaces HTML elements with components (per-element captions handled here)
+6. **Global image captions** — wraps remaining captioned images in `<figure>`
+7. **Unwrap images** — removes `<p>` from stand-alone images
+8. **MDAST injection** — captures the transformed tree
+
+## Full configuration example
+
+```ts
+import mdxKit from 'astro-mdx-kit'
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  integrations: [
+    mdxKit({
+      attributes: true,
+      captionImages: true,
+      directives: {
+        Callout: 'src/components/Callout.astro',
+        Picture: {
+          autoImport: 'src',
+          component: 'Picture',
+          componentModule: 'astro:assets',
+        },
+      },
+      elements: {
+        h1: 'src/components/Heading.astro',
+        img: {
+          autoImport: 'src',
+          caption: 'figure',
+          component: 'Picture',
+          componentModule: 'astro:assets',
+        },
+      },
+      mdast: true,
+      rawMdx: true,
+      unwrapImages: true,
+    }),
+  ],
+})
+```
 
 ## Maintainers
 

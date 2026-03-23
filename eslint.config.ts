@@ -3,7 +3,11 @@ import { eslintConfig } from '@kitschpatrol/eslint-config'
 export default eslintConfig(
 	{
 		astro: true,
-		ignores: ['references/**/*'],
+		ignores: [
+			// Directives and attributes make a mess of MDX linting
+			'playground/**/*.mdx',
+			'references/**/*',
+		],
 		type: 'lib',
 	},
 	{

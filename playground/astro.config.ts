@@ -1,12 +1,10 @@
 /* eslint-disable ts/naming-convention */
 import mdx from '@astrojs/mdx'
-// import mdxDirective from 'astro-mdx-directive'
 import mdxKit from 'astro-mdx-kit'
 import { defineConfig } from 'astro/config'
 
 process.env.BROWSER = 'chromium'
 
-// https://astro.build/config
 export default defineConfig({
 	integrations: [
 		mdxKit({
@@ -29,11 +27,6 @@ export default defineConfig({
 			},
 			unwrapImages: true,
 		}),
-		// MdxDirective({
-		// 	directives: {
-		// 		leaf: [{ name: 'Block', path: 'src/components/Block.astro' }],
-		// 	},
-		// }),
 		// GFM enabled by default
 		mdx(),
 	],
