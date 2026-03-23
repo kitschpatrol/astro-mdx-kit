@@ -11,9 +11,17 @@ import { createJsxFlowElement } from '../utils/ast.js'
 import { extractCaptionNodes } from '../utils/caption.js'
 
 /**
- * Tree transformer that wraps stand-alone images with captions in
- * `<figure>/<figcaption>`. Preserves the original MDAST `image` node
- * so that Astro's built-in image optimization still applies.
+ * Tree transformer that wraps stand-alone images with adjacent caption
+ * text in `<figure>/<figcaption>` elements.
+ *
+ * When an image is followed by text in the same paragraph
+ * (`![alt](src) Caption text`), the paragraph is replaced with a
+ * `<figure>` containing the original image and a `<figcaption>`.
+ * Paragraphs with multiple images are skipped to avoid ambiguity.
+ *
+ * The original MDAST `image` node is preserved inside the figure so
+ * that Astro's built-in image optimization still applies.
+ * @param tree - The root MDAST node to transform in-place.
  */
 export function captionImagesTransform(tree: Root): void {
 	// Pre-scan: identify paragraphs with multiple images (skip those)

@@ -1,15 +1,31 @@
 import type { AutoImportConfig, CaptionConfig, ComponentConfig, ElementConfig } from '../types.js'
 
+/**
+ * Normalized auto-import configuration after resolving shorthand forms.
+ */
 export type ResolvedAutoImport = {
+	/** The prop name to read the import path from (e.g. `'src'`). */
 	fromProp: string
+	/** The prop name to set the imported module on. Same as `fromProp` when using the shorthand string form. */
 	toProp: string
 }
 
+/**
+ * Fully resolved component configuration used internally by transform functions.
+ *
+ * Produced by {@link resolveComponentConfig} or {@link resolveElementConfig}
+ * from the user-facing {@link ComponentConfig} / {@link ElementConfig} types.
+ */
 export type ResolvedComponentConfig = {
+	/** Auto-import configuration, if the component needs a prop value resolved as an ESM import. */
 	autoImport?: ResolvedAutoImport
+	/** Caption handling mode for image element overrides. Only set for `img` elements. */
 	caption?: CaptionConfig
+	/** The local identifier name used in the generated JSX (e.g. `'Picture'` or `'_MdxKit_Img'`). */
 	componentName: string
+	/** The resolved ESM import path for the component (e.g. `'/src/components/Foo.astro'` or `'astro:assets'`). */
 	importPath: string
+	/** Whether the component is a named export (`import { X }`) or a default export (`import X`). */
 	isNamedImport: boolean
 }
 
@@ -79,8 +95,13 @@ function resolveDetailed(
 }
 
 /**
- * Resolve a directive `ComponentConfig` into a `ResolvedComponentConfig`.
- * Directives do not support the `caption` option.
+ * Resolve a user-facing {@link ComponentConfig} (string shorthand or
+ * detailed object) into a fully normalized {@link ResolvedComponentConfig}.
+ *
+ * Used for directive mappings. Directives do not support the `caption` option.
+ * @param name - The directive name (used to derive a PascalCase component identifier for default imports).
+ * @param config - The user-provided component configuration.
+ * @returns A resolved config ready for use by the directive transform.
  */
 export function resolveComponentConfig(
 	name: string,
@@ -98,8 +119,14 @@ export function resolveComponentConfig(
 }
 
 /**
- * Resolve an element `ElementConfig` into a `ResolvedComponentConfig`.
- * Elements support the `caption` option (for `img` overrides).
+ * Resolve a user-facing {@link ElementConfig} (string shorthand or
+ * detailed object) into a fully normalized {@link ResolvedComponentConfig}.
+ *
+ * Used for element override mappings. Unlike directive configs, element
+ * configs support the `caption` option (relevant for `img` overrides).
+ * @param name - The HTML element name (e.g. `'img'`, `'h1'`).
+ * @param config - The user-provided element configuration.
+ * @returns A resolved config ready for use by the element transform.
  */
 export function resolveElementConfig(name: string, config: ElementConfig): ResolvedComponentConfig {
 	if (typeof config === 'string') {

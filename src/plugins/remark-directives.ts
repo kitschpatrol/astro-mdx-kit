@@ -19,7 +19,17 @@ import {
 } from '../utils/ast.js'
 import { ImportTracker, isImportablePath } from '../utils/imports.js'
 
+/**
+ * Options for the directive-to-component remark plugin.
+ */
 export type RemarkDirectivesOptions = {
+	/**
+	 * Map of directive names to their resolved component configurations.
+	 *
+	 * Each key is the directive name as written in markdown (e.g. `"Note"`
+	 * for `:Note{...}`) and the value describes which component to render
+	 * and how to handle its imports.
+	 */
 	configs: Record<string, ResolvedComponentConfig>
 }
 
@@ -45,8 +55,17 @@ function toFlowChildren(
 }
 
 /**
- * Create the tree transformer for directive-to-component conversion.
- * Exported separately from the Plugin wrapper for direct use in tests.
+ * Create a MDAST tree transformer that converts markdown directives into
+ * MDX JSX component elements and injects the necessary ESM import statements.
+ *
+ * Each directive matching a key in `options.configs` is replaced with a
+ * corresponding `<Component>` JSX node. Directive attributes become JSX
+ * props, and `autoImport` attributes are resolved to ESM imports.
+ *
+ * Exported separately from the plugin wrapper so it can be composed into
+ * larger transform pipelines or used directly in tests.
+ * @param options - Directive transform configuration.
+ * @returns A tree transformer function.
  */
 export function createDirectiveTransform(options: RemarkDirectivesOptions): (tree: Root) => void {
 	const { configs } = options
@@ -103,6 +122,10 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 /**
  * Remark plugin that transforms markdown directives into MDX JSX
  * component elements, injecting the necessary import statements.
+ *
+ * Supports all three directive forms: container (`:::`), leaf (`::`), and
+ * text/inline (`:`). Use {@link createDirectiveTransform} for the
+ * underlying tree transformer.
  */
 export const remarkMdxKitDirectives: Plugin<[RemarkDirectivesOptions], Root> = (options) =>
 	createDirectiveTransform(options)

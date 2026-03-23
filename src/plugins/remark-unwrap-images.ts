@@ -25,8 +25,13 @@ function unwrapParagraph(parent: { children: unknown[] }, index: number, paragra
 }
 
 /**
- * Tree transformer that unwraps stand-alone images from paragraphs.
- * Exported for direct use in tests.
+ * Tree transformer that removes the wrapping `<p>` from paragraphs
+ * containing a single stand-alone image (or JSX image component).
+ *
+ * Handles both top-level paragraphs and those nested inside block
+ * quotes, list items, etc. Exported separately from the plugin wrapper
+ * for use in tests and composed transform pipelines.
+ * @param tree - The root MDAST node to transform in-place.
  */
 export function unwrapImagesTransform(tree: Root): void {
 	// Walk in reverse so splicing doesn't shift unvisited indices

@@ -5,8 +5,25 @@ import type { VFile } from 'vfile'
 const DEFAULT_RAW_MDX_KEY = 'rawMdx'
 const DEFAULT_MDAST_KEY = 'mdast'
 
+/**
+ * Options for the frontmatter injection remark plugin.
+ */
 export type RemarkFrontmatterInjectOptions = {
+	/**
+	 * Inject the MDAST (Markdown Abstract Syntax Tree) into frontmatter.
+	 *
+	 * - `false` / `undefined` — disabled
+	 * - `true` — inject as `frontmatter.mdast`
+	 * - `string` — inject using the given property name
+	 */
 	mdast?: boolean | string
+	/**
+	 * Inject the raw MDX source string into frontmatter.
+	 *
+	 * - `false` / `undefined` — disabled
+	 * - `true` — inject as `frontmatter.rawMdx`
+	 * - `string` — inject using the given property name
+	 */
 	rawMdx?: boolean | string
 }
 
@@ -40,8 +57,14 @@ function setFrontmatter(file: VFile, key: string, value: unknown): void {
 /* eslint-enable ts/no-unsafe-type-assertion */
 
 /**
- * Create the tree transformer for frontmatter injection.
- * Exported separately from the Plugin wrapper for direct use in tests.
+ * Create a tree transformer that injects raw MDX source and/or the MDAST
+ * tree into Astro's `file.data.astro.frontmatter` object, making them
+ * accessible in layouts and components via `Astro.props.frontmatter`.
+ *
+ * Exported separately from the plugin wrapper so it can be composed into
+ * larger transform pipelines or used directly in tests.
+ * @param options - Controls which values to inject and under what keys.
+ * @returns A tree transformer function.
  */
 export function createFrontmatterInjectTransform(
 	options: RemarkFrontmatterInjectOptions,
@@ -62,7 +85,9 @@ export function createFrontmatterInjectTransform(
 
 /**
  * Remark plugin that injects raw MDX source and/or the MDAST tree
- * into `file.data.astro.frontmatter` for access in layouts.
+ * into `file.data.astro.frontmatter` for access in layouts and components.
+ *
+ * Use {@link createFrontmatterInjectTransform} for the underlying tree transformer.
  */
 export const remarkMdxKitFrontmatterInject: Plugin<[RemarkFrontmatterInjectOptions], Root> = (
 	options,

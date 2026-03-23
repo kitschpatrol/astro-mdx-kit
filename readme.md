@@ -74,7 +74,9 @@ Astro's architecture (currently) means that this syntax still must live in a `.m
 
 ### Prerequisites
 
-Requires [`@astrojs/mdx`](https://docs.astro.build/it/guides/integrations-guide/mdx/) (or a framework that includes it, like [Starlight](https://starlight.astro.build/)) for MDX file processing.
+We'll assume you have an [Astro](https://astro.build/) project set up.
+
+You will also need [`@astrojs/mdx`](https://docs.astro.build/it/guides/integrations-guide/mdx/) (or a framework that includes it, like [Starlight](https://starlight.astro.build/)) for MDX file processing.
 
 ### Installation
 

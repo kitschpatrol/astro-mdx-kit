@@ -10,8 +10,12 @@ import { createJsxFlowElement, createStringAttribute } from './ast.js'
 
 /**
  * Extract caption nodes from a paragraph, excluding the node at
- * `excludeIndex` (the image). Leading/trailing whitespace text nodes
- * are trimmed or removed.
+ * `excludeIndex` (typically the image). Leading and trailing whitespace
+ * text nodes are trimmed or removed so the caption content is clean.
+ * @param parent - The paragraph node containing the image and caption text.
+ * @param excludeIndex - Index of the child to exclude (the image node).
+ * @returns An array of phrasing content nodes representing the caption,
+ *   or an empty array if no meaningful caption text was found.
  */
 export function extractCaptionNodes(parent: MdastParent, excludeIndex: number): PhrasingContent[] {
 	// eslint-disable-next-line ts/no-unsafe-type-assertion -- paragraph children are PhrasingContent at runtime
@@ -78,9 +82,13 @@ function serializeCaptionNodes(
  * Build a replacement node that wraps an image JSX element with its
  * caption, according to the configured caption mode.
  *
- * - `'figure'` → `<figure><Image /><figcaption>...</figcaption></figure>`
- * - `'children'` → `<Image>...</Image>`
- * - `{ prop }` → `<Image caption="..." />`
+ * - `'figure'` — wraps in `<figure><Image /><figcaption>...</figcaption></figure>`
+ * - `'children'` — passes caption nodes as children: `<Image>...</Image>`
+ * - `{ prop, format? }` — serializes caption text and passes as a string prop: `<Image caption="..." />`
+ * @param caption - The caption handling mode from the element config.
+ * @param imageJsx - The already-constructed JSX element for the image.
+ * @param captionNodes - The phrasing content nodes extracted as caption text.
+ * @returns A single JSX flow element representing the image with its caption.
  */
 export function buildCaptionReplacement(
 	caption: CaptionConfig,

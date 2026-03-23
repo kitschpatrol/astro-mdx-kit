@@ -22,21 +22,35 @@ import {
 import { buildCaptionReplacement, extractCaptionNodes } from '../utils/caption.js'
 import { ImportTracker, isImportablePath } from '../utils/imports.js'
 
+/**
+ * Options for the element-to-component remark plugin.
+ */
 export type RemarkElementsOptions = {
+	/**
+	 * Map of HTML element names to their resolved component configurations.
+	 *
+	 * Each key is a standard HTML element name (e.g. `"img"`, `"h1"`, `"a"`)
+	 * and the value describes which component replaces it and how to handle
+	 * its imports.
+	 */
 	configs: Record<string, ResolvedComponentConfig>
 }
 
 /**
- * Remark plugin that maps HTML elements to custom components.
+ * Create a MDAST tree transformer that maps HTML elements to custom
+ * components, injecting the necessary ESM imports and export declarations.
+ *
+ * Two strategies are used depending on the configuration:
  *
  * - Elements **without** `autoImport` use MDX's `export const components`
  *   mechanism, which handles all rendering of that element type.
  * - Elements **with** `autoImport` use direct AST transformation so that
  *   prop values (e.g. image `src`) can be converted to ESM imports.
- */
-/**
- * Create the tree transformer for element-to-component conversion.
- * Exported separately from the Plugin wrapper for direct use in tests.
+ *
+ * Exported separately from the plugin wrapper so it can be composed into
+ * larger transform pipelines or used directly in tests.
+ * @param options - Element transform configuration.
+ * @returns A tree transformer function.
  */
 export function createElementTransform(options: RemarkElementsOptions): (tree: Root) => void {
 	const { configs } = options
@@ -96,6 +110,8 @@ export function createElementTransform(options: RemarkElementsOptions): (tree: R
 
 /**
  * Remark plugin that maps HTML elements to custom components.
+ *
+ * Use {@link createElementTransform} for the underlying tree transformer.
  */
 export const remarkMdxKitElements: Plugin<[RemarkElementsOptions], Root> = (options) =>
 	createElementTransform(options)
