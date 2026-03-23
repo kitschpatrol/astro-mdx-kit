@@ -74,20 +74,18 @@ function resolveDetailed(
 	const autoImport = config.autoImport ? resolveAutoImport(config.autoImport) : undefined
 
 	if (config.componentModule) {
-		// @ts-expect-error - TODO fix type
 		return {
-			autoImport,
-			caption,
+			...(autoImport ? { autoImport } : {}),
+			...(caption ? { caption } : {}),
 			componentName: config.component,
 			importPath: config.componentModule,
 			isNamedImport: true,
 		}
 	}
 
-	// @ts-expect-error - TODO Fix type
 	return {
-		autoImport,
-		caption,
+		...(autoImport ? { autoImport } : {}),
+		...(caption ? { caption } : {}),
 		componentName: `_MdxKit_${toPascalCase(name)}`,
 		importPath: resolveImportPath(config.component),
 		isNamedImport: false,
