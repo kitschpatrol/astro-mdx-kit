@@ -32,7 +32,7 @@ import { resolveComponentConfig } from './utils/resolve-config.js'
  * })
  * ```
  */
-export function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
+export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 	const { directives, elements } = options
 
 	// Pre-resolve all configs at integration setup time (not per-file)

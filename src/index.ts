@@ -1,4 +1,4 @@
-export { mdxKit as default, mdxKit } from './integration.js'
+import mdxKit from './integration.js'
 export { setLogger } from './log.js'
 export type {
 	AutoImportConfig,
@@ -6,3 +6,6 @@ export type {
 	DetailedComponentConfig,
 	MdxKitOptions,
 } from './types.js'
+
+// eslint-disable-next-line unicorn/prefer-export-from
+export default mdxKit

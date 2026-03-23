@@ -3,7 +3,7 @@
 /* eslint-disable ts/no-unsafe-type-assertion -- mock Astro hook params require type widening */
 
 import { describe, expect, it } from 'vitest'
-import { mdxKit } from '../src/integration'
+import mdxKit from '../src/integration'
 
 const noop = () => {}
 
