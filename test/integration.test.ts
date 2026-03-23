@@ -1,8 +1,41 @@
+/* eslint-disable ts/consistent-type-assertions -- mock Astro hook params cannot satisfy full type */
 /* eslint-disable ts/no-empty-function */
-/* eslint-disable ts/naming-convention */
+/* eslint-disable ts/no-unsafe-type-assertion -- mock Astro hook params require type widening */
 
 import { describe, expect, it } from 'vitest'
 import { mdxKit } from '../src/integration'
+
+const noop = () => {}
+
+/**
+ * Build a minimal mock of the `astro:config:setup` hook params.
+ * Only `updateConfig` and `logger` are exercised by our integration.
+ */
+function createMockHookParams(onUpdate: (config: Record<string, unknown>) => void) {
+	return {
+		addClientDirective: noop,
+		addDevToolbarApp: noop,
+		addMiddleware: noop,
+		addRenderer: noop,
+		addWatchFile: noop,
+		command: 'build' as const,
+		config: {},
+		createCodegenDir: () => new URL('file:///'),
+		injectRoute: noop,
+		injectScript: noop,
+		isRestart: false,
+		logger: {
+			debug: noop,
+			error: noop,
+			fork: noop,
+			info: noop,
+			label: 'test',
+			options: noop,
+			warn: noop,
+		},
+		updateConfig: onUpdate,
+	} as never
+}
 
 describe('mdxKit integration', () => {
 	it('returns an AstroIntegration with correct name', () => {
@@ -19,50 +52,23 @@ describe('mdxKit integration', () => {
 
 	it('registers remark plugins via updateConfig', () => {
 		const integration = mdxKit({
-			directives: {
-				Block: 'src/components/Block.astro',
-			},
-			elements: {
-				h1: 'src/components/Heading.astro',
-			},
+			directives: Object.fromEntries([['Block', 'src/components/Block.astro']]),
+			elements: { h1: 'src/components/Heading.astro' },
 		})
 
 		let updatedConfig: Record<string, unknown> | undefined
-		const mockHookParams = {
-			addClientDirective() {},
-			addDevToolbarApp() {},
-			addMiddleware() {},
-			addRenderer() {},
-			addWatchFile() {},
-			command: 'build' as const,
-			config: {},
-			createCodegenDir: () => new URL('file:///'),
-			injectRoute() {},
-			injectScript() {},
-			isRestart: false,
-			logger: {
-				debug() {},
-				error() {},
-				fork: () => ({ debug() {}, error() {}, info() {}, warn() {} }),
-				info() {},
-				label: 'test',
-				options: () => ({}),
-				warn() {},
-			},
-			updateConfig(config: Record<string, unknown>) {
-				updatedConfig = config
-			},
-		}
+		const parameters = createMockHookParams((config) => {
+			updatedConfig = config
+		})
 
-		// eslint-disable-next-line ts/no-unsafe-type-assertion
-		void integration.hooks['astro:config:setup']!(mockHookParams as never)
+		void integration.hooks['astro:config:setup']!(parameters)
 
 		expect(updatedConfig).toBeDefined()
-		// eslint-disable-next-line ts/no-unsafe-type-assertion
-		const markdown = updatedConfig!.markdown as { remarkPlugins: unknown[] }
-		expect(markdown.remarkPlugins).toBeDefined()
-		// Should have: remarkDirective, [remarkMdxKitDirectives, opts], [remarkMdxKitElements, opts]
-		expect(markdown.remarkPlugins.length).toBe(3)
+		expect(updatedConfig).toHaveProperty('markdown')
+		const markdown = updatedConfig!.markdown as Record<string, unknown>
+		expect(markdown).toHaveProperty('remarkPlugins')
+		const plugins = markdown.remarkPlugins as unknown[]
+		expect(plugins.length).toBe(3)
 	})
 
 	it('skips directives plugins when no directives configured', () => {
@@ -71,38 +77,14 @@ describe('mdxKit integration', () => {
 		})
 
 		let updatedConfig: Record<string, unknown> | undefined
-		const mockHookParams = {
-			addClientDirective() {},
-			addDevToolbarApp() {},
-			addMiddleware() {},
-			addRenderer() {},
-			addWatchFile() {},
-			command: 'build' as const,
-			config: {},
-			createCodegenDir: () => new URL('file:///'),
-			injectRoute() {},
-			injectScript() {},
-			isRestart: false,
-			logger: {
-				debug() {},
-				error() {},
-				fork: () => ({ debug() {}, error() {}, info() {}, warn() {} }),
-				info() {},
-				label: 'test',
-				options: () => ({}),
-				warn() {},
-			},
-			updateConfig(config: Record<string, unknown>) {
-				updatedConfig = config
-			},
-		}
+		const parameters = createMockHookParams((config) => {
+			updatedConfig = config
+		})
 
-		// eslint-disable-next-line ts/no-unsafe-type-assertion
-		void integration.hooks['astro:config:setup']!(mockHookParams as never)
+		void integration.hooks['astro:config:setup']!(parameters)
 
-		// eslint-disable-next-line ts/no-unsafe-type-assertion
-		const markdown = updatedConfig!.markdown as { remarkPlugins: unknown[] }
-		// Only the elements plugin, no remarkDirective or directive transform
-		expect(markdown.remarkPlugins.length).toBe(1)
+		const markdown = updatedConfig!.markdown as Record<string, unknown>
+		const plugins = markdown.remarkPlugins as unknown[]
+		expect(plugins.length).toBe(1)
 	})
 })

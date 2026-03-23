@@ -83,6 +83,7 @@ export function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 				if (remarkPlugins.length > 0) {
 					updateConfig({
 						markdown: {
+							// eslint-disable-next-line ts/no-unsafe-type-assertion
 							remarkPlugins: remarkPlugins as never,
 						},
 					})

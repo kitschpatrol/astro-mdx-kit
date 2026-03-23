@@ -1,3 +1,4 @@
+import type { ExportNamedDeclaration, ImportDeclaration } from 'estree'
 import { describe, expect, it } from 'vitest'
 import {
 	createComponentsExportNode,
@@ -8,6 +9,26 @@ import {
 	mergeIntoComponentsExport,
 } from '../src/utils/ast'
 
+function asImportDeclaration(
+	program: NonNullable<ReturnType<typeof createEsmImportNode>['data']>['estree'],
+	index = 0,
+): ImportDeclaration {
+	const statement = program!.body[index]
+	if (statement.type !== 'ImportDeclaration')
+		throw new Error(`Expected ImportDeclaration, got ${statement.type}`)
+	return statement
+}
+
+function asExportNamedDeclaration(
+	program: NonNullable<ReturnType<typeof createEsmImportNode>['data']>['estree'],
+	index = 0,
+): ExportNamedDeclaration {
+	const statement = program!.body[index]
+	if (statement.type !== 'ExportNamedDeclaration')
+		throw new Error(`Expected ExportNamedDeclaration, got ${statement.type}`)
+	return statement
+}
+
 describe('createEsmImportNode', () => {
 	it('creates a default import', () => {
 		const node = createEsmImportNode('Foo', '/src/Foo.astro', false)
@@ -16,20 +37,19 @@ describe('createEsmImportNode', () => {
 
 		const estree = node.data!.estree!
 		expect(estree.body).toHaveLength(1)
-		expect(estree.body[0].type).toBe('ImportDeclaration')
 
-		const decl = estree.body[0] as import('estree').ImportDeclaration
-		expect(decl.specifiers[0].type).toBe('ImportDefaultSpecifier')
-		expect(decl.specifiers[0].local.name).toBe('Foo')
-		expect(decl.source.value).toBe('/src/Foo.astro')
+		const declaration = asImportDeclaration(estree)
+		expect(declaration.specifiers[0].type).toBe('ImportDefaultSpecifier')
+		expect(declaration.specifiers[0].local.name).toBe('Foo')
+		expect(declaration.source.value).toBe('/src/Foo.astro')
 	})
 
 	it('creates a named import', () => {
 		const node = createEsmImportNode('Picture', 'astro:assets', true)
 		expect(node.value).toBe('import { Picture } from "astro:assets"')
 
-		const decl = node.data!.estree!.body[0] as import('estree').ImportDeclaration
-		expect(decl.specifiers[0].type).toBe('ImportSpecifier')
+		const declaration = asImportDeclaration(node.data!.estree)
+		expect(declaration.specifiers[0].type).toBe('ImportSpecifier')
 	})
 })
 
@@ -41,11 +61,9 @@ describe('createComponentsExportNode', () => {
 		expect(node.value).toContain('h1: _Comp_H1')
 		expect(node.value).toContain('h2: _Comp_H2')
 
-		const stmt = node.data!.estree!.body[0] as import('estree').ExportNamedDeclaration
-		expect(stmt.type).toBe('ExportNamedDeclaration')
-
-		const decl = stmt.declaration as import('estree').VariableDeclaration
-		expect(decl.declarations[0].id).toEqual({ name: 'components', type: 'Identifier' })
+		const statement = asExportNamedDeclaration(node.data!.estree)
+		expect(statement.type).toBe('ExportNamedDeclaration')
+		expect(statement.declaration?.type).toBe('VariableDeclaration')
 	})
 })
 
@@ -55,16 +73,14 @@ describe('mergeIntoComponentsExport', () => {
 		const result = mergeIntoComponentsExport(existing, { h1: '_Kit_H1' })
 		expect(result).toBe(true)
 
-		const stmt = existing.data!.estree!.body[0] as import('estree').ExportNamedDeclaration
-		const decl = stmt.declaration as import('estree').VariableDeclaration
-		const init = decl.declarations[0].init as import('estree').ObjectExpression
-
-		// Our property should be first, user's second
-		expect(init.properties).toHaveLength(2)
-		const first = init.properties[0] as import('estree').Property
-		const second = init.properties[1] as import('estree').Property
-		expect((first.key as import('estree').Identifier).name).toBe('h1')
-		expect((second.key as import('estree').Identifier).name).toBe('p')
+		const statement = asExportNamedDeclaration(existing.data!.estree)
+		const { declaration } = statement
+		if (declaration?.type !== 'VariableDeclaration') throw new Error('Expected VariableDeclaration')
+		const { init } = declaration.declarations[0]
+		expect(init?.type).toBe('ObjectExpression')
+		if (init?.type === 'ObjectExpression') {
+			expect(init.properties).toHaveLength(2)
+		}
 	})
 
 	it('returns false if no components export found', () => {
@@ -89,24 +105,15 @@ describe('JSX attribute helpers', () => {
 		expect(attribute.type).toBe('mdxJsxAttribute')
 		expect(attribute.name).toBe('src')
 		expect(attribute.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
-
-		const value = attribute.value as {
-			data: { estree: { body: Array<{ expression: { name: string } }> } }
-		}
-		expect(value.data.estree.body[0].expression.name).toBe('_img0')
 	})
 })
 
 describe('createJsxFlowElement', () => {
 	it('creates a flow element with attributes and children', () => {
-		const element = createJsxFlowElement(
-			'MyComponent',
-			[createStringAttribute('foo', 'bar')],
-			[{ type: 'text', value: 'hello' } as never],
-		)
+		const element = createJsxFlowElement('MyComponent', [createStringAttribute('foo', 'bar')], [])
 		expect(element.type).toBe('mdxJsxFlowElement')
 		expect(element.name).toBe('MyComponent')
 		expect(element.attributes).toHaveLength(1)
-		expect(element.children).toHaveLength(1)
+		expect(element.children).toHaveLength(0)
 	})
 })

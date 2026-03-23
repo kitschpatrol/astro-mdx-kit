@@ -1,17 +1,20 @@
+/* eslint-disable ts/triple-slash-reference */
+
 /// <reference types="mdast-util-directive" />
 /// <reference types="mdast-util-mdx-jsx" />
 /// <reference types="mdast-util-mdxjs-esm" />
 
 import type { Image, Root } from 'mdast'
-import type { MdxJsxAttribute, MdxJsxFlowElement, MdxJsxTextElement } from 'mdast-util-mdx-jsx'
-import type { MdxjsEsm } from 'mdast-util-mdxjs-esm'
+import type { MdxJsxAttribute } from 'mdast-util-mdx-jsx'
 import type { Plugin } from 'unified'
-import { visit } from 'unist-util-visit'
+import type { Parent } from 'unist'
+import { SKIP, visit } from 'unist-util-visit'
 import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
 import { log } from '../log.js'
 import {
 	createComponentsExportNode,
 	createExpressionAttribute,
+	createExpressionAttributeValue,
 	createJsxFlowElement,
 	createStringAttribute,
 	mergeIntoComponentsExport,
@@ -30,7 +33,11 @@ export type RemarkElementsOptions = {
  * - Elements **with** `autoImport` use direct AST transformation so that
  *   prop values (e.g. image `src`) can be converted to ESM imports.
  */
-export const remarkMdxKitElements: Plugin<[RemarkElementsOptions], Root> = (options) => {
+/**
+ * Create the tree transformer for element-to-component conversion.
+ * Exported separately from the Plugin wrapper for direct use in tests.
+ */
+export function createElementTransform(options: RemarkElementsOptions): (tree: Root) => void {
 	const { configs } = options
 
 	// Split configs into simple overrides vs auto-import overrides
@@ -86,6 +93,12 @@ export const remarkMdxKitElements: Plugin<[RemarkElementsOptions], Root> = (opti
 	}
 }
 
+/**
+ * Remark plugin that maps HTML elements to custom components.
+ */
+export const remarkMdxKitElements: Plugin<[RemarkElementsOptions], Root> = (options) =>
+	createElementTransform(options)
+
 // ---------------------------------------------------------------------------
 // Image node transformation (![alt](src))
 // ---------------------------------------------------------------------------
@@ -100,19 +113,9 @@ function transformImageNodes(
 
 	const { toProp } = autoImport
 
-	// Collect replacements first to avoid visiting newly created nodes
-	const replacements: Array<{
-		index: number
-		node: Image
-		parent: Parameters<Parameters<typeof visit>[1]>[2]
-	}> = []
-
 	visit(tree, 'image', (node: Image, index, parent) => {
-		if (index === undefined || !parent) return
-		replacements.push({ index, node, parent })
-	})
+		if (index === undefined || !parent) return SKIP
 
-	for (const { index, node, parent } of replacements) {
 		const attributes: MdxJsxAttribute[] = []
 
 		if (isImportablePath(node.url)) {
@@ -131,8 +134,9 @@ function transformImageNodes(
 		}
 
 		const jsx = createJsxFlowElement(config.componentName, attributes, [])
-		parent.children[index] = jsx as (typeof parent.children)[number]
-	}
+		;(parent as Parent).children[index] = jsx
+		return SKIP
+	})
 }
 
 // ---------------------------------------------------------------------------
@@ -148,38 +152,22 @@ function transformJsxElements(
 	visit(tree, (node) => {
 		if (node.type !== 'mdxJsxFlowElement' && node.type !== 'mdxJsxTextElement') return
 
-		const jsxNode = node
-		if (jsxNode.name !== elementName) return
+		if (node.name !== elementName) return
 
 		// Rename element to component
-		jsxNode.name = config.componentName
+		node.name = config.componentName
 
 		// Handle autoImport on JSX attributes
 		if (config.autoImport) {
 			const { fromProp, toProp } = config.autoImport
 
-			for (const attribute of jsxNode.attributes) {
+			for (const attribute of node.attributes) {
 				if (attribute.type !== 'mdxJsxAttribute' || attribute.name !== fromProp) continue
 				if (typeof attribute.value !== 'string' || !isImportablePath(attribute.value)) continue
 
 				const importId = imports.addAssetImport(attribute.value)
 				attribute.name = toProp
-				attribute.value = {
-					data: {
-						estree: {
-							body: [
-								{
-									expression: { name: importId, type: 'Identifier' },
-									type: 'ExpressionStatement',
-								},
-							],
-							sourceType: 'module',
-							type: 'Program',
-						},
-					},
-					type: 'mdxJsxAttributeValueExpression',
-					value: importId,
-				}
+				attribute.value = createExpressionAttributeValue(importId)
 			}
 		}
 	})
@@ -198,5 +186,5 @@ function injectComponentsExport(tree: Root, mappings: Record<string, string>): v
 
 	// No existing export found — create one
 	const exportNode = createComponentsExportNode(mappings)
-	tree.children.push(exportNode as unknown as Root['children'][number])
+	;(tree.children as unknown[]).push(exportNode)
 }

@@ -1,15 +1,11 @@
+/* eslint-disable unicorn/no-null */
+/* eslint-disable ts/triple-slash-reference */
+
 /// <reference types="mdast-util-mdx-jsx" />
 /// <reference types="mdast-util-mdxjs-esm" />
 
-import type {
-	ExportNamedDeclaration,
-	Expression,
-	ImportDeclaration,
-	Program,
-	Property,
-	SpreadElement,
-} from 'estree'
-import type { RootContent } from 'mdast'
+import type { Expression, ImportDeclaration, Program, Property, SpreadElement } from 'estree'
+import type { BlockContent, DefinitionContent, PhrasingContent } from 'mdast'
 import type { MdxJsxAttribute, MdxJsxFlowElement, MdxJsxTextElement } from 'mdast-util-mdx-jsx'
 import type { MdxjsEsm } from 'mdast-util-mdxjs-esm'
 
@@ -36,6 +32,7 @@ function createImportEstree(localName: string, importPath: string, isNamed: bool
 	return {
 		body: [
 			{
+				attributes: [],
 				source: { type: 'Literal', value: importPath },
 				specifiers,
 				type: 'ImportDeclaration',
@@ -47,7 +44,7 @@ function createImportEstree(localName: string, importPath: string, isNamed: bool
 }
 
 /**
- * TODO JSDoc description
+ * Create an `mdxjsEsm` node representing an ESM import statement.
  */
 export function createEsmImportNode(
 	localName: string,
@@ -83,6 +80,7 @@ export function createComponentsExportNode(mappings: Record<string, string>): Md
 	const estree: Program = {
 		body: [
 			{
+				attributes: [],
 				declaration: {
 					declarations: [
 						{
@@ -176,8 +174,7 @@ export function mergeIntoComponentsExport(
 // ---------------------------------------------------------------------------
 
 /**
- * Unused at the moment?
- * @public
+ * Create an MDX JSX expression attribute value wrapping an identifier reference.
  */
 export function createExpressionAttributeValue(identifier: string): MdxJsxAttribute['value'] {
 	return {
@@ -199,14 +196,14 @@ export function createExpressionAttributeValue(identifier: string): MdxJsxAttrib
 }
 
 /**
- * TODO JSDoc description
+ * Create a string-valued MDX JSX attribute.
  */
 export function createStringAttribute(name: string, value: string): MdxJsxAttribute {
 	return { name, type: 'mdxJsxAttribute', value }
 }
 
 /**
- * TODO JSDoc description
+ * Create an expression-valued MDX JSX attribute referencing an identifier.
  */
 export function createExpressionAttribute(name: string, identifier: string): MdxJsxAttribute {
 	return {
@@ -217,12 +214,12 @@ export function createExpressionAttribute(name: string, identifier: string): Mdx
 }
 
 /**
- * TODO JSDoc description
+ * Create a block-level MDX JSX element node.
  */
 export function createJsxFlowElement(
 	name: string,
 	attributes: MdxJsxAttribute[],
-	children: RootContent[],
+	children: Array<BlockContent | DefinitionContent>,
 ): MdxJsxFlowElement {
 	return {
 		attributes,
@@ -233,12 +230,12 @@ export function createJsxFlowElement(
 }
 
 /**
- * TODO JSDoc description
+ * Create an inline MDX JSX element node.
  */
 export function createJsxTextElement(
 	name: string,
 	attributes: MdxJsxAttribute[],
-	children: RootContent[],
+	children: PhrasingContent[],
 ): MdxJsxTextElement {
 	return {
 		attributes,

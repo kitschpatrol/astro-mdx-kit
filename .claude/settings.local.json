@@ -1,5 +1,10 @@
 {
 	"permissions": {
-		"allow": ["Bash(git:*)", "WebFetch(domain:docs.astro.build)"]
+		"allow": [
+			"Bash(git:*)",
+			"WebFetch(domain:docs.astro.build)",
+			"Bash(sed -n '63,68p' /Users/mika/Desktop/astro-mdx-kit/test/remark-elements.test.ts)",
+			"Bash(sed -n '166,171p' /Users/mika/Desktop/astro-mdx-kit/test/remark-elements.test.ts)"
+		]
 	}
 }

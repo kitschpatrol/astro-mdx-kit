@@ -51,13 +51,13 @@ export class ImportTracker {
 	injectIntoTree(tree: Root): void {
 		if (this.imports.length === 0) return
 
-		const nodes = this.imports.map(({ importPath, isNamed, localName }) =>
-			createEsmImportNode(localName, importPath, isNamed),
-		)
-
-		// Unshift so imports appear before any content
-		// Cast needed because MdxjsEsm is part of the MDX AST extension
-		tree.children.unshift(...(nodes as unknown as Root['children']))
+		// MdxjsEsm nodes are valid RootContent via type augmentation from
+		// mdast-util-mdxjs-esm, but the inference doesn't always pick it up.
+		// We push into the untyped children array directly.
+		const { children } = tree
+		for (const { importPath, isNamed, localName } of this.imports.toReversed()) {
+			children.unshift(createEsmImportNode(localName, importPath, isNamed))
+		}
 	}
 }
 
