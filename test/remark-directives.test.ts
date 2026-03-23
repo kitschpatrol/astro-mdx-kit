@@ -131,6 +131,45 @@ describe('remarkMdxKitDirectives', () => {
 		expect(findEsm(tree.children)).toHaveLength(2)
 	})
 
+	it('preserves original prop when autoImport remaps to a different name', () => {
+		const directive: LeafDirective = {
+			attributes: { alt: 'Hero', src: '../assets/hero.png' },
+			children: [],
+			name: 'CustomImage',
+			type: 'leafDirective',
+		}
+		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+
+		const config: ComponentConfig = {
+			autoImport: { from: 'src', to: 'srcImported' },
+			component: 'src/components/CustomImage.astro',
+		}
+		runPlugin(tree, Object.fromEntries([['CustomImage', config]]))
+
+		const jsx = findJsxFlow(tree.children)
+		expect(jsx).toBeDefined()
+
+		// Imported value on the 'to' prop
+		const importedAttribute = jsx!.attributes.find(
+			(a) => a.type === 'mdxJsxAttribute' && a.name === 'srcImported',
+		)
+		expect(importedAttribute).toBeDefined()
+		expect(importedAttribute!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
+
+		// Original string preserved on the 'from' prop
+		const originalAttribute = jsx!.attributes.find(
+			(a) => a.type === 'mdxJsxAttribute' && a.name === 'src',
+		)
+		expect(originalAttribute).toBeDefined()
+		expect(originalAttribute!.value).toBe('../assets/hero.png')
+
+		// Alt still passed through
+		const altAttribute = jsx!.attributes.find(
+			(a) => a.type === 'mdxJsxAttribute' && a.name === 'alt',
+		)
+		expect(altAttribute!.value).toBe('Hero')
+	})
+
 	it('deduplicates asset imports for same path', () => {
 		const d1: LeafDirective = {
 			attributes: { alt: 'First', src: './img.png' },

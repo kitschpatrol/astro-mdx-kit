@@ -111,7 +111,7 @@ function transformImageNodes(
 	const { autoImport } = config
 	if (!autoImport) return
 
-	const { toProp } = autoImport
+	const { fromProp, toProp } = autoImport
 
 	visit(tree, 'image', (node: Image, index, parent) => {
 		if (index === undefined || !parent) return SKIP
@@ -121,6 +121,10 @@ function transformImageNodes(
 		if (isImportablePath(node.url)) {
 			const importId = imports.addAssetImport(node.url)
 			attributes.push(createExpressionAttribute(toProp, importId))
+			// When remapping (from !== to), preserve the original prop as a string
+			if (fromProp !== toProp) {
+				attributes.push(createStringAttribute(fromProp, node.url))
+			}
 		} else {
 			attributes.push(createStringAttribute(toProp, node.url))
 		}
@@ -165,9 +169,20 @@ function transformJsxElements(
 				if (attribute.type !== 'mdxJsxAttribute' || attribute.name !== fromProp) continue
 				if (typeof attribute.value !== 'string' || !isImportablePath(attribute.value)) continue
 
-				const importId = imports.addAssetImport(attribute.value)
-				attribute.name = toProp
-				attribute.value = createExpressionAttributeValue(importId)
+				const originalValue = attribute.value
+				const importId = imports.addAssetImport(originalValue)
+
+				if (fromProp === toProp) {
+					// Same prop name: replace value in-place with imported module
+					attribute.value = createExpressionAttributeValue(importId)
+				} else {
+					// Different prop names: keep original as string, add new prop with imported module
+					node.attributes.push({
+						name: toProp,
+						type: 'mdxJsxAttribute',
+						value: createExpressionAttributeValue(importId),
+					})
+				}
 			}
 		}
 	})

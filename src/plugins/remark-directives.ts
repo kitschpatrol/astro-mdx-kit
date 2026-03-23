@@ -69,8 +69,13 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 			for (const [key, value] of Object.entries(node.attributes ?? {})) {
 				if (!value) continue
 				if (key === omitProp && isImportablePath(value)) {
+					const { fromProp, toProp } = config.autoImport!
 					const importId = imports.addAssetImport(value)
-					attributes.push(createExpressionAttribute(config.autoImport!.toProp, importId))
+					attributes.push(createExpressionAttribute(toProp, importId))
+					// When remapping (from !== to), preserve the original prop as a string
+					if (fromProp !== toProp) {
+						attributes.push(createStringAttribute(key, value))
+					}
 				} else {
 					attributes.push(createStringAttribute(key, value))
 				}
