@@ -1,6 +1,6 @@
 import { cspellConfig } from '@kitschpatrol/cspell-config'
 
 export default cspellConfig({
-	ignorePaths: ['./references/**/*'],
+	ignorePaths: ['./playground-starlight/**/*', './references/**/*'],
 	words: ['blockquotes', 'codegen', 'tomixy'],
 })
