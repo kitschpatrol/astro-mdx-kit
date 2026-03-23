@@ -1,4 +1,5 @@
 import type { AstroIntegration } from 'astro'
+import remarkAttributeList from 'remark-attribute-list'
 import remarkDirective from 'remark-directive'
 import type { RemarkDirectivesOptions } from './plugins/remark-directives.js'
 import type { RemarkElementsOptions } from './plugins/remark-elements.js'
@@ -37,7 +38,7 @@ import { resolveComponentConfig, resolveElementConfig } from './utils/resolve-co
  * ```
  */
 export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
-	const { captionImages, directives, elements, mdast, rawMdx, unwrapImages } = options
+	const { attributes, captionImages, directives, elements, mdast, rawMdx, unwrapImages } = options
 
 	// Pre-resolve all configs at integration setup time (not per-file)
 	const resolvedDirectives: Record<string, ResolvedComponentConfig> = {}
@@ -65,6 +66,11 @@ export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 						remarkFrontmatterInject,
 						{ rawMdx } satisfies RemarkFrontmatterInjectOptions,
 					])
+				}
+
+				// Attribute list syntax: {:key="value"}, {:.class}, {:#id}
+				if (attributes) {
+					remarkPlugins.push(remarkAttributeList)
 				}
 
 				if (Object.keys(resolvedDirectives).length > 0) {

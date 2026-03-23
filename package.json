@@ -50,6 +50,7 @@
 		"mdast-util-to-hast": "^13.2.1",
 		"mdast-util-to-markdown": "^2.1.2",
 		"mdast-util-to-string": "^4.0.0",
+		"remark-attribute-list": "^0.4.0",
 		"remark-directive": "^4.0.0",
 		"unist-util-visit": "^5.1.0"
 	},

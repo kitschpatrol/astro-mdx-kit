@@ -10,6 +10,7 @@ process.env.BROWSER = 'chromium'
 export default defineConfig({
 	integrations: [
 		mdxKit({
+			attributes: true,
 			captionImages: true,
 			directives: {
 				Block: 'src/components/Block.astro',

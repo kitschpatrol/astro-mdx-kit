@@ -2,6 +2,8 @@ packages:
   - .
   - playground
 
+ignoreWorkspaceRootCheck: true
+
 onlyBuiltDependencies:
   - esbuild
   - unrs-resolver

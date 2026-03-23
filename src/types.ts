@@ -80,6 +80,22 @@ export type ElementConfig = DetailedElementConfig | string
  */
 export type MdxKitOptions = {
 	/**
+	 * Enable Kramdown-style attribute list syntax for markdown elements.
+	 *
+	 * Allows attaching attributes to block and inline elements using
+	 * `{:key="value"}`, `{:.class}`, `{:#id}` syntax. Uses
+	 * `remark-attribute-list` under the hood.
+	 *
+	 * Compatible with directive syntax — both can be used simultaneously.
+	 * @example
+	 * ```md
+	 * ![Alt](./image.jpg){:data-lightbox="true"}
+	 * A paragraph{:.highlight}
+	 * ```
+	 * @default false
+	 */
+	attributes?: boolean
+	/**
 	 * Wrap images that have adjacent caption text in `<figure>/<figcaption>`.
 	 *
 	 * When an image is followed by text in the same paragraph
