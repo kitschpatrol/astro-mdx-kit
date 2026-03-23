@@ -9,7 +9,7 @@ import { unwrapImagesTransform } from '../src/plugins/remark-unwrap-images'
 
 const unwrap = unwrapImagesTransform
 
-describe('remarkUnwrapImages', () => {
+describe('remarkMdxKitUnwrapImages', () => {
 	it('unwraps a stand-alone image from its paragraph', () => {
 		const image: Image = { alt: 'Photo', type: 'image', url: './photo.png' }
 		const tree: Root = {

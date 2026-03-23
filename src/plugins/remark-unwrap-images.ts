@@ -51,4 +51,4 @@ export function unwrapImagesTransform(tree: Root): void {
  * Works with both native MDAST `image` nodes and MDX JSX elements
  * produced by element overrides (e.g. `<Picture>`).
  */
-export const remarkUnwrapImages: Plugin<never[], Root> = () => unwrapImagesTransform
+export const remarkMdxKitUnwrapImages: Plugin<never[], Root> = () => unwrapImagesTransform

@@ -28,6 +28,10 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js"
+		},
+		"./remark": {
+			"types": "./dist/remark-plugin.d.ts",
+			"import": "./dist/remark-plugin.js"
 		}
 	},
 	"main": "./dist/index.js",
@@ -47,9 +51,11 @@
 		"@types/node": "~20.19.37",
 		"hast-util-to-html": "^9.0.5",
 		"lognow": "^0.5.2",
+		"mdast-util-directive": "^3.1.0",
 		"mdast-util-to-hast": "^13.2.1",
 		"mdast-util-to-markdown": "^2.1.2",
 		"mdast-util-to-string": "^4.0.0",
+		"micromark-extension-directive": "^4.0.0",
 		"remark-attribute-list": "^0.4.0",
 		"remark-directive": "^4.0.0",
 		"unist-util-visit": "^5.1.0"
@@ -62,7 +68,6 @@
 		"@types/unist": "^3.0.3",
 		"astro": "^6.0.8",
 		"bumpp": "^11.0.1",
-		"mdast-util-directive": "^3.1.0",
 		"mdast-util-mdx-jsx": "^3.2.0",
 		"mdast-util-mdxjs-esm": "^2.0.1",
 		"publint": "^0.3.18",
@@ -74,6 +79,11 @@
 	},
 	"peerDependencies": {
 		"astro": ">=4.0.0"
+	},
+	"peerDependenciesMeta": {
+		"astro": {
+			"optional": true
+		}
 	},
 	"packageManager": "pnpm@10.32.1",
 	"engines": {

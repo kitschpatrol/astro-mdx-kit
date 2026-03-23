@@ -21,59 +21,156 @@
 
 ## Overview
 
-`astro-mdx-kit` is an Astro integration that enhances MDX authoring with:
+MDX makes it easy to embed components in your Markdown files, but this results in tight coupling between the semantics of your content and the implementation of its presentation. The [directives](https://talk.commonmark.org/t/generic-directives-plugins-syntax/444) syntax proposal has been brewing in the CommonMark project since 2014. It specifies implementation-agnostic syntax for defining component-like data in your Markdown. It's still not in the official spec, but there's good support for it in just about every major Markdown toolchain.
 
-- **Directives** — map markdown directive syntax (`:name`, `::name`, `:::name`) to Astro components
-- **Element overrides** — replace HTML elements (`h1`, `img`, etc.) with custom components
-- **Auto-imports** — automatically import components and assets (like images) without manual `import` statements
-- **Image captions** — extract caption text adjacent to images and wrap in `<figure>/<figcaption>` or pass to components
-- **Attribute lists** — Kramdown-style `{:key="value"}` syntax for adding attributes to any markdown element
-- **Image unwrapping** — remove `<p>` wrappers from stand-alone images
-- **Frontmatter injection** — expose raw MDX source or the parsed AST tree in frontmatter
+So instead of:
 
-Designed for Astro 4+ and compatible with Starlight.
+```mdx
+import Block from '../components/Block.astro'
+
+<Block greeting="hello" />
+```
+
+You can write:
+
+```mdx
+::Block{greeting="hello"}
+```
+
+And then, with some help from `astro-mdx-kit`, you can easily map `::Block` to its Astro implementation _outside_ your Markdown
+
+```ts
+mdxKit({
+  directives: {
+    Block: 'src/components/Block.astro',
+  },
+})
+```
+
+It's not necessarily pretty, but it _is_ portable.
+
+In addition to support for mapping directives to, `astro-mdx-kit` bundles some additional tools I end up needing most of the time:
+
+- **Directives**  
+  Map Markdown directive syntax (`:name`, `::name`, `:::name`) to Astro components.
+- **Element overrides**  
+  Replace HTML elements (`h1`, `img`, etc.) with custom Astro components.
+- **Auto-imports**  
+  Automatically import components and assets (like images) without manual `import` statements.
+- **Image captions**  
+  Extract caption text adjacent to images and wrap in `<figure>/<figcaption>` or pass to components.
+- **Attribute lists**  
+  Kramdown-style `{:key="value"}` syntax for adding attributes to any Markdown element.
+- **Image unwrapping**  
+  Remove `<p>` wrappers from stand-alone images.
+- **Frontmatter injection**  
+  Expose raw MDX source or the parsed AST tree in frontmatter.
+
+Available as an Astro integration, a standalone remark plugin, or as individual sub-plugins for use in any unified pipeline.
+
+Astro's architecture (currently) means that this syntax still must live in a `.mdx` file instead of `.md`, but it still helps the long term portability your Markdown content to use platform-agnostic syntax like directives instead of importing and marking up concrete components.
 
 ## Getting started
+
+### Prerequisites
+
+Requires [`@astrojs/mdx`](https://docs.astro.build/it/guides/integrations-guide/mdx/) (or a framework that includes it, like [Starlight](https://starlight.astro.build/)) for MDX file processing.
 
 ### Installation
 
 ```bash
-pnpm add astro-mdx-kit
+pnpm add astro-mdx-kit @astrojs/mdx
 ```
 
 ### Basic setup
 
-Add the integration to your `astro.config.mjs`:
+The simplest way to use `astro-mdx-kit` is as an Astro integration:
 
 ```ts
+// Astro.config.ts
+import mdx from '@astrojs/mdx'
 import mdxKit from 'astro-mdx-kit'
 import { defineConfig } from 'astro/config'
 
 export default defineConfig({
   integrations: [
     mdxKit({
+      // All options are optional — only enable what you need
       attributes: true,
       captionImages: true,
-      // All options are optional — only enable what you need
       directives: {
-        /* ... */
+        // Replace `::Block` directives
+        // with `Block.astro` component
+        Block: 'src/components/Block.astro',
       },
       elements: {
-        /* ... */
+        // Customize `# Heading` elements
+        h1: 'src/components/Heading.astro',
       },
       unwrapImages: true,
     }),
+    mdx(),
   ],
 })
 ```
 
-When used alongside Starlight, list `mdxKit` **before** Starlight so that directive transforms run before Starlight's restoration plugin.
+### Alternative: remark plugin
+
+For direct control over the remark plugin pipeline, use `remarkMdxKit` which returns a typed `[plugin, options]` tuple with full autocomplete on the options object:
+
+```ts
+// Astro.config.ts
+import mdx from '@astrojs/mdx'
+import { remarkMdxKit } from 'astro-mdx-kit'
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  integrations: [mdx()],
+  markdown: {
+    remarkPlugins: [
+      remarkMdxKit({
+        directives: {
+          /* ... */
+        },
+        elements: {
+          /* ... */
+        },
+      }),
+    ],
+  },
+})
+```
+
+The raw remark plugin is also available via `astro-mdx-kit/remark` for direct use in [unified](https://unifiedjs.com/) pipelines:
+
+```ts
+import remarkMdxKitPlugin from 'astro-mdx-kit/remark'
+import remarkParse from 'remark-parse'
+import { unified } from 'unified'
+
+unified().use(remarkParse).use(remarkMdxKitPlugin, options)
+```
+
+### Individual sub-plugins
+
+Each feature is also available as a standalone remark plugin:
+
+```ts
+import {
+  remarkMdxKitAttributes, // Markdown or MDX
+  remarkMdxKitCaptionImages, // Markdown or MDX
+  remarkMdxKitDirectives, // MDX + Astro
+  remarkMdxKitElements, // MDX + Astro
+  remarkMdxKitFrontmatterInject, // Markdown or MDX + Astro
+  remarkMdxKitUnwrapImages, // Markdown or MDX
+} from 'astro-mdx-kit'
+```
 
 ## Features
 
 ### Directives
 
-Map [remark-directive](https://github.com/remarkjs/remark-directive) syntax to Astro components. All three directive forms (container, leaf, text) are supported — the type is determined automatically by how you write it in markdown.
+Map [remark-directive](https://github.com/remarkjs/remark-directive) syntax to Astro components. All three directive forms (container, leaf, text) are supported — the type is determined automatically by how you write it in Markdown. The directive parser extensions are registered automatically; no need to install or configure `remark-directive` separately.
 
 ```ts
 mdxKit({
@@ -110,7 +207,7 @@ Content inside the directive.
 
 ### Element overrides
 
-Replace standard HTML elements rendered by markdown with custom Astro components.
+Replace standard HTML elements rendered by Markdown with custom Astro components.
 
 ```ts
 mdxKit({
@@ -127,7 +224,7 @@ mdxKit({
 })
 ```
 
-- **Simple overrides** (like `h1`) use MDX's `export const components` mechanism, covering both markdown syntax and raw HTML/JSX
+- **Simple overrides** (like `h1`) use MDX's `export const components` mechanism, covering both Markdown syntax and raw HTML/JSX
 - **Auto-import overrides** (like `img`) use direct AST transformation so that asset paths are converted to ESM imports for Vite processing
 
 #### Auto-import prop remapping
@@ -164,7 +261,8 @@ mdxKit({
 **Markdown:**
 
 ```md
-![Alt text](./photo.jpg) A beautiful sunset over the ocean.
+![Alt text](./photo.jpg)
+A beautiful place out in the country.
 ```
 
 **Output:**
@@ -172,15 +270,17 @@ mdxKit({
 ```html
 <figure>
   <img src="..." alt="Alt text" />
-  <figcaption>A beautiful sunset over the ocean.</figcaption>
+  <figcaption>A beautiful place out in the country.</figcaption>
 </figure>
 ```
 
 The original image node is preserved, so Astro's built-in image optimization still applies.
 
+_Note that the `<p>` wrapper is always removed when adding a caption, regardless of whether the `unwrapImages` option is set._
+
 #### Per-element captions
 
-When using an `img` element override, configure caption handling on the element config:
+When using an `img` element override (for example), configure caption handling on the element config:
 
 ```ts
 mdxKit({
@@ -208,14 +308,16 @@ mdxKit({
 | `'figure'`                                | `<figure><Picture .../><figcaption>Caption</figcaption></figure>`       |
 | `'children'`                              | `<Picture ...>Caption</Picture>`                                        |
 | `{ prop: 'caption' }`                     | `<Picture ... caption="Caption text" />` (plain text)                   |
-| `{ prop: 'caption', format: 'raw' }`      | `<Picture ... caption="**Bold** caption" />` (raw markdown)             |
+| `{ prop: 'caption', format: 'raw' }`      | `<Picture ... caption="**Bold** caption" />` (raw Markdown)             |
 | `{ prop: 'caption', format: 'rendered' }` | `<Picture ... caption="<p><strong>Bold</strong> caption</p>" />` (HTML) |
 
 If both `captionImages` (global) and per-element `caption` are set, the element override takes precedence for overridden images.
 
+This might seem a bit fussy, but it can be useful for handling the caption content differently in your custom component.
+
 ### Attribute lists
 
-Enable [Kramdown-style attribute list syntax](https://github.com/utelecon/remark-attribute-list) for adding attributes to markdown elements:
+Enable [Kramdown-style attribute list syntax](https://github.com/utelecon/remark-attribute-list) for adding attributes to Markdown elements:
 
 ```ts
 mdxKit({
@@ -228,10 +330,6 @@ mdxKit({
 ```md
 A paragraph with a class.
 {:.highlight}
-
-# A heading with an ID
-
-{:#intro}
 
 [A link](https://example.com){:target="\_blank" rel="noopener"}
 
@@ -248,7 +346,7 @@ Compatible with directive syntax — both can be used simultaneously.
 
 ### Unwrap images
 
-Remove the `<p>` wrapper that markdown adds around stand-alone images:
+Remove the `<p>` wrapper that Markdown adds around stand-alone images:
 
 ```ts
 mdxKit({
@@ -260,7 +358,7 @@ By default, `![alt](src)` on its own line produces `<p><img ...></p>`. With `unw
 
 ### Frontmatter injection
 
-Expose the raw MDX source or the parsed AST tree in frontmatter for use in layouts and components:
+Expose the raw MDX source or the parsed AST tree in frontmatter. Useful for debugging or in layouts and components:
 
 ```ts
 mdxKit({
@@ -281,21 +379,21 @@ mdxKit({
 
 ### Logging
 
-`astro-mdx-kit` uses [lognow](https://github.com/nicktomlin/lognow) for logging. You can inject your own logger:
+`astro-mdx-kit` uses [lognow](https://github.com/kitschpatrol/lognow) for logging. You can inject your own logger:
 
 ```ts
 import { setLogger } from 'astro-mdx-kit'
 
-setLogger(myLogger)
+setLogger(console)
 ```
 
-## Plugin ordering
+## Transform ordering
 
-The integration registers remark plugins in this order:
+The plugin runs transforms in this order:
 
 1. **Raw MDX injection** — captures original source
 2. **Attribute lists** — applies `{:...}` attributes to nodes
-3. **remark-directive** — parses `:::`/`::`/`:` syntax
+3. **Directive parser** — registers `:::`/`::`/`:` syntax extensions
 4. **Directive transforms** — converts directives to JSX components
 5. **Element overrides** — replaces HTML elements with components (per-element captions handled here)
 6. **Global image captions** — wraps remaining captioned images in `<figure>`
@@ -305,6 +403,8 @@ The integration registers remark plugins in this order:
 ## Full configuration example
 
 ```ts
+// Astro.config.ts
+import mdx from '@astrojs/mdx'
 import mdxKit from 'astro-mdx-kit'
 import { defineConfig } from 'astro/config'
 
@@ -334,6 +434,7 @@ export default defineConfig({
       rawMdx: true,
       unwrapImages: true,
     }),
+    mdx(),
   ],
 })
 ```

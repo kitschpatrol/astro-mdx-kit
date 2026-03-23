@@ -8,6 +8,7 @@ export default defineConfig({
 		neverBundle: ['astro'],
 	},
 	dts: true,
+	entry: ['src/index.ts', 'src/remark-plugin.ts'],
 	fixedExtension: false,
 	platform: 'neutral',
 	publint: true,

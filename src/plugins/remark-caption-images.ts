@@ -60,4 +60,4 @@ export function captionImagesTransform(tree: Root): void {
  * `<figure>/<figcaption>`. The original image node is preserved for
  * Astro's image optimization pipeline.
  */
-export const remarkCaptionImages: Plugin<never[], Root> = () => captionImagesTransform
+export const remarkMdxKitCaptionImages: Plugin<never[], Root> = () => captionImagesTransform

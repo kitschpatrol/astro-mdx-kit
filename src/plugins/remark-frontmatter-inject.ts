@@ -64,5 +64,6 @@ export function createFrontmatterInjectTransform(
  * Remark plugin that injects raw MDX source and/or the MDAST tree
  * into `file.data.astro.frontmatter` for access in layouts.
  */
-export const remarkFrontmatterInject: Plugin<[RemarkFrontmatterInjectOptions], Root> = (options) =>
-	createFrontmatterInjectTransform(options)
+export const remarkMdxKitFrontmatterInject: Plugin<[RemarkFrontmatterInjectOptions], Root> = (
+	options,
+) => createFrontmatterInjectTransform(options)

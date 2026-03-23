@@ -68,7 +68,8 @@ describe('mdxKit integration', () => {
 		const markdown = updatedConfig!.markdown as Record<string, unknown>
 		expect(markdown).toHaveProperty('remarkPlugins')
 		const plugins = markdown.remarkPlugins as unknown[]
-		expect(plugins.length).toBe(3)
+		// RemarkDirective + [remarkMdxKitPlugin, options]
+		expect(plugins.length).toBe(2)
 	})
 
 	it('skips directives plugins when no directives configured', () => {

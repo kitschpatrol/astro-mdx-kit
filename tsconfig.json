@@ -3,5 +3,5 @@
 
 	// Includes project dot-files files for typescript-eslint integration
 	"include": ["**/*", "**/**.*"],
-	"exclude": ["**/dist/", "**/bin/", "references/**"]
+	"exclude": ["**/dist/", "**/bin/", "references/**", "playground/src/pages/index.mdx"]
 }
