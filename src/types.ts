@@ -1,12 +1,42 @@
 /**
- * Configuration for auto-importing a prop value as a module.
+ * A single auto-import entry describing how a prop value should be
+ * imported as an ESM module.
  *
  * - `string`: The prop name whose value should be imported (e.g., `'src'`).
  *   The imported module replaces the string value on the same prop.
  * - `{ from, to }`: Read the value from `from` prop, import it, and set the
  *   imported module on the `to` prop.
+ * - `{ from, to, pattern, transform }`: Like `{ from, to }`, but only applies
+ *   when the path matches `pattern`, and the path is transformed before importing.
+ *   Useful for deriving additional imports (e.g., dark mode variants).
  */
-export type AutoImportConfig = string | { from: string; to: string }
+export type AutoImportEntry =
+	| string
+	| {
+			from: string
+			to: string
+			/** Transform the import path before generating the import. Return `undefined` to skip. */
+			transform?: (path: string) => string | undefined
+	  }
+
+/**
+ * Configuration for auto-importing prop values as ESM modules.
+ *
+ * A single entry or an array of entries. The first entry is the primary import;
+ * subsequent entries can derive additional imports from the same source path.
+ * @example
+ * ```ts
+ * // Simple: import the `src` prop value
+ * autoImport: 'src'
+ *
+ * // With derived dark variant for .tldr files
+ * autoImport: [
+ *   'src',
+ *   { from: 'src', to: 'srcDark', pattern: /\.tldr/, transform: (p) => `${p}?dark=true&tldr` },
+ * ]
+ * ```
+ */
+export type AutoImportConfig = AutoImportEntry | AutoImportEntry[]
 
 /**
  * Configuration for passing a caption as a serialized string prop.

@@ -46,7 +46,7 @@ describe('resolveComponentConfig', () => {
 			componentModule: 'astro:assets',
 		})
 		expect(result).toEqual({
-			autoImport: { fromProp: 'src', toProp: 'src' },
+			autoImports: [{ fromProp: 'src', toProp: 'src' }],
 			componentName: 'Picture',
 			importPath: 'astro:assets',
 			isNamedImport: true,
@@ -59,7 +59,7 @@ describe('resolveComponentConfig', () => {
 			component: 'src/components/custom-image',
 		})
 		expect(result).toEqual({
-			autoImport: { fromProp: 'source', toProp: 'source' },
+			autoImports: [{ fromProp: 'source', toProp: 'source' }],
 			componentName: '_MdxKit_Image',
 			importPath: '/src/components/custom-image',
 			isNamedImport: false,
@@ -71,10 +71,26 @@ describe('resolveComponentConfig', () => {
 			autoImport: { from: 'source', to: 'sourceImported' },
 			component: 'src/components/image',
 		})
-		expect(result.autoImport).toEqual({
-			fromProp: 'source',
-			toProp: 'sourceImported',
+		expect(result.autoImports).toEqual([
+			{
+				fromProp: 'source',
+				toProp: 'sourceImported',
+			},
+		])
+	})
+
+	it('resolves autoImport array with transform entry', () => {
+		// eslint-disable-next-line unicorn/consistent-function-scoping
+		const transform = (path: string) => (path.endsWith('.tldr') ? `${path}?dark=true` : undefined)
+		const result = resolveComponentConfig('Picture', {
+			autoImport: ['src', { from: 'src', to: 'srcDark', transform }],
+			component: 'Picture',
+			componentModule: 'astro:assets',
 		})
+		expect(result.autoImports).toHaveLength(2)
+		expect(result.autoImports![0]).toEqual({ fromProp: 'src', toProp: 'src' })
+		expect(result.autoImports![1]).toMatchObject({ fromProp: 'src', toProp: 'srcDark' })
+		expect(result.autoImports![1]!.transform).toBe(transform)
 	})
 
 	it('resolves detailed config without autoImport', () => {

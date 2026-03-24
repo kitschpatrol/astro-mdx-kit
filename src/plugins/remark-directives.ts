@@ -1,3 +1,4 @@
+/* eslint-disable max-depth */
 /* eslint-disable ts/triple-slash-reference */
 
 /// <reference types="mdast-util-directive" />
@@ -87,17 +88,29 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 			imports.addComponentImport(config.componentName, config.importPath, config.isNamedImport)
 
 			const attributes: MdxJsxAttribute[] = []
-			const omitProp = config.autoImport?.fromProp
+
+			// Find the primary auto-import entry (the one without a transform)
+			const primaryEntry = config.autoImports?.find((entry) => !entry.transform)
+			const omitProp = primaryEntry?.fromProp
 
 			for (const [key, value] of Object.entries(node.attributes ?? {})) {
 				if (!value) continue
-				if (key === omitProp && isImportablePath(value)) {
-					const { fromProp, toProp } = config.autoImport!
-					const importId = imports.addAssetImport(value)
-					attributes.push(createExpressionAttribute(toProp, importId))
-					// When remapping (from !== to), preserve the original prop as a string
-					if (fromProp !== toProp) {
-						attributes.push(createStringAttribute(key, value))
+				if (key === omitProp && config.autoImports && isImportablePath(value)) {
+					for (const entry of config.autoImports) {
+						if (entry.transform) {
+							// Derived import
+							const transformedPath = entry.transform(value)
+							if (transformedPath === undefined) continue
+							const importId = imports.addAssetImport(transformedPath)
+							attributes.push(createExpressionAttribute(entry.toProp, importId))
+						} else {
+							const importId = imports.addAssetImport(value)
+							attributes.push(createExpressionAttribute(entry.toProp, importId))
+							// When remapping (from !== to), preserve the original prop as a string
+							if (entry.fromProp !== entry.toProp) {
+								attributes.push(createStringAttribute(key, value))
+							}
+						}
 					}
 				} else {
 					attributes.push(createStringAttribute(key, value))

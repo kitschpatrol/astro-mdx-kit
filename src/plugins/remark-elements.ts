@@ -9,7 +9,7 @@ import type { MdxJsxAttribute, MdxJsxFlowElement } from 'mdast-util-mdx-jsx'
 import type { Plugin } from 'unified'
 import type { Parent } from 'unist'
 import { SKIP, visit } from 'unist-util-visit'
-import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
+import type { ResolvedAutoImportEntry, ResolvedComponentConfig } from '../utils/resolve-config.js'
 import { log } from '../log.js'
 import {
 	createComponentsExportNode,
@@ -42,9 +42,9 @@ export type RemarkElementsOptions = {
  *
  * Two strategies are used depending on the configuration:
  *
- * - Elements **without** `autoImport` use MDX's `export const components`
+ * - Elements **without** `autoImports` use MDX's `export const components`
  *   mechanism, which handles all rendering of that element type.
- * - Elements **with** `autoImport` use direct AST transformation so that
+ * - Elements **with** `autoImports` use direct AST transformation so that
  *   prop values (e.g. image `src`) can be converted to ESM imports.
  *
  * Exported separately from the plugin wrapper so it can be composed into
@@ -60,7 +60,7 @@ export function createElementTransform(options: RemarkElementsOptions): (tree: R
 	const autoImportOverrides: Record<string, ResolvedComponentConfig> = {}
 
 	for (const [element, config] of Object.entries(configs)) {
-		if (config.autoImport) {
+		if (config.autoImports) {
 			autoImportOverrides[element] = config
 		} else {
 			simpleOverrides[element] = config
@@ -71,7 +71,7 @@ export function createElementTransform(options: RemarkElementsOptions): (tree: R
 		const imports = new ImportTracker()
 
 		// -----------------------------------------------------------------
-		// 1. Handle elements with autoImport via direct AST transformation
+		// 1. Handle elements with autoImports via direct AST transformation
 		// -----------------------------------------------------------------
 		for (const [element, config] of Object.entries(autoImportOverrides)) {
 			imports.addComponentImport(config.componentName, config.importPath, config.isNamedImport)
@@ -120,25 +120,48 @@ export const remarkMdxKitElements: Plugin<[RemarkElementsOptions], Root> = (opti
 // Image node transformation (![alt](src))
 // ---------------------------------------------------------------------------
 
+/**
+ * Process auto-import entries for an image URL, generating attributes
+ * and imports for each entry.
+ */
+function processAutoImports(
+	url: string,
+	autoImports: ResolvedAutoImportEntry[],
+	imports: ImportTracker,
+	attributes: MdxJsxAttribute[],
+): void {
+	for (const entry of autoImports) {
+		const { fromProp, toProp, transform } = entry
+
+		if (transform) {
+			// Derived import: transform the path, skip if transform returns undefined
+			const transformedPath = transform(url)
+			if (transformedPath === undefined) continue
+			const importId = imports.addAssetImport(transformedPath)
+			attributes.push(createExpressionAttribute(toProp, importId))
+		} else if (isImportablePath(url)) {
+			// Primary import: import the path as-is
+			const importId = imports.addAssetImport(url)
+			attributes.push(createExpressionAttribute(toProp, importId))
+			if (fromProp !== toProp) {
+				attributes.push(createStringAttribute(fromProp, url))
+			}
+		} else {
+			// Non-importable path (URL, data URI): pass as string
+			attributes.push(createStringAttribute(toProp, url))
+		}
+	}
+}
+
 function buildImageJsxElement(
 	node: Image,
 	config: ResolvedComponentConfig,
 	imports: ImportTracker,
 ): MdxJsxFlowElement {
-	const { autoImport } = config
 	const attributes: MdxJsxAttribute[] = []
 
-	if (autoImport) {
-		const { fromProp, toProp } = autoImport
-		if (isImportablePath(node.url)) {
-			const importId = imports.addAssetImport(node.url)
-			attributes.push(createExpressionAttribute(toProp, importId))
-			if (fromProp !== toProp) {
-				attributes.push(createStringAttribute(fromProp, node.url))
-			}
-		} else {
-			attributes.push(createStringAttribute(toProp, node.url))
-		}
+	if (config.autoImports) {
+		processAutoImports(node.url, config.autoImports, imports, attributes)
 	}
 
 	if (node.alt) {
@@ -228,24 +251,48 @@ function transformJsxElements(
 		// Rename element to component
 		node.name = config.componentName
 
-		// Handle autoImport on JSX attributes
-		if (config.autoImport) {
-			const { fromProp, toProp } = config.autoImport
+		if (!config.autoImports) return
 
-			for (const attribute of node.attributes) {
-				if (attribute.type !== 'mdxJsxAttribute' || attribute.name !== fromProp) continue
-				if (typeof attribute.value !== 'string' || !isImportablePath(attribute.value)) continue
+		// Find the primary auto-import entry (the one without a transform)
+		const primaryEntry = config.autoImports.find((entry) => !entry.transform)
+		if (!primaryEntry) return
 
-				const originalValue = attribute.value
-				const importId = imports.addAssetImport(originalValue)
+		const { fromProp } = primaryEntry
 
-				if (fromProp === toProp) {
-					// Same prop name: replace value in-place with imported module
+		for (const attribute of node.attributes) {
+			if (attribute.type !== 'mdxJsxAttribute' || attribute.name !== fromProp) continue
+			if (typeof attribute.value !== 'string' || !isImportablePath(attribute.value)) continue
+
+			const originalValue = attribute.value
+
+			// Process all auto-import entries for this value
+			for (const entry of config.autoImports) {
+				if (entry.transform) {
+					// Derived import
+					const transformedPath = entry.transform(originalValue)
+					if (transformedPath === undefined) continue
+
+					// Skip if prop already set explicitly
+					const alreadySet = node.attributes.some(
+						(a) => a.type === 'mdxJsxAttribute' && a.name === entry.toProp,
+					)
+					if (alreadySet) continue
+
+					const importId = imports.addAssetImport(transformedPath)
+					node.attributes.push({
+						name: entry.toProp,
+						type: 'mdxJsxAttribute',
+						value: createExpressionAttributeValue(importId),
+					})
+				} else if (entry.fromProp === entry.toProp) {
+					// Same prop: replace value in-place with imported module
+					const importId = imports.addAssetImport(originalValue)
 					attribute.value = createExpressionAttributeValue(importId)
 				} else {
-					// Different prop names: keep original as string, add new prop with imported module
+					// Different prop: keep original as string, add new prop
+					const importId = imports.addAssetImport(originalValue)
 					node.attributes.push({
-						name: toProp,
+						name: entry.toProp,
 						type: 'mdxJsxAttribute',
 						value: createExpressionAttributeValue(importId),
 					})

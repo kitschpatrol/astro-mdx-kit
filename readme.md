@@ -246,6 +246,76 @@ mdxKit({
 
 This produces `<CustomImage srcImported={importedModule} src="../original/path.jpg" />` — the imported module on the `to` prop, with the original string preserved on the `from` prop.
 
+#### Derived imports
+
+`autoImport` accepts an array of entries to generate multiple imports from a single source path. Each entry can include a `transform` function that modifies the path before importing. If `transform` returns `undefined`, the derived import is skipped.
+
+```ts
+mdxKit({
+  elements: {
+    img: {
+      autoImport: [
+        // Primary import: import the src path as-is
+        'src',
+        // Derived import: generate a dark variant for .tldr files
+        // Expects a srcDark prop on the receiving component...
+        {
+          from: 'src',
+          to: 'srcDark',
+          transform: (path) => (path.endsWith('.tldr') ? `${path}?dark=true&tldr` : undefined),
+        },
+      ],
+      component: 'Picture',
+      componentModule: 'astro-media-kit/components',
+    },
+  },
+})
+```
+
+When `![Alt](./sketch.tldr)` is processed, this generates:
+
+```jsx
+import _img0 from './sketch.tldr'
+import _img1 from './sketch.tldr?dark=true&tldr'
+;<Picture alt="Alt" src={_img0} srcDark={_img1} />
+```
+
+For non-`.tldr` images, the `transform` returns `undefined` and the `srcDark` prop is omitted.
+
+This also works on directives:
+
+```ts
+mdxKit({
+  directives: {
+    Picture: {
+      autoImport: ['src', { from: 'src', to: 'srcDark', transform: myTransform }],
+      component: 'Picture',
+      componentModule: 'astro-media-kit/components',
+    },
+  },
+})
+```
+
+##### tldraw preset
+
+A ready-to-use derived import entry for `.tldr` dark mode is available as a preset:
+
+```ts
+import mdxKit, { tldrawDarkImport } from 'astro-mdx-kit'
+
+mdxKit({
+  elements: {
+    img: {
+      autoImport: ['src', tldrawDarkImport],
+      component: 'Picture',
+      componentModule: 'astro-media-kit/components',
+    },
+  },
+})
+```
+
+This requires [`@kitschpatrol/unplugin-tldraw`](https://github.com/kitschpatrol/unplugin-tldraw) to be configured in your build pipeline (e.g. via `astro-media-kit`'s `tldraw: true` integration option).
+
 ### Image captions
 
 Extract text that follows an image in the same paragraph and handle it as a caption.
@@ -407,7 +477,7 @@ The plugin runs transforms in this order:
 ```ts
 // Astro.config.ts
 import mdx from '@astrojs/mdx'
-import mdxKit from 'astro-mdx-kit'
+import mdxKit, { tldrawDarkImport } from 'astro-mdx-kit'
 import { defineConfig } from 'astro/config'
 
 export default defineConfig({
@@ -426,10 +496,10 @@ export default defineConfig({
       elements: {
         h1: 'src/components/Heading.astro',
         img: {
-          autoImport: 'src',
+          autoImport: ['src', tldrawDarkImport],
           caption: 'figure',
           component: 'Picture',
-          componentModule: 'astro:assets',
+          componentModule: 'astro-media-kit/components',
         },
       },
       mdast: true,

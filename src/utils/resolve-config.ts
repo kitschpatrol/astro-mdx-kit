@@ -1,13 +1,21 @@
-import type { AutoImportConfig, CaptionConfig, ComponentConfig, ElementConfig } from '../types.js'
+import type {
+	AutoImportConfig,
+	AutoImportEntry,
+	CaptionConfig,
+	ComponentConfig,
+	ElementConfig,
+} from '../types.js'
 
 /**
- * Normalized auto-import configuration after resolving shorthand forms.
+ * Normalized auto-import entry after resolving shorthand forms.
  */
-export type ResolvedAutoImport = {
+export type ResolvedAutoImportEntry = {
 	/** The prop name to read the import path from (e.g. `'src'`). */
 	fromProp: string
 	/** The prop name to set the imported module on. Same as `fromProp` when using the shorthand string form. */
 	toProp: string
+	/** Transform the import path before generating the import. Return `undefined` to skip. */
+	transform?: (path: string) => string | undefined
 }
 
 /**
@@ -17,8 +25,8 @@ export type ResolvedAutoImport = {
  * from the user-facing {@link ComponentConfig} / {@link ElementConfig} types.
  */
 export type ResolvedComponentConfig = {
-	/** Auto-import configuration, if the component needs a prop value resolved as an ESM import. */
-	autoImport?: ResolvedAutoImport
+	/** Auto-import entries for resolving prop values as ESM imports. */
+	autoImports?: ResolvedAutoImportEntry[]
 	/** Caption handling mode for image element overrides. Only set for `img` elements. */
 	caption?: CaptionConfig
 	/** The local identifier name used in the generated JSX (e.g. `'Picture'` or `'_MdxKit_Img'`). */
@@ -58,24 +66,37 @@ function resolveImportPath(path: string): string {
 	return `/${path}`
 }
 
-function resolveAutoImport(config: AutoImportConfig): ResolvedAutoImport {
-	if (typeof config === 'string') {
-		return { fromProp: config, toProp: config }
+function resolveAutoImportEntry(entry: AutoImportEntry): ResolvedAutoImportEntry {
+	if (typeof entry === 'string') {
+		return { fromProp: entry, toProp: entry }
 	}
 
-	return { fromProp: config.from, toProp: config.to }
+	return {
+		fromProp: entry.from,
+		toProp: entry.to,
+		...(entry.transform ? { transform: entry.transform } : {}),
+	}
+}
+
+function resolveAutoImports(config: AutoImportConfig): ResolvedAutoImportEntry[] {
+	const entries = Array.isArray(config) ? config : [config]
+	return entries.map((entry) => resolveAutoImportEntry(entry))
 }
 
 function resolveDetailed(
 	name: string,
-	config: { autoImport?: AutoImportConfig; component: string; componentModule?: string },
+	config: {
+		autoImport?: AutoImportConfig
+		component: string
+		componentModule?: string
+	},
 	caption?: CaptionConfig,
 ): ResolvedComponentConfig {
-	const autoImport = config.autoImport ? resolveAutoImport(config.autoImport) : undefined
+	const autoImports = config.autoImport ? resolveAutoImports(config.autoImport) : undefined
 
 	if (config.componentModule) {
 		return {
-			...(autoImport ? { autoImport } : {}),
+			...(autoImports ? { autoImports } : {}),
 			...(caption ? { caption } : {}),
 			componentName: config.component,
 			importPath: config.componentModule,
@@ -84,7 +105,7 @@ function resolveDetailed(
 	}
 
 	return {
-		...(autoImport ? { autoImport } : {}),
+		...(autoImports ? { autoImports } : {}),
 		...(caption ? { caption } : {}),
 		componentName: `_MdxKit_${toPascalCase(name)}`,
 		importPath: resolveImportPath(config.component),

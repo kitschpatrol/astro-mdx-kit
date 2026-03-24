@@ -20,4 +20,10 @@ export default eslintConfig(
 			'json-package/valid-package-definition': 'off',
 		},
 	},
+	{
+		files: ['readme.md/*'],
+		rules: {
+			'import/no-unresolved': 'off',
+		},
+	},
 )
