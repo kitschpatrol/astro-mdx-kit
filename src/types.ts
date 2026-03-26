@@ -1,4 +1,45 @@
 /**
+ * HTML element names that standard Markdown syntax (CommonMark + GFM) generates.
+ *
+ * Defined locally instead of reusing Astro's `HTMLTag` type because `astro` is
+ * an optional peer dependency — the `./remark` entry point works in non-Astro
+ * unified pipelines where astro types aren't available.
+ *
+ * MDX content can also contain arbitrary HTML elements and custom web components,
+ * which are accepted via the `string` fallback in {@link MdxKitOptions.elements} keys.
+ */
+export type MarkdownElementName =
+	| 'a'
+	| 'blockquote'
+	| 'br'
+	| 'code'
+	| 'del'
+	| 'em'
+	| 'h1'
+	| 'h2'
+	| 'h3'
+	| 'h4'
+	| 'h5'
+	| 'h6'
+	| 'hr'
+	| 'img'
+	| 'input'
+	| 'li'
+	| 'ol'
+	| 'p'
+	| 'pre'
+	| 'section'
+	| 'strong'
+	| 'sup'
+	| 'table'
+	| 'tbody'
+	| 'td'
+	| 'th'
+	| 'thead'
+	| 'tr'
+	| 'ul'
+
+/**
  * A single auto-import entry describing how a prop value should be
  * imported as an ESM module.
  *
@@ -169,7 +210,7 @@ export type MdxKitOptions = {
 	 * }
 	 * ```
 	 */
-	elements?: Record<string, ElementConfig>
+	elements?: Partial<Record<MarkdownElementName | (string & {}), ElementConfig>>
 	/**
 	 * Inject the MDAST (Markdown Abstract Syntax Tree) into frontmatter.
 	 *

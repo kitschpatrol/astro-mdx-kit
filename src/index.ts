@@ -33,6 +33,7 @@ export type {
 	DetailedComponentConfig,
 	DetailedElementConfig,
 	ElementConfig,
+	MarkdownElementName,
 	MdxKitOptions,
 } from './types.js'
 

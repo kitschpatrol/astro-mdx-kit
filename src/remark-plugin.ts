@@ -76,6 +76,7 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 	const resolvedElements: Record<string, ResolvedComponentConfig> = {}
 	if (elements) {
 		for (const [name, config] of Object.entries(elements)) {
+			if (config === undefined) continue
 			resolvedElements[name] = resolveElementConfig(name, config)
 		}
 	}
