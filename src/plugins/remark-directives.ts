@@ -82,11 +82,8 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 				return
 			}
 
-			const config = configs[node.name]
-
-			if (config === undefined) {
-				throw new Error('Config is undefined')
-			}
+			// Safe: the `in` check above guarantees the key exists
+			const config = configs[node.name]!
 
 			log.debug(`Transforming :${node.name} directive → <${config.componentName}>`)
 			imports.addComponentImport(config.componentName, config.importPath, config.isNamedImport)
