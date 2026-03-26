@@ -172,6 +172,16 @@ function buildImageJsxElement(
 		attributes.push(createStringAttribute('title', node.title))
 	}
 
+	// Forward attributes set by remark-attribute-list (stored in data.hProperties)
+	const hProperties = node.data?.hProperties
+	if (hProperties && typeof hProperties === 'object') {
+		for (const [key, value] of Object.entries(hProperties as Record<string, unknown>)) {
+			if (typeof value === 'string') {
+				attributes.push(createStringAttribute(key, value))
+			}
+		}
+	}
+
 	return createJsxFlowElement(config.componentName, attributes, [])
 }
 

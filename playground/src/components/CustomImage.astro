@@ -1,13 +1,13 @@
 ---
 import type { ImageMetadata } from 'astro'
+import { Image } from 'astro:assets'
 
 type Props = {
-	src?: string | undefined
-	srcImported?: ImageMetadata | undefined
+	src: ImageMetadata
 }
 
-console.log('----------------------------------')
-console.log(Astro.props)
+console.log('Image Props----------------------------------')
+console.log(Astro)
 ---
 
-TBD
+<Image alt="bla" src={Astro.props.src} />

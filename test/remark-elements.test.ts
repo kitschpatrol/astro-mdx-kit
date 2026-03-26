@@ -164,6 +164,38 @@ describe('remarkMdxKitElements — autoImport (direct AST transform)', () => {
 		expect(findEsm(tree.children)).toHaveLength(1)
 	})
 
+	it('forwards data.hProperties from remark-attribute-list as JSX attributes', () => {
+		const image: Image = {
+			alt: 'Photo',
+			data: { hProperties: { loading: 'eager', zoom: 'true' } },
+			type: 'image',
+			url: './photo.png',
+		}
+		const tree: Root = {
+			children: [{ children: [image], type: 'paragraph' }],
+			type: 'root',
+		}
+
+		runPlugin(tree, {
+			img: {
+				autoImport: 'src',
+				component: 'Picture',
+				componentModule: 'astro:assets',
+			},
+		})
+
+		const jsx = findJsxFlowAnywhere(tree)
+		expect(jsx).toBeDefined()
+
+		const zoomAttribute = findAttribute(jsx!, 'zoom')
+		expect(zoomAttribute).toBeDefined()
+		expect(zoomAttribute!.value).toBe('true')
+
+		const loadingAttribute = findAttribute(jsx!, 'loading')
+		expect(loadingAttribute).toBeDefined()
+		expect(loadingAttribute!.value).toBe('eager')
+	})
+
 	it('transforms JSX <img> elements with autoImport', () => {
 		const tree: Root = {
 			children: [

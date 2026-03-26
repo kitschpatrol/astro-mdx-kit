@@ -24,6 +24,10 @@ export default defineConfig({
 				// 	component: 'Picture',
 				// 	componentModule: 'astro:assets',
 				// },
+				img: {
+					autoImport: 'src',
+					component: 'src/components/CustomImage.astro',
+				},
 			},
 			unwrapImages: true,
 		}),

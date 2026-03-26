@@ -21,7 +21,7 @@
 
 ## Overview
 
-MDX makes it easy to embed components in your Markdown files, but this results in tight coupling between the semantics of your content and the implementation of its presentation. The [directives](https://talk.commonmark.org/t/generic-directives-plugins-syntax/444) syntax proposal has been brewing in the CommonMark project since 2014. It specifies implementation-agnostic syntax for defining component-like data in your Markdown. It's still not in the official spec, but there's good support for it in just about every major Markdown toolchain.
+MDX makes it easy to embed components in your Markdown files, but this results in tight coupling between your content and its presentation. The [directives](https://talk.commonmark.org/t/generic-directives-plugins-syntax/444) syntax proposal has been brewing in the CommonMark project since 2014. It specifies implementation-agnostic syntax for defining component-like data in your Markdown. It's still not in the official spec, but there's good support for it in just about every major Markdown toolchain.
 
 So instead of:
 
@@ -47,7 +47,7 @@ mdxKit({
 })
 ```
 
-It's not necessarily pretty, but it _is_ portable.
+It's not necessarily pretty, but it _is_ decoupled and portable.
 
 In addition to support for mapping directives to, `astro-mdx-kit` bundles some additional tools I end up needing most of the time:
 
@@ -414,7 +414,9 @@ A paragraph with a class.
 - **Inline elements** (links, emphasis, images): attributes go **directly after** on the same line
 - ID: `{:#my-id}`, class: `{:.my-class}`, arbitrary: `{:key="value"}`
 
-Compatible with directive syntax — both can be used simultaneously.
+Attribute lists work with element overrides — when a Markdown element is replaced by a custom component via the `elements` option, any attributes set via `{:key="value"}` are forwarded as props to the component. For simple overrides, attributes flow through MDX's component mechanism automatically. For auto-import overrides (like `img`), attributes are forwarded to the final component during AST transformation.
+
+Compatible with directive syntax — both can be used simultaneously in the same file, but using both directive and attribute list syntax on the same element is redundant and not supported.
 
 ### Unwrap images
 
