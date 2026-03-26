@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { log } from '../src/log'
 import { resolveComponentConfig, resolveElementConfig } from '../src/utils/resolve-config'
 
 describe('resolveComponentConfig', () => {
@@ -138,5 +139,42 @@ describe('resolveElementConfig', () => {
 		const result = resolveElementConfig('h1', 'src/components/Heading.astro')
 		expect(result.caption).toBeUndefined()
 		expect(result.componentName).toBe('_MdxKit_H1')
+	})
+
+	it('warns when caption is set on a non-img element', () => {
+		const spy = vi.spyOn(log, 'warn')
+		resolveElementConfig('h1', {
+			caption: 'figure',
+			component: 'src/components/Heading.astro',
+		})
+		expect(spy).toHaveBeenCalledOnce()
+		expect(spy.mock.calls[0]![0]).toMatch(/caption.*only apply to.*img/)
+		spy.mockRestore()
+	})
+
+	it('does not warn when caption is set on img', () => {
+		const spy = vi.spyOn(log, 'warn')
+		resolveElementConfig('img', {
+			autoImport: 'src',
+			caption: 'figure',
+			component: 'Picture',
+			componentModule: 'astro:assets',
+		})
+		expect(spy).not.toHaveBeenCalled()
+		spy.mockRestore()
+	})
+})
+
+describe('config validation warnings', () => {
+	it('warns on empty autoImport array', () => {
+		const spy = vi.spyOn(log, 'warn')
+		resolveComponentConfig('Picture', {
+			autoImport: [],
+			component: 'Picture',
+			componentModule: 'astro:assets',
+		})
+		expect(spy).toHaveBeenCalledOnce()
+		expect(spy.mock.calls[0]![0]).toMatch(/empty.*autoImport/)
+		spy.mockRestore()
 	})
 })

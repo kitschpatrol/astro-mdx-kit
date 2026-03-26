@@ -5,6 +5,7 @@ import type {
 	ComponentConfig,
 	ElementConfig,
 } from '../types.js'
+import { log } from '../log.js'
 
 /**
  * Normalized auto-import entry after resolving shorthand forms.
@@ -78,8 +79,12 @@ function resolveAutoImportEntry(entry: AutoImportEntry): ResolvedAutoImportEntry
 	}
 }
 
-function resolveAutoImports(config: AutoImportConfig): ResolvedAutoImportEntry[] {
+function resolveAutoImports(name: string, config: AutoImportConfig): ResolvedAutoImportEntry[] {
 	const entries = Array.isArray(config) ? config : [config]
+	if (entries.length === 0) {
+		log.warn(`"${name}" has an empty \`autoImport\` array. Either add entries or remove \`autoImport\`.`)
+	}
+
 	return entries.map((entry) => resolveAutoImportEntry(entry))
 }
 
@@ -92,7 +97,7 @@ function resolveDetailed(
 	},
 	caption?: CaptionConfig,
 ): ResolvedComponentConfig {
-	const autoImports = config.autoImport ? resolveAutoImports(config.autoImport) : undefined
+	const autoImports = config.autoImport ? resolveAutoImports(name, config.autoImport) : undefined
 
 	if (config.componentModule) {
 		return {
@@ -148,6 +153,10 @@ export function resolveComponentConfig(
  * @returns A resolved config ready for use by the element transform.
  */
 export function resolveElementConfig(name: string, config: ElementConfig): ResolvedComponentConfig {
+	if (typeof config !== 'string' && config.caption && name !== 'img') {
+		log.warn(`Element override "${name}" has a \`caption\` config, but captions only apply to \`img\` elements. The \`caption\` option will be ignored.`)
+	}
+
 	if (typeof config === 'string') {
 		return {
 			componentName: `_MdxKit_${toPascalCase(name)}`,
