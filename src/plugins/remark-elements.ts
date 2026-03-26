@@ -286,7 +286,10 @@ function transformJsxElements(
 				if (entry.transform) {
 					// Derived import
 					const transformedPath = entry.transform(originalValue)
-					if (transformedPath === undefined) continue
+					if (transformedPath === undefined) {
+						log.debug(`Skipping derived autoImport for "${entry.toProp}" — transform returned undefined for "${originalValue}"`)
+						continue
+					}
 
 					// Skip if prop already set explicitly
 					const alreadySet = node.attributes.some(
