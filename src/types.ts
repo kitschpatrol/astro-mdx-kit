@@ -47,14 +47,16 @@ export type MarkdownElementName =
  *   The imported module replaces the string value on the same prop.
  * - `{ from, to }`: Read the value from `from` prop, import it, and set the
  *   imported module on the `to` prop.
- * - `{ from, to, pattern, transform }`: Like `{ from, to }`, but only applies
- *   when the path matches `pattern`, and the path is transformed before importing.
+ * - `{ from, to, transform }`: Like `{ from, to }`, but the path is transformed
+ *   before importing. Return `undefined` from `transform` to skip the import.
  *   Useful for deriving additional imports (e.g., dark mode variants).
  */
 export type AutoImportEntry =
 	| string
 	| {
+			/** Prop name to read the import path from (e.g., `'src'`). */
 			from: string
+			/** Prop name to set the imported module on (e.g., `'srcDark'`). */
 			to: string
 			/** Transform the import path before generating the import. Return `undefined` to skip. */
 			transform?: (path: string) => string | undefined
@@ -73,7 +75,7 @@ export type AutoImportEntry =
  * // With derived dark variant for .tldr files
  * autoImport: [
  *   'src',
- *   { from: 'src', to: 'srcDark', pattern: /\.tldr/, transform: (p) => `${p}?dark=true&tldr` },
+ *   { from: 'src', to: 'srcDark', transform: (p) => p.endsWith('.tldr') ? `${p}?dark=true&tldr` : undefined },
  * ]
  * ```
  */
