@@ -77,7 +77,11 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 		visit(tree, (node, index, parent) => {
 			if (!parent || index === undefined || !isDirectiveNode(node)) return
 
-			if (!(node.name in configs)) return
+			if (!(node.name in configs)) {
+				log.debug(`Skipping unknown directive ":${node.name}" — no matching config`)
+				return
+			}
+
 			const config = configs[node.name]
 
 			if (config === undefined) {
@@ -100,7 +104,11 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 						if (entry.transform) {
 							// Derived import
 							const transformedPath = entry.transform(value)
-							if (transformedPath === undefined) continue
+							if (transformedPath === undefined) {
+								log.debug(`Skipping derived autoImport for "${entry.toProp}" — transform returned undefined for "${value}"`)
+								continue
+							}
+
 							const importId = imports.addAssetImport(transformedPath)
 							attributes.push(createExpressionAttribute(entry.toProp, importId))
 						} else {

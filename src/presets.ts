@@ -1,4 +1,40 @@
-import type { AutoImportEntry } from './types.js'
+import type { AutoImportEntry, DetailedElementConfig } from './types.js'
+
+/**
+ * Element override that replaces `<img>` with Astro's `<Image>` component
+ * from `astro:assets`, with automatic ESM imports for the `src` prop.
+ * @example
+ * ```ts
+ * import { astroImage } from 'astro-mdx-kit'
+ *
+ * mdxKit({
+ *   elements: { img: astroImage },
+ * })
+ * ```
+ */
+export const astroImage: DetailedElementConfig = {
+	autoImport: 'src',
+	component: 'Image',
+	componentModule: 'astro:assets',
+}
+
+/**
+ * Element override that replaces `<img>` with Astro's `<Picture>` component
+ * from `astro:assets`, with automatic ESM imports for the `src` prop.
+ * @example
+ * ```ts
+ * import { astroPicture } from 'astro-mdx-kit'
+ *
+ * mdxKit({
+ *   elements: { img: astroPicture },
+ * })
+ * ```
+ */
+export const astroPicture: DetailedElementConfig = {
+	autoImport: 'src',
+	component: 'Picture',
+	componentModule: 'astro:assets',
+}
 
 /**
  * Auto-import entry that generates a dark variant for `.tldr` files

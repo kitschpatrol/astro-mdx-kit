@@ -7,6 +7,7 @@ import type { MdxJsxFlowElement } from 'mdast-util-mdx-jsx'
 import type { Plugin } from 'unified'
 import type { Parent } from 'unist'
 import { SKIP, visit } from 'unist-util-visit'
+import { log } from '../log.js'
 import { createJsxFlowElement } from '../utils/ast.js'
 import { extractCaptionNodes } from '../utils/caption.js'
 
@@ -53,6 +54,7 @@ export function captionImagesTransform(tree: Root): void {
 
 	// Second pass: replace paragraphs
 	if (paragraphReplacements.size > 0) {
+		log.debug(`Wrapping ${paragraphReplacements.size} captioned image(s) in <figure>/<figcaption>`)
 		visit(tree, 'paragraph', (node, index, parent) => {
 			if (index === undefined || !parent) return
 			const replacement = paragraphReplacements.get(node)

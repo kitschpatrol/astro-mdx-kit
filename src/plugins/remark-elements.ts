@@ -96,6 +96,7 @@ export function createElementTransform(options: RemarkElementsOptions): (tree: R
 			for (const [element, config] of Object.entries(simpleOverrides)) {
 				imports.addComponentImport(config.componentName, config.importPath, config.isNamedImport)
 				componentsMappings[element] = config.componentName
+				log.debug(`Overriding <${element}> → <${config.componentName}> (via export const components)`)
 			}
 
 			injectComponentsExport(tree, componentsMappings)
@@ -136,7 +137,11 @@ function processAutoImports(
 		if (transform) {
 			// Derived import: transform the path, skip if transform returns undefined
 			const transformedPath = transform(url)
-			if (transformedPath === undefined) continue
+			if (transformedPath === undefined) {
+				log.debug(`Skipping derived autoImport for "${toProp}" — transform returned undefined for "${url}"`)
+				continue
+			}
+
 			const importId = imports.addAssetImport(transformedPath)
 			attributes.push(createExpressionAttribute(toProp, importId))
 		} else if (isImportablePath(url)) {
@@ -148,6 +153,7 @@ function processAutoImports(
 			}
 		} else {
 			// Non-importable path (URL, data URI): pass as string
+			log.debug(`Passing "${url}" as string to "${toProp}" — not an importable path`)
 			attributes.push(createStringAttribute(toProp, url))
 		}
 	}
