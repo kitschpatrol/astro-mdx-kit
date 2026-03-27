@@ -4,6 +4,7 @@ import type {
 	CaptionConfig,
 	ComponentConfig,
 	ElementConfig,
+	LabelConfig,
 } from '../types.js'
 import { log } from '../log.js'
 
@@ -17,6 +18,16 @@ export type ResolvedAutoImportEntry = {
 	toProp: string
 	/** Transform the import path before generating the import. Return `undefined` to skip. */
 	transform?: (path: string) => string | undefined
+}
+
+/**
+ * Normalized label config after resolving the string shorthand.
+ */
+export type ResolvedLabelConfig = {
+	/** Serialization format for the label text. */
+	format: 'plain' | 'raw' | 'rendered'
+	/** The prop name to receive the serialized label string. */
+	prop: string
 }
 
 /**
@@ -36,6 +47,10 @@ export type ResolvedComponentConfig = {
 	importPath: string
 	/** Whether the component is a named export (`import { X }`) or a default export (`import X`). */
 	isNamedImport: boolean
+	/** Extract the container directive `[label]` and pass as a named prop. */
+	label?: ResolvedLabelConfig
+	/** Map of directive attribute names to target prop names. */
+	propMap?: Record<string, string>
 }
 
 function toPascalCase(string_: string): string {
@@ -82,10 +97,20 @@ function resolveAutoImportEntry(entry: AutoImportEntry): ResolvedAutoImportEntry
 function resolveAutoImports(name: string, config: AutoImportConfig): ResolvedAutoImportEntry[] {
 	const entries = Array.isArray(config) ? config : [config]
 	if (entries.length === 0) {
-		log.warn(`"${name}" has an empty \`autoImport\` array. Either add entries or remove \`autoImport\`.`)
+		log.warn(
+			`"${name}" has an empty \`autoImport\` array. Either add entries or remove \`autoImport\`.`,
+		)
 	}
 
 	return entries.map((entry) => resolveAutoImportEntry(entry))
+}
+
+function resolveLabelConfig(config: LabelConfig): ResolvedLabelConfig {
+	if (typeof config === 'string') {
+		return { format: 'plain', prop: config }
+	}
+
+	return { format: config.format ?? 'plain', prop: config.prop }
 }
 
 function resolveDetailed(
@@ -94,10 +119,14 @@ function resolveDetailed(
 		autoImport?: AutoImportConfig
 		component: string
 		componentModule?: string
+		label?: LabelConfig
+		propMap?: Record<string, string>
 	},
 	caption?: CaptionConfig,
 ): ResolvedComponentConfig {
 	const autoImports = config.autoImport ? resolveAutoImports(name, config.autoImport) : undefined
+	const label = config.label ? resolveLabelConfig(config.label) : undefined
+	const { propMap } = config
 
 	if (config.componentModule) {
 		return {
@@ -106,6 +135,8 @@ function resolveDetailed(
 			componentName: config.component,
 			importPath: config.componentModule,
 			isNamedImport: true,
+			...(label ? { label } : {}),
+			...(propMap ? { propMap } : {}),
 		}
 	}
 
@@ -115,6 +146,8 @@ function resolveDetailed(
 		componentName: `_MdxKit_${toPascalCase(name)}`,
 		importPath: resolveImportPath(config.component),
 		isNamedImport: false,
+		...(label ? { label } : {}),
+		...(propMap ? { propMap } : {}),
 	}
 }
 
@@ -154,7 +187,15 @@ export function resolveComponentConfig(
  */
 export function resolveElementConfig(name: string, config: ElementConfig): ResolvedComponentConfig {
 	if (typeof config !== 'string' && config.caption && name !== 'img') {
-		log.warn(`Element override "${name}" has a \`caption\` config, but captions only apply to \`img\` elements. The \`caption\` option will be ignored.`)
+		log.warn(
+			`Element override "${name}" has a \`caption\` config, but captions only apply to \`img\` elements. The \`caption\` option will be ignored.`,
+		)
+	}
+
+	if (typeof config !== 'string' && config.label) {
+		log.warn(
+			`Element override "${name}" has a \`label\` config, but labels only apply to directives. The \`label\` option will be ignored.`,
+		)
 	}
 
 	if (typeof config === 'string') {

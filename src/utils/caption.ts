@@ -49,9 +49,13 @@ export function extractCaptionNodes(parent: MdastParent, excludeIndex: number): 
 }
 
 /**
- * Serialize caption AST nodes to a string in the given format.
+ * Serialize phrasing content AST nodes to a string in the given format.
+ *
+ * - `'plain'` — plain text, formatting stripped
+ * - `'raw'` — raw markdown string
+ * - `'rendered'` — rendered HTML string (falls back to plain text on error)
  */
-function serializeCaptionNodes(
+export function serializePhrasingContent(
 	nodes: PhrasingContent[],
 	format: 'plain' | 'raw' | 'rendered',
 ): string {
@@ -109,7 +113,7 @@ export function buildCaptionReplacement(
 
 	// Prop mode: serialize caption and add as a string attribute
 	const format = caption.format ?? 'plain'
-	const serialized = serializeCaptionNodes(captionNodes, format)
+	const serialized = serializePhrasingContent(captionNodes, format)
 	return createJsxFlowElement(
 		name,
 		[...imageAttributes, createStringAttribute(caption.prop, serialized)],

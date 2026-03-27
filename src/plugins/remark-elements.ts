@@ -96,7 +96,9 @@ export function createElementTransform(options: RemarkElementsOptions): (tree: R
 			for (const [element, config] of Object.entries(simpleOverrides)) {
 				imports.addComponentImport(config.componentName, config.importPath, config.isNamedImport)
 				componentsMappings[element] = config.componentName
-				log.debug(`Overriding <${element}> → <${config.componentName}> (via export const components)`)
+				log.debug(
+					`Overriding <${element}> → <${config.componentName}> (via export const components)`,
+				)
 			}
 
 			injectComponentsExport(tree, componentsMappings)
@@ -138,7 +140,9 @@ function processAutoImports(
 			// Derived import: transform the path, skip if transform returns undefined
 			const transformedPath = transform(url)
 			if (transformedPath === undefined) {
-				log.debug(`Skipping derived autoImport for "${toProp}" — transform returned undefined for "${url}"`)
+				log.debug(
+					`Skipping derived autoImport for "${toProp}" — transform returned undefined for "${url}"`,
+				)
 				continue
 			}
 
@@ -287,7 +291,9 @@ function transformJsxElements(
 					// Derived import
 					const transformedPath = entry.transform(originalValue)
 					if (transformedPath === undefined) {
-						log.debug(`Skipping derived autoImport for "${entry.toProp}" — transform returned undefined for "${originalValue}"`)
+						log.debug(
+							`Skipping derived autoImport for "${entry.toProp}" — transform returned undefined for "${originalValue}"`,
+						)
 						continue
 					}
 

@@ -177,4 +177,49 @@ describe('config validation warnings', () => {
 		expect(spy.mock.calls[0]![0]).toMatch(/empty.*autoImport/)
 		spy.mockRestore()
 	})
+
+	it('warns when label is set on an element override', () => {
+		const spy = vi.spyOn(log, 'warn')
+		resolveElementConfig('h1', {
+			component: 'src/components/Heading.astro',
+			label: 'title',
+		})
+		expect(spy).toHaveBeenCalledOnce()
+		expect(spy.mock.calls[0]![0]).toMatch(/label.*only apply to.*directives/)
+		spy.mockRestore()
+	})
+})
+
+describe('label config resolution', () => {
+	it('resolves string shorthand to plain format', () => {
+		const result = resolveComponentConfig('Note', {
+			component: 'src/components/Note.astro',
+			label: 'title',
+		})
+		expect(result.label).toEqual({ format: 'plain', prop: 'title' })
+	})
+
+	it('resolves object with explicit format', () => {
+		const result = resolveComponentConfig('Note', {
+			component: 'src/components/Note.astro',
+			label: { format: 'rendered', prop: 'heading' },
+		})
+		expect(result.label).toEqual({ format: 'rendered', prop: 'heading' })
+	})
+
+	it('defaults format to plain when not specified', () => {
+		const result = resolveComponentConfig('Note', {
+			component: 'src/components/Note.astro',
+			label: { prop: 'heading' },
+		})
+		expect(result.label).toEqual({ format: 'plain', prop: 'heading' })
+	})
+
+	it('passes through propMap as-is', () => {
+		const result = resolveComponentConfig('Block', {
+			component: 'src/components/Block.astro',
+			propMap: { icon: 'iconName', type: 'variant' },
+		})
+		expect(result.propMap).toEqual({ icon: 'iconName', type: 'variant' })
+	})
 })

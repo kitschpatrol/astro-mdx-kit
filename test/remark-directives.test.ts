@@ -236,4 +236,248 @@ describe('remarkMdxKitDirectives', () => {
 
 		expect(findEsm(tree.children)).toHaveLength(1)
 	})
+
+	it('remaps attribute names via propMap', () => {
+		const directive: LeafDirective = {
+			attributes: { icon: 'star', type: 'warning' },
+			children: [],
+			name: 'Block',
+			type: 'leafDirective',
+		}
+		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+
+		const config: ComponentConfig = {
+			component: 'src/components/Block.astro',
+			propMap: { icon: 'iconName', type: 'variant' },
+		}
+		runPlugin(tree, Object.fromEntries([['Block', config]]))
+
+		const jsx = findJsxFlow(tree.children)
+		expect(jsx).toBeDefined()
+
+		const iconName = jsx!.attributes.find(
+			(a) => a.type === 'mdxJsxAttribute' && a.name === 'iconName',
+		)
+		expect(iconName!.value).toBe('star')
+
+		const variant = jsx!.attributes.find(
+			(a) => a.type === 'mdxJsxAttribute' && a.name === 'variant',
+		)
+		expect(variant!.value).toBe('warning')
+
+		// Original names should not be present
+		const icon = jsx!.attributes.find((a) => a.type === 'mdxJsxAttribute' && a.name === 'icon')
+		expect(icon).toBeUndefined()
+	})
+
+	it('passes unmapped attributes through with propMap', () => {
+		const directive: LeafDirective = {
+			attributes: { icon: 'star', title: 'Hello' },
+			children: [],
+			name: 'Block',
+			type: 'leafDirective',
+		}
+		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+
+		const config: ComponentConfig = {
+			component: 'src/components/Block.astro',
+			propMap: { icon: 'iconName' },
+		}
+		runPlugin(tree, Object.fromEntries([['Block', config]]))
+
+		const jsx = findJsxFlow(tree.children)
+		const title = jsx!.attributes.find((a) => a.type === 'mdxJsxAttribute' && a.name === 'title')
+		expect(title!.value).toBe('Hello')
+	})
+
+	it('applies propMap together with autoImport', () => {
+		const directive: LeafDirective = {
+			attributes: { alt: 'Hero', source: '../assets/hero.png' },
+			children: [],
+			name: 'Pic',
+			type: 'leafDirective',
+		}
+		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+
+		const config: ComponentConfig = {
+			autoImport: 'source',
+			component: 'Picture',
+			componentModule: 'astro:assets',
+			propMap: { alt: 'altText' },
+		}
+		runPlugin(tree, Object.fromEntries([['Pic', config]]))
+
+		const jsx = findJsxFlow(tree.children)
+
+		// Alt was remapped to altText
+		const altText = jsx!.attributes.find(
+			(a) => a.type === 'mdxJsxAttribute' && a.name === 'altText',
+		)
+		expect(altText!.value).toBe('Hero')
+
+		// Source was auto-imported (expression, not string)
+		const source = jsx!.attributes.find((a) => a.type === 'mdxJsxAttribute' && a.name === 'source')
+		expect(source!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
+	})
+
+	it('extracts container directive label as plain text prop', () => {
+		const directive: ContainerDirective = {
+			attributes: { type: 'warning' },
+			children: [
+				{
+					children: [{ type: 'text', value: 'Watch out!' }],
+					data: { directiveLabel: true },
+					type: 'paragraph',
+				},
+				{ children: [{ type: 'text', value: 'Body content' }], type: 'paragraph' },
+			],
+			name: 'Callout',
+			type: 'containerDirective',
+		}
+		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+
+		const config: ComponentConfig = {
+			component: 'src/components/Callout.astro',
+			label: 'title',
+		}
+		runPlugin(tree, Object.fromEntries([['Callout', config]]))
+
+		const jsx = findJsxFlow(tree.children)
+		expect(jsx).toBeDefined()
+
+		// Label extracted as title prop
+		const title = jsx!.attributes.find((a) => a.type === 'mdxJsxAttribute' && a.name === 'title')
+		expect(title!.value).toBe('Watch out!')
+
+		// Label removed from children, only body remains
+		expect(jsx!.children).toHaveLength(1)
+	})
+
+	it('extracts label with rendered format', () => {
+		const directive: ContainerDirective = {
+			attributes: {},
+			children: [
+				{
+					children: [
+						{ type: 'text', value: 'A ' },
+						{ children: [{ type: 'text', value: 'bold' }], type: 'strong' },
+						{ type: 'text', value: ' label' },
+					],
+					data: { directiveLabel: true },
+					type: 'paragraph',
+				},
+			],
+			name: 'Note',
+			type: 'containerDirective',
+		}
+		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+
+		const config: ComponentConfig = {
+			component: 'src/components/Note.astro',
+			label: { format: 'rendered', prop: 'heading' },
+		}
+		runPlugin(tree, Object.fromEntries([['Note', config]]))
+
+		const jsx = findJsxFlow(tree.children)
+		const heading = jsx!.attributes.find(
+			(a) => a.type === 'mdxJsxAttribute' && a.name === 'heading',
+		)
+		expect(heading!.value).toContain('<strong>')
+	})
+
+	it('does nothing when label config is set but no directiveLabel in children', () => {
+		const directive: ContainerDirective = {
+			attributes: {},
+			children: [{ children: [{ type: 'text', value: 'Just body' }], type: 'paragraph' }],
+			name: 'Note',
+			type: 'containerDirective',
+		}
+		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+
+		const config: ComponentConfig = {
+			component: 'src/components/Note.astro',
+			label: 'title',
+		}
+		runPlugin(tree, Object.fromEntries([['Note', config]]))
+
+		const jsx = findJsxFlow(tree.children)
+
+		// No title prop added
+		const title = jsx!.attributes.find((a) => a.type === 'mdxJsxAttribute' && a.name === 'title')
+		expect(title).toBeUndefined()
+
+		// Body preserved
+		expect(jsx!.children).toHaveLength(1)
+	})
+
+	it('extracts label from leaf directive [content]', () => {
+		const directive: LeafDirective = {
+			attributes: {},
+			children: [{ type: 'text', value: 'Leaf content' }],
+			name: 'Note',
+			type: 'leafDirective',
+		}
+		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+
+		const config: ComponentConfig = {
+			component: 'src/components/Note.astro',
+			label: 'title',
+		}
+		runPlugin(tree, Object.fromEntries([['Note', config]]))
+
+		const jsx = findJsxFlow(tree.children)
+
+		const title = jsx!.attributes.find((a) => a.type === 'mdxJsxAttribute' && a.name === 'title')
+		expect(title!.value).toBe('Leaf content')
+
+		// Children removed since they became the label
+		expect(jsx!.children).toHaveLength(0)
+	})
+
+	it('extracts label from text directive [content]', () => {
+		const directive: TextDirective = {
+			attributes: { color: 'red' },
+			children: [{ type: 'text', value: 'inline label' }],
+			name: 'Tag',
+			type: 'textDirective',
+		}
+		const tree: Root = {
+			children: [{ children: [directive], type: 'paragraph' }],
+			type: 'root',
+		}
+
+		const config: ComponentConfig = {
+			component: 'src/components/Tag.astro',
+			label: 'text',
+		}
+		runPlugin(tree, Object.fromEntries([['Tag', config]]))
+
+		const paragraph = tree.children.find((c) => c.type === 'paragraph')
+		expect(paragraph?.type).toBe('paragraph')
+		if (paragraph?.type !== 'paragraph') return
+
+		const textJsx = paragraph.children.find((c) => c.type === 'mdxJsxTextElement')
+		expect(textJsx).toBeDefined()
+		if (textJsx?.type !== 'mdxJsxTextElement') return
+
+		const text = textJsx.attributes.find((a) => a.type === 'mdxJsxAttribute' && a.name === 'text')
+		expect(text).toBeDefined()
+		expect(text!.value).toBe('inline label')
+		expect(textJsx.children).toHaveLength(0)
+	})
+
+	it('preserves leaf directive [content] as children without label config', () => {
+		const directive: LeafDirective = {
+			attributes: {},
+			children: [{ type: 'text', value: 'Leaf content' }],
+			name: 'Note',
+			type: 'leafDirective',
+		}
+		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+
+		runPlugin(tree, Object.fromEntries([['Note', 'src/components/Note.astro']]))
+
+		const jsx = findJsxFlow(tree.children)
+		expect(jsx!.children).toHaveLength(1)
+	})
 })

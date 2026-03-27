@@ -109,6 +109,34 @@ export type CaptionPropConfig = {
 export type CaptionConfig = 'children' | 'figure' | CaptionPropConfig
 
 /**
+ * Configuration for extracting a directive's `[label]` / `[content]` into a named prop.
+ *
+ * - `string`: Extract as plain text and pass as that prop name.
+ *   `label: 'title'` → `<Component title="Label text" />`
+ * - `{ prop, format? }`: Extract with a specific serialization format.
+ *
+ * Works for all directive types:
+ * - Container (`:::Name[label]`): extracts the label paragraph, preserves body children.
+ * - Leaf (`::Name[content]`) and text (`:Name[content]`): extracts the content,
+ *   clears children.
+ *
+ * Without this option, `[label]`/`[content]` stays in the component's children
+ * (the default behavior per the directives spec).
+ * If no `[label]`/`[content]` is present in the markdown, this option has no effect.
+ * @example
+ * ```ts
+ * directives: {
+ *   Callout: {
+ *     component: 'src/components/Callout.astro',
+ *     label: 'title',
+ *     // or: label: { prop: 'title', format: 'rendered' },
+ *   },
+ * }
+ * ```
+ */
+export type LabelConfig = CaptionPropConfig | string
+
+/**
  * Detailed configuration for mapping a directive to a component.
  */
 export type DetailedComponentConfig = {
@@ -118,6 +146,23 @@ export type DetailedComponentConfig = {
 	component: string
 	/** Module to import the component from (e.g., `'astro:assets'`). When set, `component` is treated as a named export. */
 	componentModule?: string
+	/**
+	 * Extract the directive's `[label]` / `[content]` and pass it as a named prop.
+	 * @see {@link LabelConfig}
+	 */
+	label?: LabelConfig
+	/**
+	 * Rename directive attributes before passing them as component props.
+	 * Keys are the directive attribute names, values are the target prop names.
+	 * Unmapped attributes pass through as-is. The original attribute name is dropped.
+	 * @example
+	 * ```ts
+	 * // ::Block{icon="star" type="warning"}
+	 * // → <Block iconName="star" variant="warning" />
+	 * propMap: { icon: 'iconName', type: 'variant' }
+	 * ```
+	 */
+	propMap?: Record<string, string>
 }
 
 /**

@@ -207,6 +207,68 @@ Content inside the directive.
 - The component is automatically imported — no manual `import` needed
 - With `autoImport: 'src'`, the `src` prop value is converted to an ESM import so Vite can process the asset
 
+#### Prop remapping
+
+Use `propMap` to rename directive attributes before they become component props. The original attribute name is dropped.
+
+```ts
+mdxKit({
+  directives: {
+    Block: {
+      component: 'src/components/Block.astro',
+      propMap: { icon: 'iconName', type: 'variant' },
+    },
+  },
+})
+```
+
+`::Block{icon="star" type="warning"}` becomes `<Block iconName="star" variant="warning" />`. Unmapped attributes pass through as-is.
+
+#### Label extraction
+
+Directives support a `[label]` syntax (e.g., `:::Callout[Warning Title]` or `::Tag[content]`). By default, this content is included in the component's children, which is consistent with the directives specification. In certain cases, it can make more sense for this content to end up elsewhere in the receiving component. Use the `label` option to extract it into a named prop instead:
+
+```ts
+mdxKit({
+  directives: {
+    Callout: {
+      component: 'src/components/Callout.astro',
+      label: 'title',
+    },
+  },
+})
+```
+
+**Markdown:**
+
+```md
+:::Callout[Watch out!]
+Something important.
+:::
+```
+
+**Output:** `<Callout title="Watch out!">Something important.</Callout>`
+
+The label is removed from children and serialized as plain text by default. For richer formatting, use the object form:
+
+```text
+label: { prop: 'title', format: 'rendered' }
+```
+
+| Format       | Output                                       |
+| ------------ | -------------------------------------------- |
+| `'plain'`    | `title="Watch out!"` (default)               |
+| `'raw'`      | `title="**Watch** out!"` (raw Markdown)      |
+| `'rendered'` | `title="<strong>Watch</strong> out!"` (HTML) |
+
+Label extraction works for all directive types:
+
+- **Container** (`:::Name[label]`): The `[label]` paragraph is extracted from children and serialized as a prop. Body content is preserved.
+- **Leaf** (`::Name[content]`): The `[content]` is serialized as a prop and removed from children.
+- **Text** (`:Name[content]`): Same as leaf — `[content]` becomes a prop.
+
+Without the `label` config, all directive types preserve their default behavior (content stays in children). If no `[label]` / `[content]` is present in the markdown, the option has no effect.
+
 ### Element overrides
 
 Replace standard HTML elements rendered by Markdown with custom Astro components.
@@ -315,6 +377,28 @@ mdxKit({
 ```
 
 This requires [`@kitschpatrol/unplugin-tldraw`](https://github.com/kitschpatrol/unplugin-tldraw) to be configured in your build pipeline (e.g. via `astro-media-kit`'s `tldraw: true` integration option).
+
+##### Astro image presets
+
+Pre-configured element overrides for Astro's built-in `<Image>` and `<Picture>` components are available as presets:
+
+```ts
+import mdxKit, { astroImage } from 'astro-mdx-kit'
+
+mdxKit({
+  elements: { img: astroImage },
+})
+```
+
+```ts
+import mdxKit, { astroPicture } from 'astro-mdx-kit'
+
+mdxKit({
+  elements: { img: astroPicture },
+})
+```
+
+Both presets configure `autoImport: 'src'` with the corresponding component from `astro:assets`.
 
 ### Image captions
 
@@ -488,7 +572,11 @@ export default defineConfig({
       attributes: true,
       captionImages: true,
       directives: {
-        Callout: 'src/components/Callout.astro',
+        Callout: {
+          component: 'src/components/Callout.astro',
+          label: 'title',
+          propMap: { type: 'variant' },
+        },
         Picture: {
           autoImport: 'src',
           component: 'Picture',
