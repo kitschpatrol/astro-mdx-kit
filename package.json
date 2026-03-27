@@ -6,6 +6,7 @@
 		"astro",
 		"astro-integration",
 		"mdx",
+		"markdown",
 		"remark",
 		"import",
 		"directive",
@@ -74,12 +75,14 @@
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.2",
 		"@kitschpatrol/shared-config": "^6.1.0",
-		"astro": "^6.0.8",
+		"astro": "^6.1.1",
 		"bumpp": "^11.0.1",
+		"node-addon-api": "^8.7.0",
+		"node-gyp": "^12.2.0",
 		"publint": "^0.3.18",
-		"tsdown": "^0.21.4",
+		"tsdown": "^0.21.6",
 		"typescript": "~5.9.3",
-		"vitest": "^4.1.1"
+		"vitest": "^4.1.2"
 	},
 	"peerDependencies": {
 		"astro": "^6.0.0"
