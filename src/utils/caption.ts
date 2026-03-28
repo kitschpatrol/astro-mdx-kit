@@ -1,9 +1,11 @@
 import type { Parent as MdastParent, PhrasingContent, Root } from 'mdast'
 import type { MdxJsxAttribute, MdxJsxFlowElement } from 'mdast-util-mdx-jsx'
+import type { Parent } from 'unist'
 import { toHtml } from 'hast-util-to-html'
 import { toHast } from 'mdast-util-to-hast'
 import { toMarkdown } from 'mdast-util-to-markdown'
 import { toString } from 'mdast-util-to-string'
+import { SKIP, visit } from 'unist-util-visit'
 import type { CaptionConfig } from '../types.js'
 import { log } from '../log.js'
 import { createJsxFlowElement, createStringAttribute } from './ast.js'
@@ -119,4 +121,39 @@ export function buildCaptionReplacement(
 		[...imageAttributes, createStringAttribute(caption.prop, serialized)],
 		[],
 	)
+}
+
+/**
+ * Pre-scan a tree for paragraphs containing multiple images.
+ *
+ * Returns a `WeakSet` of paragraph nodes that should be skipped during
+ * caption processing to avoid ambiguity about which image a caption belongs to.
+ */
+export function findMultiImageParagraphs(tree: Root): WeakSet<MdastParent> {
+	const result = new WeakSet<MdastParent>()
+	visit(tree, 'paragraph', (node) => {
+		const imageCount = node.children.filter((child) => child.type === 'image').length
+		if (imageCount > 1) {
+			result.add(node)
+		}
+	})
+	return result
+}
+
+/**
+ * Apply collected paragraph-level replacements by visiting all paragraphs
+ * and swapping those found in the replacements map.
+ */
+export function applyParagraphReplacements(
+	tree: Root,
+	replacements: Map<MdastParent, MdxJsxFlowElement>,
+): void {
+	if (replacements.size === 0) return
+	visit(tree, 'paragraph', (node, index, parent) => {
+		if (index === undefined || !parent) return
+		const replacement = replacements.get(node)
+		if (!replacement) return
+		;(parent as Parent).children[index] = replacement
+		return SKIP
+	})
 }

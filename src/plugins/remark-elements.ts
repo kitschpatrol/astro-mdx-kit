@@ -19,7 +19,12 @@ import {
 	createStringAttribute,
 	mergeIntoComponentsExport,
 } from '../utils/ast.js'
-import { buildCaptionReplacement, extractCaptionNodes } from '../utils/caption.js'
+import {
+	applyParagraphReplacements,
+	buildCaptionReplacement,
+	extractCaptionNodes,
+	findMultiImageParagraphs,
+} from '../utils/caption.js'
 import { ImportTracker, isImportablePath } from '../utils/imports.js'
 
 /**
@@ -200,18 +205,7 @@ function transformImageNodes(
 	config: ResolvedComponentConfig,
 	imports: ImportTracker,
 ): void {
-	// Pre-scan: identify paragraphs with multiple images (skip caption for those)
-	const multiImageParagraphs = new WeakSet<MdastParent>()
-	if (config.caption) {
-		visit(tree, 'paragraph', (node) => {
-			const imageCount = node.children.filter((child) => child.type === 'image').length
-			if (imageCount > 1) {
-				multiImageParagraphs.add(node)
-			}
-		})
-	}
-
-	// Collect paragraph-level replacements for caption mode (mark-and-sweep)
+	const multiImageParagraphs = config.caption ? findMultiImageParagraphs(tree) : undefined
 	const paragraphReplacements = new Map<MdastParent, MdxJsxFlowElement>()
 
 	visit(tree, 'image', (node: Image, index, parent) => {
@@ -219,8 +213,7 @@ function transformImageNodes(
 
 		const imageJsx = buildImageJsxElement(node, config, imports)
 
-		if (!config.caption || multiImageParagraphs.has(parent)) {
-			// No caption mode or multi-image paragraph — replace image in-place
+		if (!config.caption || multiImageParagraphs?.has(parent)) {
 			;(parent as Parent).children[index] = imageJsx
 			return SKIP
 		}
@@ -228,12 +221,10 @@ function transformImageNodes(
 		const captionNodes = extractCaptionNodes(parent, index)
 
 		if (captionNodes.length === 0) {
-			// No caption content — just replace image in-place
 			;(parent as Parent).children[index] = imageJsx
 			return SKIP
 		}
 
-		// Schedule paragraph-level replacement
 		paragraphReplacements.set(
 			parent,
 			buildCaptionReplacement(config.caption, imageJsx, captionNodes),
@@ -241,16 +232,7 @@ function transformImageNodes(
 		return SKIP
 	})
 
-	// Second pass: replace paragraphs that have captions
-	if (paragraphReplacements.size > 0) {
-		visit(tree, 'paragraph', (node, index, parent) => {
-			if (index === undefined || !parent) return
-			const replacement = paragraphReplacements.get(node)
-			if (!replacement) return
-			;(parent as Parent).children[index] = replacement
-			return SKIP
-		})
-	}
+	applyParagraphReplacements(tree, paragraphReplacements)
 }
 
 // ---------------------------------------------------------------------------

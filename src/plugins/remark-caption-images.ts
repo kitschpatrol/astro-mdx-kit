@@ -5,11 +5,14 @@
 import type { Image, Parent as MdastParent, Root } from 'mdast'
 import type { MdxJsxFlowElement } from 'mdast-util-mdx-jsx'
 import type { Plugin } from 'unified'
-import type { Parent } from 'unist'
 import { SKIP, visit } from 'unist-util-visit'
 import { log } from '../log.js'
 import { createJsxFlowElement } from '../utils/ast.js'
-import { extractCaptionNodes } from '../utils/caption.js'
+import {
+	applyParagraphReplacements,
+	extractCaptionNodes,
+	findMultiImageParagraphs,
+} from '../utils/caption.js'
 
 /**
  * Tree transformer that wraps stand-alone images with adjacent caption
@@ -25,15 +28,7 @@ import { extractCaptionNodes } from '../utils/caption.js'
  * @param tree - The root MDAST node to transform in-place.
  */
 export function captionImagesTransform(tree: Root): void {
-	// Pre-scan: identify paragraphs with multiple images (skip those)
-	const multiImageParagraphs = new WeakSet<MdastParent>()
-	visit(tree, 'paragraph', (node) => {
-		const imageCount = node.children.filter((child) => child.type === 'image').length
-		if (imageCount > 1) {
-			multiImageParagraphs.add(node)
-		}
-	})
-
+	const multiImageParagraphs = findMultiImageParagraphs(tree)
 	const paragraphReplacements = new Map<MdastParent, MdxJsxFlowElement>()
 
 	visit(tree, 'image', (node: Image, index, parent) => {
@@ -43,8 +38,6 @@ export function captionImagesTransform(tree: Root): void {
 		const captionNodes = extractCaptionNodes(parent, index)
 		if (captionNodes.length === 0) return SKIP
 
-		// Build <figure> with the original image node + <figcaption>
-		// Caption nodes go directly inside figcaption (no paragraph wrapper)
 		const figcaption = createJsxFlowElement('figcaption', [], captionNodes)
 		const figure = createJsxFlowElement('figure', [], [node, figcaption])
 
@@ -52,17 +45,11 @@ export function captionImagesTransform(tree: Root): void {
 		return SKIP
 	})
 
-	// Second pass: replace paragraphs
 	if (paragraphReplacements.size > 0) {
 		log.debug(`Wrapping ${paragraphReplacements.size} captioned image(s) in <figure>/<figcaption>`)
-		visit(tree, 'paragraph', (node, index, parent) => {
-			if (index === undefined || !parent) return
-			const replacement = paragraphReplacements.get(node)
-			if (!replacement) return
-			;(parent as Parent).children[index] = replacement
-			return SKIP
-		})
 	}
+
+	applyParagraphReplacements(tree, paragraphReplacements)
 }
 
 /**
