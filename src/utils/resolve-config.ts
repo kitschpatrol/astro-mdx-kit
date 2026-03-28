@@ -124,31 +124,24 @@ function resolveDetailed(
 	},
 	caption?: CaptionConfig,
 ): ResolvedComponentConfig {
-	const autoImports = config.autoImport ? resolveAutoImports(name, config.autoImport) : undefined
-	const label = config.label ? resolveLabelConfig(config.label) : undefined
-	const { propMap } = config
+	const result: ResolvedComponentConfig = config.componentModule
+		? {
+				componentName: config.component,
+				importPath: config.componentModule,
+				isNamedImport: true,
+			}
+		: {
+				componentName: `_MdxKit_${toPascalCase(name)}`,
+				importPath: resolveImportPath(config.component),
+				isNamedImport: false,
+			}
 
-	if (config.componentModule) {
-		return {
-			...(autoImports ? { autoImports } : {}),
-			...(caption ? { caption } : {}),
-			componentName: config.component,
-			importPath: config.componentModule,
-			isNamedImport: true,
-			...(label ? { label } : {}),
-			...(propMap ? { propMap } : {}),
-		}
-	}
+	if (config.autoImport) result.autoImports = resolveAutoImports(name, config.autoImport)
+	if (caption) result.caption = caption
+	if (config.label) result.label = resolveLabelConfig(config.label)
+	if (config.propMap) result.propMap = config.propMap
 
-	return {
-		...(autoImports ? { autoImports } : {}),
-		...(caption ? { caption } : {}),
-		componentName: `_MdxKit_${toPascalCase(name)}`,
-		importPath: resolveImportPath(config.component),
-		isNamedImport: false,
-		...(label ? { label } : {}),
-		...(propMap ? { propMap } : {}),
-	}
+	return result
 }
 
 /**
