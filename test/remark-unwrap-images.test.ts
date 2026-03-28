@@ -84,6 +84,52 @@ describe('remarkMdxKitUnwrapImages', () => {
 		expect(tree.children.at(0)?.type).toBe('mdxJsxFlowElement')
 	})
 
+	it('does not unwrap non-image JSX elements like <Callout>', () => {
+		const jsxElement = {
+			attributes: [],
+			children: [],
+			name: 'Callout',
+			type: 'mdxJsxFlowElement',
+		}
+		const tree: Root = {
+			children: [
+				{
+					children: [jsxElement as never],
+					type: 'paragraph',
+				},
+			],
+			type: 'root',
+		}
+
+		unwrap(tree)
+
+		expect(tree.children).toHaveLength(1)
+		expect(tree.children.at(0)?.type).toBe('paragraph')
+	})
+
+	it('unwraps custom image component names when configured', () => {
+		const jsxElement = {
+			attributes: [],
+			children: [],
+			name: 'FancyImage',
+			type: 'mdxJsxFlowElement',
+		}
+		const tree: Root = {
+			children: [
+				{
+					children: [jsxElement as never],
+					type: 'paragraph',
+				},
+			],
+			type: 'root',
+		}
+
+		unwrapImagesTransform(tree, { imageComponentNames: new Set(['FancyImage']) })
+
+		expect(tree.children).toHaveLength(1)
+		expect(tree.children.at(0)?.type).toBe('mdxJsxFlowElement')
+	})
+
 	it('preserves non-image paragraphs', () => {
 		const tree: Root = {
 			children: [{ children: [{ type: 'text', value: 'Just text' }], type: 'paragraph' }],

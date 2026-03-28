@@ -18,6 +18,7 @@ export {
 } from './plugins/remark-frontmatter-inject.js'
 export type { RemarkFrontmatterInjectOptions } from './plugins/remark-frontmatter-inject.js'
 export { remarkMdxKitUnwrapImages, unwrapImagesTransform } from './plugins/remark-unwrap-images.js'
+export type { RemarkUnwrapImagesOptions } from './plugins/remark-unwrap-images.js'
 // Presets
 export { astroImage, astroPicture, tldrawDarkImport } from './presets.js'
 // Remark plugin factory (typed tuple helper)

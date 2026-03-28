@@ -110,7 +110,17 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 	}
 
 	if (unwrapImages) {
-		transforms.push(unwrapImagesTransform)
+		// Collect component names used for img overrides so the unwrap
+		// transform recognizes them as image-like elements.
+		const imageComponentNames = new Set<string>()
+		const imgConfig = resolvedElements.img
+		if (imgConfig) {
+			imageComponentNames.add(imgConfig.componentName)
+		}
+
+		transforms.push((tree) => {
+			unwrapImagesTransform(tree, imageComponentNames.size > 0 ? { imageComponentNames } : undefined)
+		})
 	}
 
 	if (mdast) {
