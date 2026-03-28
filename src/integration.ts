@@ -2,7 +2,7 @@ import type { AstroIntegration } from 'astro'
 import remarkAttributeList from 'remark-attribute-list'
 import remarkDirective from 'remark-directive'
 import type { MdxKitOptions } from './types.js'
-import remarkMdxKitPlugin from './remark-plugin.js'
+import remarkMdxKitPlugin, { SKIP_PARSER_EXTENSIONS } from './remark-plugin.js'
 
 /**
  * Astro integration for astro-mdx-kit.
@@ -42,7 +42,10 @@ export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 					remarkPlugins.push(remarkDirective)
 				}
 
-				remarkPlugins.push([remarkMdxKitPlugin, options])
+				remarkPlugins.push([
+				remarkMdxKitPlugin,
+				{ ...options, [SKIP_PARSER_EXTENSIONS]: true },
+			])
 
 				updateConfig({
 					markdown: {

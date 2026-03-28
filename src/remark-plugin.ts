@@ -11,6 +11,15 @@ import { directiveFromMarkdown } from 'mdast-util-directive'
 import { directive } from 'micromark-extension-directive'
 import remarkAttributeList from 'remark-attribute-list'
 import type { MdxKitOptions } from './types.js'
+
+/**
+ * Internal options key used by the Astro integration to signal that
+ * parser extensions (directive, attribute-list) have already been
+ * registered as separate remark plugins via `updateConfig`. When set,
+ * the remark plugin skips its own `this.data()` / `this.use()`
+ * registration to avoid duplicates.
+ */
+export const SKIP_PARSER_EXTENSIONS = Symbol('skipParserExtensions')
 import type { ResolvedComponentConfig } from './utils/resolve-config.js'
 import { log } from './log.js'
 import { captionImagesTransform } from './plugins/remark-caption-images.js'
@@ -45,21 +54,27 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 
 	// ---------------------------------------------------------------------------
 	// Parser extensions — registered on the processor via this.data()
+	// Skipped when the Astro integration has already registered them as
+	// separate remark plugins (see integration.ts).
 	// ---------------------------------------------------------------------------
 
-	const data = this.data()
+	// eslint-disable-next-line ts/no-unsafe-type-assertion -- internal symbol access
+	const skipParserExtensions = (options as Record<symbol, unknown>)[SKIP_PARSER_EXTENSIONS] === true
 
-	if (directives && Object.keys(directives).length > 0) {
-		data.micromarkExtensions ??= []
-		data.micromarkExtensions.push(directive())
+	if (!skipParserExtensions) {
+		const data = this.data()
 
-		data.fromMarkdownExtensions ??= []
-		data.fromMarkdownExtensions.push(directiveFromMarkdown())
-	}
+		if (directives && Object.keys(directives).length > 0) {
+			data.micromarkExtensions ??= []
+			data.micromarkExtensions.push(directive())
 
-	if (attributes) {
-		// Remark-attribute-list registers its own micromark extensions via this.use()
-		this.use(remarkAttributeList)
+			data.fromMarkdownExtensions ??= []
+			data.fromMarkdownExtensions.push(directiveFromMarkdown())
+		}
+
+		if (attributes) {
+			this.use(remarkAttributeList)
+		}
 	}
 
 	// ---------------------------------------------------------------------------
