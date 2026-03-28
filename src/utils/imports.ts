@@ -1,5 +1,8 @@
 import type { Root } from 'mdast'
-import { createEsmImportNode } from './ast.js'
+import type { MdxJsxAttribute } from 'mdast-util-mdx-jsx'
+import type { ResolvedAutoImportEntry } from './resolve-config.js'
+import { log } from '../log.js'
+import { createEsmImportNode, createExpressionAttribute, createStringAttribute } from './ast.js'
 
 type TrackedImport = {
 	importPath: string
@@ -86,4 +89,53 @@ export function isImportablePath(value: string): boolean {
 	if (value.startsWith('data:')) return false
 	if (value.startsWith('#')) return false
 	return true
+}
+
+/**
+ * Process auto-import entries for a given path, generating JSX attributes
+ * and registering ESM imports via the tracker.
+ *
+ * For each entry:
+ * - **Derived** (has `transform`): transforms the path, skips if `undefined`
+ * - **Primary** (no `transform`): imports as-is if importable, falls back to string
+ *
+ * When a primary entry remaps (`fromProp !== toProp`), the original string
+ * value is preserved on `fromProp` alongside the imported expression on `toProp`.
+ * @param path - The source path to import (e.g. an image URL).
+ * @param entries - Resolved auto-import entries to process.
+ * @param imports - Import tracker for deduplication and injection.
+ * @returns An array of JSX attributes generated from the entries.
+ */
+export function resolveAutoImportAttributes(
+	path: string,
+	entries: ResolvedAutoImportEntry[],
+	imports: ImportTracker,
+): MdxJsxAttribute[] {
+	const attributes: MdxJsxAttribute[] = []
+
+	for (const entry of entries) {
+		if (entry.transform) {
+			const transformedPath = entry.transform(path)
+			if (transformedPath === undefined) {
+				log.debug(
+					`Skipping derived autoImport for "${entry.toProp}" — transform returned undefined for "${path}"`,
+				)
+				continue
+			}
+
+			const importId = imports.addAssetImport(transformedPath)
+			attributes.push(createExpressionAttribute(entry.toProp, importId))
+		} else if (isImportablePath(path)) {
+			const importId = imports.addAssetImport(path)
+			attributes.push(createExpressionAttribute(entry.toProp, importId))
+			if (entry.fromProp !== entry.toProp) {
+				attributes.push(createStringAttribute(entry.fromProp, path))
+			}
+		} else {
+			log.debug(`Passing "${path}" as string to "${entry.toProp}" — not an importable path`)
+			attributes.push(createStringAttribute(entry.toProp, path))
+		}
+	}
+
+	return attributes
 }

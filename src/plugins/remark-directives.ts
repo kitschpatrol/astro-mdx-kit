@@ -12,14 +12,9 @@ import type { Plugin } from 'unified'
 import { visit } from 'unist-util-visit'
 import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
 import { log } from '../log.js'
-import {
-	createExpressionAttribute,
-	createJsxFlowElement,
-	createJsxTextElement,
-	createStringAttribute,
-} from '../utils/ast.js'
+import { createJsxFlowElement, createJsxTextElement, createStringAttribute } from '../utils/ast.js'
 import { serializePhrasingContent } from '../utils/caption.js'
-import { ImportTracker, isImportablePath } from '../utils/imports.js'
+import { ImportTracker, isImportablePath, resolveAutoImportAttributes } from '../utils/imports.js'
 
 /**
  * Options for the directive-to-component remark plugin.
@@ -114,33 +109,14 @@ function buildDirectiveAttributes(
 	const attributes: MdxJsxAttribute[] = []
 
 	const primaryEntry = config.autoImports?.find((entry) => !entry.transform)
-	const omitProp = primaryEntry?.fromProp
+	const autoImportProp = primaryEntry?.fromProp
 
 	for (const [key, value] of Object.entries(directiveAttributes)) {
 		if (!value) continue
 		const propName = config.propMap?.[key] ?? key
 
-		if (key === omitProp && config.autoImports && isImportablePath(value)) {
-			for (const entry of config.autoImports) {
-				if (entry.transform) {
-					const transformedPath = entry.transform(value)
-					if (transformedPath === undefined) {
-						log.debug(
-							`Skipping derived autoImport for "${entry.toProp}" — transform returned undefined for "${value}"`,
-						)
-						continue
-					}
-
-					const importId = imports.addAssetImport(transformedPath)
-					attributes.push(createExpressionAttribute(entry.toProp, importId))
-				} else {
-					const importId = imports.addAssetImport(value)
-					attributes.push(createExpressionAttribute(entry.toProp, importId))
-					if (entry.fromProp !== entry.toProp) {
-						attributes.push(createStringAttribute(propName, value))
-					}
-				}
-			}
+		if (key === autoImportProp && config.autoImports && isImportablePath(value)) {
+			attributes.push(...resolveAutoImportAttributes(value, config.autoImports, imports))
 		} else {
 			attributes.push(createStringAttribute(propName, value))
 		}

@@ -9,7 +9,7 @@ import type { MdxJsxAttribute, MdxJsxFlowElement } from 'mdast-util-mdx-jsx'
 import type { Plugin } from 'unified'
 import type { Parent } from 'unist'
 import { SKIP, visit } from 'unist-util-visit'
-import type { ResolvedAutoImportEntry, ResolvedComponentConfig } from '../utils/resolve-config.js'
+import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
 import { log } from '../log.js'
 import {
 	createComponentsExportNode,
@@ -25,7 +25,7 @@ import {
 	extractCaptionNodes,
 	findMultiImageParagraphs,
 } from '../utils/caption.js'
-import { ImportTracker, isImportablePath } from '../utils/imports.js'
+import { ImportTracker, isImportablePath, resolveAutoImportAttributes } from '../utils/imports.js'
 
 /**
  * Options for the element-to-component remark plugin.
@@ -128,46 +128,6 @@ export const remarkMdxKitElements: Plugin<[RemarkElementsOptions], Root> = (opti
 // Image node transformation (![alt](src))
 // ---------------------------------------------------------------------------
 
-/**
- * Process auto-import entries for an image URL, generating attributes
- * and imports for each entry.
- */
-function processAutoImports(
-	url: string,
-	autoImports: ResolvedAutoImportEntry[],
-	imports: ImportTracker,
-	attributes: MdxJsxAttribute[],
-): void {
-	for (const entry of autoImports) {
-		const { fromProp, toProp, transform } = entry
-
-		if (transform) {
-			// Derived import: transform the path, skip if transform returns undefined
-			const transformedPath = transform(url)
-			if (transformedPath === undefined) {
-				log.debug(
-					`Skipping derived autoImport for "${toProp}" — transform returned undefined for "${url}"`,
-				)
-				continue
-			}
-
-			const importId = imports.addAssetImport(transformedPath)
-			attributes.push(createExpressionAttribute(toProp, importId))
-		} else if (isImportablePath(url)) {
-			// Primary import: import the path as-is
-			const importId = imports.addAssetImport(url)
-			attributes.push(createExpressionAttribute(toProp, importId))
-			if (fromProp !== toProp) {
-				attributes.push(createStringAttribute(fromProp, url))
-			}
-		} else {
-			// Non-importable path (URL, data URI): pass as string
-			log.debug(`Passing "${url}" as string to "${toProp}" — not an importable path`)
-			attributes.push(createStringAttribute(toProp, url))
-		}
-	}
-}
-
 function buildImageJsxElement(
 	node: Image,
 	config: ResolvedComponentConfig,
@@ -176,7 +136,7 @@ function buildImageJsxElement(
 	const attributes: MdxJsxAttribute[] = []
 
 	if (config.autoImports) {
-		processAutoImports(node.url, config.autoImports, imports, attributes)
+		attributes.push(...resolveAutoImportAttributes(node.url, config.autoImports, imports))
 	}
 
 	if (node.alt) {
