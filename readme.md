@@ -37,7 +37,7 @@ You can write:
 ::Block{greeting="hello"}
 ```
 
-And then, with some help from `astro-mdx-kit`, you can easily map `::Block` to its Astro implementation _outside_ your Markdown
+And then, with some help from `astro-mdx-kit`, you can easily map `::Block` to its Astro implementation _outside_ your Markdown:
 
 ```ts
 mdxKit({
@@ -47,7 +47,7 @@ mdxKit({
 })
 ```
 
-It's not necessarily pretty, but it _is_ decoupled and portable.
+It's not necessarily pretty, but it _is_ comparatively decoupled and portable.
 
 In addition to support for mapping directives to, `astro-mdx-kit` bundles some additional tools I end up needing most of the time:
 
@@ -311,6 +311,8 @@ This produces `<CustomImage srcImported={importedModule} src="../original/path.j
 #### Derived imports
 
 `autoImport` accepts an array of entries to generate multiple imports from a single source path. Each entry can include a `transform` function that modifies the path before importing. If `transform` returns `undefined`, the derived import is skipped.
+
+This is a bit of an edge case, but useful in cases where you want to pass multiple imported values to your component, such as generating both light and dark mode assets from the [unplugin-tldraw](https://github.com/kitschpatrol/unplugin-tldraw) package as illustrated below:
 
 ```ts
 mdxKit({
@@ -608,6 +610,8 @@ export default defineConfig({
 ## Acknowledgments
 
 This project was heavily inspired by [Christian Fuss](https://github.com/christian-hackyourshack)'s [m2dx](https://astro-m2dx.netlify.app/) project and [tomixy](https://tomixyz-biography.net/)'s [astro-mdx-directive](https://github.com/tetracalibers/astro-mdx-directive).
+
+Though I didn't find it until after developing `astro-mdx-kit`, [Florian](https://flo-bit.dev/)'s [astro-custom-embeds](https://github.com/flo-bit/astro-custom-embeds) looks great and it looks like we both arrived at similar approaches to configuration API.
 
 Gratitude is always due to the [unified](https://unifiedjs.com) [team](https://github.com/unifiedjs/collective/?tab=readme-ov-file#unified-team) for [remark](https://remark.js.org) and their entire ecosystem of AST-wrangling libraries and tools.
 
