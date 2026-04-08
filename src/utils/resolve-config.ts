@@ -53,11 +53,15 @@ export type ResolvedComponentConfig = {
 	propMap?: Record<string, string>
 }
 
+const FILE_EXTENSION_REGEX = /\.\w+$/
+const SEPARATOR_THEN_CHAR_REGEX = /[-_./\\]+(.)/g
+const FIRST_CHAR_REGEX = /^(.)/
+
 function toPascalCase(string_: string): string {
 	return string_
-		.replace(/\.\w+$/, '') // Strip file extension
-		.replaceAll(/[-_./\\]+(.)/g, (_, c: string) => c.toUpperCase())
-		.replace(/^(.)/, (_, c: string) => c.toUpperCase())
+		.replace(FILE_EXTENSION_REGEX, '') // Strip file extension
+		.replaceAll(SEPARATOR_THEN_CHAR_REGEX, (_, c: string) => c.toUpperCase())
+		.replace(FIRST_CHAR_REGEX, (_, c: string) => c.toUpperCase())
 		.replaceAll(/[^\dA-Z]/gi, '')
 }
 

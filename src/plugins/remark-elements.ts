@@ -13,7 +13,6 @@ import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
 import { log } from '../log.js'
 import {
 	createComponentsExportNode,
-	createExpressionAttribute,
 	createExpressionAttributeValue,
 	createJsxFlowElement,
 	createStringAttribute,
@@ -34,27 +33,29 @@ export type RemarkElementsOptions = {
 	/**
 	 * Map of HTML element names to their resolved component configurations.
 	 *
-	 * Each key is a standard HTML element name (e.g. `"img"`, `"h1"`, `"a"`)
-	 * and the value describes which component replaces it and how to handle
-	 * its imports.
+	 * Each key is a standard HTML element name (e.g. `"img"`, `"h1"`, `"a"`) and
+	 * the value describes which component replaces it and how to handle its
+	 * imports.
 	 */
 	configs: Record<string, ResolvedComponentConfig>
 }
 
 /**
- * Create a MDAST tree transformer that maps HTML elements to custom
- * components, injecting the necessary ESM imports and export declarations.
+ * Create a MDAST tree transformer that maps HTML elements to custom components,
+ * injecting the necessary ESM imports and export declarations.
  *
  * Two strategies are used depending on the configuration:
  *
  * - Elements **without** `autoImports` use MDX's `export const components`
  *   mechanism, which handles all rendering of that element type.
- * - Elements **with** `autoImports` use direct AST transformation so that
- *   prop values (e.g. image `src`) can be converted to ESM imports.
+ * - Elements **with** `autoImports` use direct AST transformation so that prop
+ *   values (e.g. image `src`) can be converted to ESM imports.
  *
- * Exported separately from the plugin wrapper so it can be composed into
- * larger transform pipelines or used directly in tests.
+ * Exported separately from the plugin wrapper so it can be composed into larger
+ * transform pipelines or used directly in tests.
+ *
  * @param options - Element transform configuration.
+ *
  * @returns A tree transformer function.
  */
 export function createElementTransform(options: RemarkElementsOptions): (tree: Root) => void {

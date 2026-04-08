@@ -10,19 +10,20 @@ import remarkMdxKitPlugin, { SKIP_PARSER_EXTENSIONS } from './remark-plugin.js'
  * Registers the `remarkMdxKitPlugin` remark plugin via Astro's `updateConfig`.
  * Use this when you want the convenience of an Astro integration, or use
  * `remarkMdxKit()` directly in `remarkPlugins` for more control.
- * @example
- * ```ts
- * import { mdxKit } from 'astro-mdx-kit'
  *
- * export default defineConfig({
- *   integrations: [
- *     mdxKit({
- *       directives: { Block: 'src/components/Block.astro' },
- *       elements: { h1: 'src/components/Heading.astro' },
- *     }),
- *   ],
- * })
- * ```
+ * @example
+ * 	;```ts
+ * 	import { mdxKit } from 'astro-mdx-kit'
+ *
+ * 	export default defineConfig({
+ * 	  integrations: [
+ * 	    mdxKit({
+ * 	      directives: { Block: 'src/components/Block.astro' },
+ * 	      elements: { h1: 'src/components/Heading.astro' },
+ * 	    }),
+ * 	  ],
+ * 	})
+ * 	```
  */
 export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 	return {
@@ -42,10 +43,7 @@ export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 					remarkPlugins.push(remarkDirective)
 				}
 
-				remarkPlugins.push([
-				remarkMdxKitPlugin,
-				{ ...options, [SKIP_PARSER_EXTENSIONS]: true },
-			])
+				remarkPlugins.push([remarkMdxKitPlugin, { ...options, [SKIP_PARSER_EXTENSIONS]: true }])
 
 				updateConfig({
 					markdown: {

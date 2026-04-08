@@ -7,16 +7,16 @@ import { visit } from 'unist-util-visit'
  */
 export type RemarkUnwrapImagesOptions = {
 	/**
-	 * Additional JSX element names to treat as images when deciding
-	 * whether a paragraph contains a stand-alone image. Native `image`
-	 * nodes are always recognized.
+	 * Additional JSX element names to treat as images when deciding whether a
+	 * paragraph contains a stand-alone image. Native `image` nodes are always
+	 * recognized.
 	 *
 	 * When omitted, falls back to a built-in set: `img`, `Image`, `Picture`.
 	 */
 	imageComponentNames?: Set<string>
 }
 
-const DEFAULT_IMAGE_NAMES = new Set(['img', 'Image', 'Picture'])
+const DEFAULT_IMAGE_NAMES = new Set(['Image', 'img', 'Picture'])
 
 function isWhitespaceText(node: { type: string; value?: string }): boolean {
 	return node.type === 'text' && !node.value?.trim()
@@ -43,12 +43,13 @@ function unwrapParagraph(parent: { children: unknown[] }, index: number, paragra
 }
 
 /**
- * Tree transformer that removes the wrapping `<p>` from paragraphs
- * containing a single stand-alone image (or JSX image component).
+ * Tree transformer that removes the wrapping `<p>` from paragraphs containing a
+ * single stand-alone image (or JSX image component).
  *
- * Handles both top-level paragraphs and those nested inside block
- * quotes, list items, etc. Exported separately from the plugin wrapper
- * for use in tests and composed transform pipelines.
+ * Handles both top-level paragraphs and those nested inside block quotes, list
+ * items, etc. Exported separately from the plugin wrapper for use in tests and
+ * composed transform pipelines.
+ *
  * @param tree - The root MDAST node to transform in-place.
  * @param options - Optional configuration for image component names.
  */
@@ -75,8 +76,8 @@ export function unwrapImagesTransform(tree: Root, options?: RemarkUnwrapImagesOp
 /**
  * Remark plugin that removes the wrapping paragraph from stand-alone images.
  *
- * Works with both native MDAST `image` nodes and MDX JSX elements
- * produced by element overrides (e.g. `<Picture>`).
+ * Works with both native MDAST `image` nodes and MDX JSX elements produced by
+ * element overrides (e.g. `<Picture>`).
  */
 export const remarkMdxKitUnwrapImages: Plugin<[RemarkUnwrapImagesOptions?], Root> = (options) => {
 	const resolvedOptions = options ?? {}

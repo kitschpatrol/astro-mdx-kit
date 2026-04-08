@@ -13,11 +13,10 @@ import remarkAttributeList from 'remark-attribute-list'
 import type { MdxKitOptions } from './types.js'
 
 /**
- * Internal options key used by the Astro integration to signal that
- * parser extensions (directive, attribute-list) have already been
- * registered as separate remark plugins via `updateConfig`. When set,
- * the remark plugin skips its own `this.data()` / `this.use()`
- * registration to avoid duplicates.
+ * Internal options key used by the Astro integration to signal that parser
+ * extensions (directive, attribute-list) have already been registered as
+ * separate remark plugins via `updateConfig`. When set, the remark plugin skips
+ * its own `this.data()` / `this.use()` registration to avoid duplicates.
  */
 export const SKIP_PARSER_EXTENSIONS = Symbol('skipParserExtensions')
 import type { ResolvedComponentConfig } from './utils/resolve-config.js'
@@ -35,16 +34,17 @@ import { resolveComponentConfig, resolveElementConfig } from './utils/resolve-co
  * Registers parser extensions (for directives) and runs all configured
  * transforms in a single plugin. Can be used directly in any unified/remark
  * pipeline or via the Astro integration wrapper.
+ *
  * @example
- * ```ts
- * import remarkMdxKitPlugin from 'astro-mdx-kit/remark'
+ * 	;```ts
+ * 	import remarkMdxKitPlugin from 'astro-mdx-kit/remark'
  *
- * // In Astro MDX config:
- * mdx({ remarkPlugins: [[remarkMdxKitPlugin, options]] })
+ * 	// In Astro MDX config:
+ * 	mdx({ remarkPlugins: [[remarkMdxKitPlugin, options]] })
  *
- * // Or in any unified pipeline:
- * unified().use(remarkParse).use(remarkMdxKitPlugin, options).use(remarkRehype)
- * ```
+ * 	// Or in any unified pipeline:
+ * 	unified().use(remarkParse).use(remarkMdxKitPlugin, options).use(remarkRehype)
+ * 	```
  */
 const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 	this: Processor,
@@ -58,7 +58,6 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 	// separate remark plugins (see integration.ts).
 	// ---------------------------------------------------------------------------
 
-	// eslint-disable-next-line ts/no-unsafe-type-assertion -- internal symbol access
 	const skipParserExtensions = (options as Record<symbol, unknown>)[SKIP_PARSER_EXTENSIONS] === true
 
 	if (!skipParserExtensions) {
@@ -134,7 +133,10 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 		}
 
 		transforms.push((tree) => {
-			unwrapImagesTransform(tree, imageComponentNames.size > 0 ? { imageComponentNames } : undefined)
+			unwrapImagesTransform(
+				tree,
+				imageComponentNames.size > 0 ? { imageComponentNames } : undefined,
+			)
 		})
 	}
 
@@ -158,16 +160,17 @@ export default remarkMdxKitPlugin
 /**
  * Helper that returns a typed `[plugin, options]` tuple for use in
  * `remarkPlugins` arrays. Provides full autocomplete on the options object.
- * @example
- * ```ts
- * import { remarkMdxKit } from 'astro-mdx-kit'
  *
- * export default {
- *   markdown: {
- *     remarkPlugins: [remarkMdxKit({ directives: { ... } })],
- *   },
- * }
- * ```
+ * @example
+ * 	;```ts
+ * 	import { remarkMdxKit } from 'astro-mdx-kit'
+ *
+ * 	export default {
+ * 	  markdown: {
+ * 	    remarkPlugins: [remarkMdxKit({ directives: { ... } })],
+ * 	  },
+ * 	}
+ * 	```
  */
 // eslint-disable-next-line ts/no-explicit-any -- interop with Astro's RemarkPlugin type
 export function remarkMdxKit(options: MdxKitOptions = {}): [plugin: any, options: MdxKitOptions] {

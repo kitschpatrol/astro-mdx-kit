@@ -2,6 +2,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { log } from '../src/log'
 import { resolveComponentConfig, resolveElementConfig } from '../src/utils/resolve-config'
 
+const CAPTION_IMG_ONLY_REGEX = /caption.*only apply to.*img/
+const EMPTY_AUTO_IMPORT_REGEX = /empty.*autoImport/
+const LABEL_DIRECTIVES_ONLY_REGEX = /label.*only apply to.*directives/
+
 describe('resolveComponentConfig', () => {
 	it('resolves a simple string path', () => {
 		const result = resolveComponentConfig('Block', 'src/components/block.astro')
@@ -148,7 +152,7 @@ describe('resolveElementConfig', () => {
 			component: 'src/components/Heading.astro',
 		})
 		expect(spy).toHaveBeenCalledOnce()
-		expect(spy.mock.calls[0]![0]).toMatch(/caption.*only apply to.*img/)
+		expect(spy.mock.calls[0]![0]).toMatch(CAPTION_IMG_ONLY_REGEX)
 		spy.mockRestore()
 	})
 
@@ -174,7 +178,7 @@ describe('config validation warnings', () => {
 			componentModule: 'astro:assets',
 		})
 		expect(spy).toHaveBeenCalledOnce()
-		expect(spy.mock.calls[0]![0]).toMatch(/empty.*autoImport/)
+		expect(spy.mock.calls[0]![0]).toMatch(EMPTY_AUTO_IMPORT_REGEX)
 		spy.mockRestore()
 	})
 
@@ -185,7 +189,7 @@ describe('config validation warnings', () => {
 			label: 'title',
 		})
 		expect(spy).toHaveBeenCalledOnce()
-		expect(spy.mock.calls[0]![0]).toMatch(/label.*only apply to.*directives/)
+		expect(spy.mock.calls[0]![0]).toMatch(LABEL_DIRECTIVES_ONLY_REGEX)
 		spy.mockRestore()
 	})
 })

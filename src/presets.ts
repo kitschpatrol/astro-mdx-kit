@@ -53,12 +53,14 @@ export const astroPicture: DetailedElementConfig = {
  * }
  * ```
  */
+const TLDRAW_EXTENSION_REGEX = /\.tldr(?:\?|$)/
+
 export const tldrawDarkImport: AutoImportEntry = {
 	from: 'src',
 	to: 'srcDark',
 	transform(path: string) {
 		// eslint-disable-next-line unicorn/no-useless-undefined
-		if (!/\.tldr(?:\?|$)/.test(path)) return undefined
+		if (!TLDRAW_EXTENSION_REGEX.test(path)) return undefined
 		return `${path}${path.includes('?') ? '&' : '?'}dark=true&tldr`
 	},
 }

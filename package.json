@@ -42,8 +42,8 @@
 		"dist/*"
 	],
 	"scripts": {
-		"build": "tsdown",
-		"clean": "git rm -f pnpm-lock.yaml ; git clean -fdX",
+		"build": "pnpm -C playground build ; pnpm -C playground-starlight build ; tsdown",
+		"clean": "git rm -f pnpm-lock.yaml ; git clean -fdX -e !.claude/",
 		"fix": "ksc fix",
 		"lint": "ksc lint ; astro check",
 		"play": "pnpm -C playground run dev",
@@ -55,10 +55,10 @@
 		"@astrojs/check": "^0.9.8",
 		"@types/estree": "^1.0.8",
 		"@types/mdast": "^4.0.4",
-		"@types/node": "~20.19.37",
+		"@types/node": "~20.19.39",
 		"@types/unist": "^3.0.3",
 		"hast-util-to-html": "^9.0.5",
-		"lognow": "^0.5.2",
+		"lognow": "^0.6.1",
 		"mdast-util-directive": "^3.1.0",
 		"mdast-util-mdx-jsx": "^3.2.0",
 		"mdast-util-mdxjs-esm": "^2.0.1",
@@ -74,15 +74,15 @@
 	},
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.2",
-		"@kitschpatrol/shared-config": "^6.1.0",
-		"astro": "^6.1.2",
+		"@kitschpatrol/shared-config": "^7.2.0",
+		"astro": "^6.1.5",
 		"bumpp": "^11.0.1",
 		"node-addon-api": "^8.7.0",
 		"node-gyp": "^12.2.0",
 		"publint": "^0.3.18",
-		"typescript": "~5.9.3",
 		"tsdown": "^0.21.7",
-		"vitest": "^4.1.2"
+		"typescript": "~5.9.3",
+		"vitest": "^4.1.3"
 	},
 	"peerDependencies": {
 		"astro": "^6.0.0"
