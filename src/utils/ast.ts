@@ -226,7 +226,7 @@ export function createStringAttribute(name: string, value: string): MdxJsxAttrib
 
 /**
  * Create an expression-valued MDX JSX attribute referencing an identifier
- * (e.g. `src={_mdxKitAsset0}`).
+ * (e.g. `src={_mdxKitAsset3a1b9c}`).
  * @param name - The attribute name.
  * @param identifier - The identifier to reference as the attribute value.
  */

@@ -14,12 +14,11 @@ type TrackedImport = {
  * Tracks component and asset imports accumulated during a single MDX file's
  * transform pass, deduplicating identical imports.
  *
- * Use {@link addComponentImport} and {@link addAssetImport} to register
- * imports during tree traversal, then call {@link injectIntoTree} once
- * at the end to prepend all collected import statements to the AST.
+ * Use {@link addComponentImport} and {@link addAssetImport} to register imports
+ * during tree traversal, then call {@link injectIntoTree} once at the end to
+ * prepend all collected import statements to the AST.
  */
 export class ImportTracker {
-	private assetCounter = 0
 	private readonly assetImports = new Map<string, string>()
 	private readonly importKeys = new Set<string>()
 	private readonly imports: TrackedImport[] = []
@@ -27,27 +26,33 @@ export class ImportTracker {
 	/**
 	 * Register an asset import (e.g. an image path like `'./photo.jpg'`).
 	 *
-	 * Returns the local identifier name that will reference the imported
-	 * module. If the same `assetPath` was already registered, the
-	 * existing identifier is returned (deduplication).
+	 * Returns the local identifier name that will reference the imported module.
+	 * If the same `assetPath` was already registered, the existing identifier is
+	 * returned (deduplication).
+	 *
 	 * @param assetPath - The path to import (e.g. `'./hero.png'`).
-	 * @returns The generated local identifier (e.g. `'_mdxKitAsset0'`).
+	 *
+	 * @returns The generated local identifier (e.g.
+	 *   `'_mdxKitAssetV1StGXR8aZ5j'`).
 	 */
 	addAssetImport(assetPath: string): string {
 		const existing = this.assetImports.get(assetPath)
 		if (existing) return existing
 
-		const name = `_mdxKitAsset${this.assetCounter++}`
+		const name = `_mdxKitAsset${Math.random().toString(36).slice(2, 14)}`
 		this.assetImports.set(assetPath, name)
 		this.imports.push({ importPath: assetPath, isNamed: false, localName: name })
 		return name
 	}
 
 	/**
-	 * Register a component import. Duplicate registrations (same
-	 * localName + importPath + kind) are silently ignored.
-	 * @param localName - The local identifier for the component (e.g. `'Picture'`).
-	 * @param importPath - The module specifier (e.g. `'astro:assets'` or `'/src/components/Foo.astro'`).
+	 * Register a component import. Duplicate registrations (same localName +
+	 * importPath + kind) are silently ignored.
+	 *
+	 * @param localName - The local identifier for the component (e.g.
+	 *   `'Picture'`).
+	 * @param importPath - The module specifier (e.g. `'astro:assets'` or
+	 *   `'/src/components/Foo.astro'`).
 	 * @param isNamed - `true` for named imports, `false` for default imports.
 	 */
 	addComponentImport(localName: string, importPath: string, isNamed: boolean): void {
@@ -58,8 +63,9 @@ export class ImportTracker {
 	}
 
 	/**
-	 * Prepend all tracked import statements to the MDAST tree's children
-	 * as `mdxjsEsm` nodes. Call this once after all imports have been registered.
+	 * Prepend all tracked import statements to the MDAST tree's children as
+	 * `mdxjsEsm` nodes. Call this once after all imports have been registered.
+	 *
 	 * @param tree - The root MDAST node to prepend imports into.
 	 */
 	injectIntoTree(tree: Root): void {
@@ -79,9 +85,11 @@ export class ImportTracker {
  * Check whether a string value looks like a local file path that should be
  * turned into an ESM import, as opposed to a URL, data URI, or fragment.
  *
- * Returns `false` for values containing `://` (URLs), starting with
- * `data:` (data URIs), or starting with `#` (fragment references).
+ * Returns `false` for values containing `://` (URLs), starting with `data:`
+ * (data URIs), or starting with `#` (fragment references).
+ *
  * @param value - The string to check.
+ *
  * @returns `true` if the value should be treated as an importable path.
  */
 export function isImportablePath(value: string): boolean {
@@ -92,18 +100,23 @@ export function isImportablePath(value: string): boolean {
 }
 
 /**
- * Process auto-import entries for a given path, generating JSX attributes
- * and registering ESM imports via the tracker.
+ * Process auto-import entries for a given path, generating JSX attributes and
+ * registering ESM imports via the tracker.
  *
  * For each entry:
+ *
  * - **Derived** (has `transform`): transforms the path, skips if `undefined`
- * - **Primary** (no `transform`): imports as-is if importable, falls back to string
+ * - **Primary** (no `transform`): imports as-is if importable, falls back to
+ *   string
  *
  * When a primary entry remaps (`fromProp !== toProp`), the original string
- * value is preserved on `fromProp` alongside the imported expression on `toProp`.
+ * value is preserved on `fromProp` alongside the imported expression on
+ * `toProp`.
+ *
  * @param path - The source path to import (e.g. an image URL).
  * @param entries - Resolved auto-import entries to process.
  * @param imports - Import tracker for deduplication and injection.
+ *
  * @returns An array of JSX attributes generated from the entries.
  */
 export function resolveAutoImportAttributes(
