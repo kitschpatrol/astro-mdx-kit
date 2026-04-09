@@ -48,7 +48,7 @@
 		"lint": "ksc lint && astro check",
 		"play": "pnpm -C playground run dev",
 		"play-starlight": "pnpm -C playground-starlight run dev",
-		"release": "bumpp --commit 'Release: %s' && pnpm run build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') && pnpm publish",
+		"release": "bumpp --commit 'Release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') && pnpm publish",
 		"test": "vitest run"
 	},
 	"dependencies": {
@@ -66,26 +66,28 @@
 		"mdast-util-to-markdown": "^2.1.2",
 		"mdast-util-to-string": "^4.0.0",
 		"micromark-extension-directive": "^4.0.0",
-		"remark-attribute-list": "^0.4.0",
-		"remark-directive": "^4.0.0",
 		"unified": "^11.0.5",
 		"unist-util-visit": "^5.1.0",
 		"vfile": "^6.0.3"
 	},
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.2",
-		"@kitschpatrol/shared-config": "^7.2.0",
+		"@kitschpatrol/shared-config": "^7.3.0",
 		"astro": "^6.1.5",
 		"bumpp": "^11.0.1",
 		"node-addon-api": "^8.7.0",
 		"node-gyp": "^12.2.0",
 		"publint": "^0.3.18",
+		"remark-attribute-list": "^0.4.0",
+		"remark-directive": "^4.0.0",
 		"tsdown": "^0.21.7",
 		"typescript": "~5.9.3",
-		"vitest": "^4.1.3"
+		"vitest": "^4.1.4"
 	},
 	"peerDependencies": {
-		"astro": "^6.0.0"
+		"astro": "^6.0.0",
+		"remark-attribute-list": "^0.4.0",
+		"remark-directive": "^4.0.0"
 	},
 	"peerDependenciesMeta": {
 		"astro": {
