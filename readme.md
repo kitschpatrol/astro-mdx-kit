@@ -25,23 +25,23 @@ MDX makes it easy to embed components in your Markdown files, but this can lead 
 So instead of:
 
 ```mdx
-import Block from '../components/Block.astro'
+import Widget from '../components/Widget.astro'
 
-<Block greeting="hello" />
+<Widget greeting="hello" />
 ```
 
 Let's write:
 
 ```mdx
-::Block{greeting="hello"}
+::Widget{greeting="hello"}
 ```
 
-And then, with some help from `astro-mdx-kit`, easily map `::Block` to its Astro implementation _outside_ your Markdown:
+And then, with some help from `astro-mdx-kit`, easily map `::Widget` to its Astro implementation _outside_ your Markdown:
 
 ```ts
 mdxKit({
   directives: {
-    Block: 'src/components/Block.astro',
+    Widget: 'src/components/Widget.astro',
   },
 })
 ```
@@ -100,9 +100,9 @@ export default defineConfig({
       attributes: true,
       captionImages: true,
       directives: {
-        // Replace `::Block` directives
-        // with `Block.astro` component
-        Block: 'src/components/Block.astro',
+        // Replace `::Widget` directives
+        // with `Widget.astro` component
+        Widget: 'src/components/Widget.astro',
       },
       elements: {
         // Customize `# Heading` elements
@@ -176,14 +176,14 @@ Map [remark-directive](https://github.com/remarkjs/remark-directive) syntax to A
 ```ts
 mdxKit({
   directives: {
-    // Simple: map directive name to a component file
-    Block: 'src/components/Block.astro',
     // With auto-import: image paths are imported as modules
     Picture: {
       autoImport: 'src',
       component: 'Picture',
       componentModule: 'astro:assets',
     },
+    // Simple: map directive name to a component file
+    Widget: 'src/components/Widget.astro',
   },
 })
 ```
@@ -191,9 +191,9 @@ mdxKit({
 **Markdown:**
 
 ```md
-::Block{icon="star"}
+::Widget{icon="star"}
 
-:::Block{type="warning"}
+:::Widget{type="warning"}
 Content inside the directive.
 :::
 
@@ -202,7 +202,7 @@ Content inside the directive.
 
 **What happens:**
 
-- `::Block{icon="star"}` becomes `<Block icon="star" />`
+- `::Widget{icon="star"}` becomes `<Widget icon="star" />`
 - The component is automatically imported — no manual `import` needed
 - With `autoImport: 'src'`, the `src` prop value is converted to an ESM import so Vite can process the asset
 
@@ -213,15 +213,15 @@ Use `propMap` to rename directive attributes before they become component props.
 ```ts
 mdxKit({
   directives: {
-    Block: {
-      component: 'src/components/Block.astro',
+    Widget: {
+      component: 'src/components/Widget.astro',
       propMap: { icon: 'iconName', type: 'variant' },
     },
   },
 })
 ```
 
-`::Block{icon="star" type="warning"}` becomes `<Block iconName="star" variant="warning" />`. Unmapped attributes pass through as-is.
+`::Widget{icon="star" type="warning"}` becomes `<Widget iconName="star" variant="warning" />`. Unmapped attributes pass through as-is.
 
 #### Label extraction
 
@@ -601,6 +601,46 @@ export default defineConfig({
   ],
 })
 ```
+
+## MDX VS Code Plugin Integration
+
+If you are working in VS Code with MDX files, you'll need to handle some additional configuration to help the [VS Code MDXextension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) understand the non-standard attribute and directive syntax.
+
+_Note: If you're using [@kitschpatrol/shared-config](https://www.npmjs.com/package/@kitschpatrol/shared-config) or are building from a [@kitschpatrol/create-project](https://www.npmjs.com/package/@kitschpatrol/create-project) template, skip to step 3._
+
+1. Install remark plugin dependencies:
+
+   ```sh
+   pnpm install -D remark-attribute-list remark-directive@
+   ```
+
+   These dependencies must be hoisted to be discoverable by the VS Code plugin.
+
+2. Create or update a `.remarkrc.js` in your project root:
+
+   ```js
+   // .remarkrc.js
+   import remarkAttributeList from 'remark-attribute-list'
+   import remarkDirective from 'remark-directive'
+
+   export default {
+     plugins: [remarkAttributeList, remarkDirective],
+   }
+   ```
+
+3. Add the remark plugins to a `mdx` field in your `tsconfig.json`:
+
+   ```jsonc
+   // tsconfig.json
+   {
+     "compilerOptions": {
+       // ...
+     },
+     "mdx": {
+       "plugins": ["remark-directive", "remark-attribute-list"],
+     },
+   }
+   ```
 
 ## Maintainers
 
