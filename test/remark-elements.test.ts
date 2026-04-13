@@ -196,6 +196,75 @@ describe('remarkMdxKitElements — autoImport (direct AST transform)', () => {
 		expect(loadingAttribute!.value).toBe('eager')
 	})
 
+	it('auto-imports hProperties values that match autoImport entries', () => {
+		const image: Image = {
+			alt: 'Dark mode photo',
+			data: { hProperties: { srcDark: '../assets/test-dark.jpeg' } },
+			type: 'image',
+			url: '../assets/test.jpeg',
+		}
+		const tree: Root = {
+			children: [{ children: [image], type: 'paragraph' }],
+			type: 'root',
+		}
+
+		runPlugin(tree, {
+			img: {
+				autoImport: ['src', 'srcDark'],
+				component: 'Picture',
+				componentModule: 'astro:assets',
+			},
+		})
+
+		const jsx = findJsxFlowAnywhere(tree)
+		expect(jsx).toBeDefined()
+
+		// Src should be an expression (auto-imported from node.url)
+		const srcAttribute = findAttribute(jsx!, 'src')
+		expect(srcAttribute).toBeDefined()
+		expect(srcAttribute!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
+
+		// SrcDark should also be an expression (auto-imported from hProperties)
+		const srcDarkAttribute = findAttribute(jsx!, 'srcDark')
+		expect(srcDarkAttribute).toBeDefined()
+		expect(srcDarkAttribute!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
+
+		// The two imports should reference different paths
+		const imports = findEsm(tree.children)
+		const assetImports = imports.filter((n) => n.value.includes('_mdxKitAsset'))
+		expect(assetImports).toHaveLength(2)
+		expect(assetImports[0]!.value).not.toBe(assetImports[1]!.value)
+	})
+
+	it('does not auto-import hProperties URLs that are not importable paths', () => {
+		const image: Image = {
+			alt: 'Photo',
+			data: { hProperties: { srcDark: 'https://example.com/dark.jpg' } },
+			type: 'image',
+			url: './photo.png',
+		}
+		const tree: Root = {
+			children: [{ children: [image], type: 'paragraph' }],
+			type: 'root',
+		}
+
+		runPlugin(tree, {
+			img: {
+				autoImport: ['src', 'srcDark'],
+				component: 'Picture',
+				componentModule: 'astro:assets',
+			},
+		})
+
+		const jsx = findJsxFlowAnywhere(tree)
+		expect(jsx).toBeDefined()
+
+		// SrcDark should remain a string (not importable)
+		const srcDarkAttribute = findAttribute(jsx!, 'srcDark')
+		expect(srcDarkAttribute).toBeDefined()
+		expect(srcDarkAttribute!.value).toBe('https://example.com/dark.jpg')
+	})
+
 	it('transforms JSX <img> elements with autoImport', () => {
 		const tree: Root = {
 			children: [

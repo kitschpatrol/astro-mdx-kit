@@ -13,6 +13,7 @@ import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
 import { log } from '../log.js'
 import {
 	createComponentsExportNode,
+	createExpressionAttribute,
 	createExpressionAttributeValue,
 	createJsxFlowElement,
 	createStringAttribute,
@@ -136,8 +137,21 @@ function buildImageJsxElement(
 ): MdxJsxFlowElement {
 	const attributes: MdxJsxAttribute[] = []
 
+	// Collect hProperties keys so we can skip autoImport entries that are
+	// overridden by explicit attributes (e.g. {:srcDark="..."} takes priority
+	// over deriving srcDark from node.url).
+	const hProperties = (node.data?.hProperties ?? {}) as Record<string, unknown>
+	const hPropertyKeys = new Set(Object.keys(hProperties))
+
+	// Build a set of autoImport target prop names for quick lookup when
+	// deciding whether an hProperty value should be auto-imported.
+	const autoImportTargets = new Set(config.autoImports?.map((entry) => entry.toProp))
+
 	if (config.autoImports) {
-		attributes.push(...resolveAutoImportAttributes(node.url, config.autoImports, imports))
+		// Filter out entries whose target prop is provided by hProperties —
+		// those values will be auto-imported in the hProperties loop below.
+		const entries = config.autoImports.filter((entry) => !hPropertyKeys.has(entry.toProp))
+		attributes.push(...resolveAutoImportAttributes(node.url, entries, imports))
 	}
 
 	if (node.alt) {
@@ -148,11 +162,16 @@ function buildImageJsxElement(
 		attributes.push(createStringAttribute('title', node.title))
 	}
 
-	// Forward attributes set by remark-attribute-list (stored in data.hProperties)
-	const hProperties = node.data?.hProperties
-	if (hProperties && typeof hProperties === 'object') {
-		for (const [key, value] of Object.entries(hProperties as Record<string, unknown>)) {
-			if (typeof value === 'string') {
+	// Forward attributes set by remark-attribute-list (stored in data.hProperties).
+	// When an attribute key matches an autoImport entry and the value is an
+	// importable path, convert it to an ESM import expression instead of
+	// passing it as a raw string.
+	for (const [key, value] of Object.entries(hProperties)) {
+		if (typeof value === 'string') {
+			if (autoImportTargets.has(key) && isImportablePath(value)) {
+				const importId = imports.addAssetImport(value)
+				attributes.push(createExpressionAttribute(key, importId))
+			} else {
 				attributes.push(createStringAttribute(key, value))
 			}
 		}
