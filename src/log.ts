@@ -13,6 +13,6 @@ export let log = createLogger(name)
  * @param logger - A `LogLayer` instance for full control, or any object
  *   with `Console`-compatible `log`/`warn`/`error` methods (e.g. `console`).
  */
-export function setLogger(logger?: ILogBasic | ILogLayer) {
+export function setLogger(logger?: ILogBasic | ILogLayer<unknown>) {
 	log = injectionHelper(logger)
 }
