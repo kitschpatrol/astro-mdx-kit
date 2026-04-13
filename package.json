@@ -42,7 +42,7 @@
 		"dist/*"
 	],
 	"scripts": {
-		"build": "tsdown && pnpm run -r --include-workspace-root astro sync",
+		"build": "tsdown && pnpm run -r --include-workspace-root astro build",
 		"clean": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
 		"dev": "pnpm run play",
 		"fix": "ksc fix",
@@ -53,10 +53,7 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@types/estree": "^1.0.8",
 		"@types/mdast": "^4.0.4",
-		"@types/node": "~20.19.39",
-		"@types/unist": "^3.0.3",
 		"hast-util-to-html": "^9.0.5",
 		"lognow": "^0.6.1",
 		"mdast-util-directive": "^3.1.0",
@@ -74,6 +71,9 @@
 		"@arethetypeswrong/core": "^0.18.2",
 		"@astrojs/check": "^0.9.8",
 		"@kitschpatrol/shared-config": "^7.4.1",
+		"@types/estree": "^1.0.8",
+		"@types/node": "~20.19.39",
+		"@types/unist": "^3.0.3",
 		"astro": "^6.1.6",
 		"bumpp": "^11.0.1",
 		"node-addon-api": "^8.7.0",

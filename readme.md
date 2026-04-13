@@ -513,7 +513,7 @@ mdxKit({
 })
 ```
 
-By default, `![alt](src)` on its own line produces `<p><img ...></p>`. With `unwrapImages: true`, the paragraph is removed so the image is a direct child of the document flow. Works with both native images and component overrides.
+By default, `![alt](src)` on its own line produces `<p><img ...></p>`. With `unwrapImages: true`, the paragraph is removed so the image is a direct child of the document flow. Works with both native images and component overrides (`img`, `Image`, and `Picture` are recognized by default). When using `remarkMdxKitUnwrapImages` as a standalone plugin, pass `imageComponentNames` to customize which JSX element names are treated as images.
 
 ### Frontmatter injection
 
@@ -546,18 +546,23 @@ import { setLogger } from 'astro-mdx-kit'
 setLogger(console)
 ```
 
-## Transform ordering
+## Processing order
 
-The plugin runs transforms in this order:
+The plugin processes content in two phases:
+
+**Parse phase** (before transforms):
+
+1. **Directive parser** — registers `:::`/`::`/`:` syntax extensions
+2. **Attribute lists** — applies `{:...}` attributes to nodes
+
+**Transform phase** (in order):
 
 1. **Raw MDX injection** — captures original source
-2. **Attribute lists** — applies `{:...}` attributes to nodes
-3. **Directive parser** — registers `:::`/`::`/`:` syntax extensions
-4. **Directive transforms** — converts directives to JSX components
-5. **Element overrides** — replaces HTML elements with components (per-element captions handled here)
-6. **Global image captions** — wraps remaining captioned images in `<figure>`
-7. **Unwrap images** — removes `<p>` from stand-alone images
-8. **MDAST injection** — captures the transformed tree
+2. **Directive transforms** — converts directives to JSX components
+3. **Element overrides** — replaces HTML elements with components (per-element captions handled here)
+4. **Global image captions** — wraps remaining captioned images in `<figure>`
+5. **Unwrap images** — removes `<p>` from stand-alone images
+6. **MDAST injection** — captures the transformed tree
 
 ## Full configuration example
 
@@ -604,14 +609,14 @@ export default defineConfig({
 
 ## MDX VS Code Plugin Integration
 
-If you are working in VS Code with MDX files, you'll need to handle some additional configuration to help the [VS Code MDXextension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) understand the non-standard attribute and directive syntax.
+If you are working in VS Code with MDX files, you'll need to handle some additional configuration to help the [VS Code MDX extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) understand the non-standard attribute and directive syntax.
 
 _Note: If you're using [@kitschpatrol/shared-config](https://www.npmjs.com/package/@kitschpatrol/shared-config) or are building from a [@kitschpatrol/create-project](https://www.npmjs.com/package/@kitschpatrol/create-project) template, skip to step 3._
 
 1. Install remark plugin dependencies:
 
    ```sh
-   pnpm install -D remark-attribute-list remark-directive@
+   pnpm install -D remark-attribute-list remark-directive
    ```
 
    These dependencies must be hoisted to be discoverable by the VS Code plugin.

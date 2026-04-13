@@ -71,8 +71,10 @@ export function serializePhrasingContent(
 	if (format === 'rendered') {
 		try {
 			return toHtml(toHast(root))
-		} catch {
-			log.warn('Failed to render caption to HTML, falling back to plain text')
+		} catch (error) {
+			log.warn(
+				`Failed to render caption to HTML, falling back to plain text: ${error instanceof Error ? error.message : String(error)}`,
+			)
 		}
 
 		return toString(root)
@@ -99,7 +101,7 @@ export function buildCaptionReplacement(
 	imageJsx: MdxJsxFlowElement,
 	captionNodes: PhrasingContent[],
 ): MdxJsxFlowElement {
-	const name = imageJsx.name ?? imageJsx.type
+	const name = imageJsx.name!
 	const imageAttributes = imageJsx.attributes.filter(
 		(a): a is MdxJsxAttribute => a.type === 'mdxJsxAttribute',
 	)

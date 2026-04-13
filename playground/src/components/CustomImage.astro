@@ -3,8 +3,14 @@ import type { ImageMetadata } from 'astro'
 import { Image } from 'astro:assets'
 
 type Props = {
+	caption?: string | undefined
 	src: ImageMetadata
 }
+
+const { caption, src } = Astro.props
 ---
 
-<Image alt="bla" src={Astro.props.src} />
+<figure>
+	<Image alt="" src={src} />
+	{caption && <figcaption set:html={caption} />}
+</figure>

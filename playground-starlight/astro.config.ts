@@ -1,7 +1,7 @@
 /* eslint-disable ts/naming-convention */
 
 import starlight from '@astrojs/starlight'
-import mdxKit from 'astro-mdx-kit'
+import mdxKit, { astroPicture } from 'astro-mdx-kit'
 import { defineConfig } from 'astro/config'
 
 export default defineConfig({
@@ -11,6 +11,11 @@ export default defineConfig({
 			captionImages: true,
 			directives: {
 				Block: 'src/components/Block.astro',
+				Callout: {
+					component: 'src/components/Callout.astro',
+					label: 'title',
+					propMap: { type: 'variant' },
+				},
 				CustomImage: {
 					autoImport: 'src',
 					component: 'src/components/CustomImage.astro',
@@ -18,30 +23,24 @@ export default defineConfig({
 			},
 			elements: {
 				h2: 'src/components/HeadingTwo.astro',
-				// Temp off
-				// img: {
-				// 	component: 'Picture',
-				// 	componentModule: 'astro:assets',
-				// },
+				img: {
+					...astroPicture,
+					caption: 'figure',
+				},
 			},
+			mdast: true,
+			rawMdx: true,
 			unwrapImages: true,
 		}),
 		starlight({
 			sidebar: [
 				{
-					items: [
-						// Each item here is one entry in the navigation menu.
-						{ label: 'Example Guide', slug: 'guides/example' },
-					],
+					items: [{ label: 'MDX Kit Features', slug: 'guides/mdx-kit-features' }],
 					label: 'Guides',
-				},
-				{
-					autogenerate: { directory: 'reference' },
-					label: 'Reference',
 				},
 			],
 			social: [{ href: 'https://github.com/withastro/starlight', icon: 'github', label: 'GitHub' }],
-			title: 'My Docs',
+			title: 'astro-mdx-kit Playground',
 		}),
 	],
 })

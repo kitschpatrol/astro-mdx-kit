@@ -12,6 +12,11 @@ export default defineConfig({
 			captionImages: true,
 			directives: {
 				Block: 'src/components/Block.astro',
+				Callout: {
+					component: 'src/components/Callout.astro',
+					label: 'title',
+					propMap: { type: 'variant' },
+				},
 				CustomImage: {
 					autoImport: 'src',
 					component: 'src/components/CustomImage.astro',
@@ -19,16 +24,14 @@ export default defineConfig({
 			},
 			elements: {
 				h1: 'src/components/Heading.astro',
-				// Temp off
-				// img: {
-				// 	component: 'Picture',
-				// 	componentModule: 'astro:assets',
-				// },
 				img: {
 					autoImport: 'src',
+					caption: { format: 'rendered', prop: 'caption' },
 					component: 'src/components/CustomImage.astro',
 				},
 			},
+			mdast: true,
+			rawMdx: true,
 			unwrapImages: true,
 		}),
 		// GFM enabled by default

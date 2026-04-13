@@ -8,18 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@types/estree':
-        specifier: ^1.0.8
-        version: 1.0.8
       '@types/mdast':
         specifier: ^4.0.4
         version: 4.0.4
-      '@types/node':
-        specifier: ~20.19.39
-        version: 20.19.39
-      '@types/unist':
-        specifier: ^3.0.3
-        version: 3.0.3
       hast-util-to-html:
         specifier: ^9.0.5
         version: 9.0.5
@@ -66,6 +57,15 @@ importers:
       '@kitschpatrol/shared-config':
         specifier: ^7.4.1
         version: 7.4.1(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@pnpm/logger@1001.0.1)(@types/estree@1.0.8)(@types/node@20.19.39)(@types/unist@3.0.3)(@typescript-eslint/utils@8.58.2(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(jiti@2.6.1)(mdast-util-from-markdown@2.0.3)(mdast-util-mdx@3.0.0)(micromark-util-types@2.0.2)(postcss-html@1.8.1)(remark-parse@11.0.0)(stylelint-order@8.1.1(stylelint@17.7.0(typescript@5.9.3)))(svelte@5.55.3(@typescript-eslint/types@8.58.2))(typescript@5.9.3)(vitest@4.1.4(@types/node@20.19.39)(vite@7.3.2(@types/node@20.19.39)(jiti@2.6.1)(yaml@2.8.3)))
+      '@types/estree':
+        specifier: ^1.0.8
+        version: 1.0.8
+      '@types/node':
+        specifier: ~20.19.39
+        version: 20.19.39
+      '@types/unist':
+        specifier: ^3.0.3
+        version: 3.0.3
       astro:
         specifier: ^6.1.6
         version: 6.1.6(@types/node@20.19.39)(jiti@2.6.1)(rollup@4.60.1)(typescript@5.9.3)(yaml@2.8.3)
