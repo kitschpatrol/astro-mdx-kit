@@ -42,17 +42,17 @@
 		"dist/*"
 	],
 	"scripts": {
-		"build": "tsdown && pnpm -C playground build && pnpm -C playground-starlight build",
-		"clean": "git rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
+		"build": "tsdown && pnpm run -r --include-workspace-root astro sync",
+		"clean": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
+		"dev": "pnpm run play",
 		"fix": "ksc fix",
-		"lint": "ksc lint && astro check",
+		"lint": "ksc lint && pnpm run -r --include-workspace-root astro check",
 		"play": "pnpm -C playground run dev",
 		"play-starlight": "pnpm -C playground-starlight run dev",
 		"release": "bumpp --commit 'Release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') && pnpm publish",
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@astrojs/check": "^0.9.8",
 		"@types/estree": "^1.0.8",
 		"@types/mdast": "^4.0.4",
 		"@types/node": "~20.19.39",
@@ -72,15 +72,17 @@
 	},
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.2",
-		"@kitschpatrol/shared-config": "^7.3.0",
-		"astro": "^6.1.5",
+		"@astrojs/check": "^0.9.8",
+		"@kitschpatrol/shared-config": "^7.4.1",
+		"astro": "^6.1.6",
 		"bumpp": "^11.0.1",
 		"node-addon-api": "^8.7.0",
 		"node-gyp": "^12.2.0",
 		"publint": "^0.3.18",
 		"remark-attribute-list": "^0.4.0",
 		"remark-directive": "^4.0.0",
-		"tsdown": "^0.21.7",
+		"shx": "^0.4.0",
+		"tsdown": "^0.21.8",
 		"typescript": "~5.9.3",
 		"vitest": "^4.1.4"
 	},

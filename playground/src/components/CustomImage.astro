@@ -5,9 +5,6 @@ import { Image } from 'astro:assets'
 type Props = {
 	src: ImageMetadata
 }
-
-console.log('Image Props----------------------------------')
-console.log(Astro)
 ---
 
 <Image alt="bla" src={Astro.props.src} />
