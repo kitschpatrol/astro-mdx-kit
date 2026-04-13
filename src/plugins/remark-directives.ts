@@ -13,7 +13,7 @@ import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
 import { log } from '../log.js'
 import { createJsxFlowElement, createJsxTextElement, createStringAttribute } from '../utils/ast.js'
 import { serializePhrasingContent } from '../utils/caption.js'
-import { ImportTracker, isImportablePath, resolveAutoImportAttributes } from '../utils/imports.js'
+import { ImportTracker, resolveAutoImportAttributes } from '../utils/imports.js'
 
 /**
  * Options for the directive-to-component remark plugin.
@@ -107,16 +107,34 @@ function buildDirectiveAttributes(
 ): MdxJsxAttribute[] {
 	const attributes: MdxJsxAttribute[] = []
 
-	const primaryEntry = config.autoImports?.find((entry) => !entry.transform)
-	const autoImportProp = primaryEntry?.fromProp
+	if (config.autoImports) {
+		// Build propValues from all non-empty directive attributes
+		const propValues: Record<string, string> = {}
+		for (const [key, value] of Object.entries(directiveAttributes)) {
+			if (value) {
+				propValues[key] = value
+			}
+		}
 
-	for (const [key, value] of Object.entries(directiveAttributes)) {
-		if (!value) continue
-		const propName = config.propMap?.[key] ?? key
+		const { attributes: importAttributes, handledProps } = resolveAutoImportAttributes(
+			propValues,
+			config.autoImports,
+			imports,
+		)
+		attributes.push(...importAttributes)
 
-		if (key === autoImportProp && config.autoImports && isImportablePath(value)) {
-			attributes.push(...resolveAutoImportAttributes(value, config.autoImports, imports))
-		} else {
+		// Forward remaining attributes not consumed by auto-import, with
+		// propMap renaming applied.
+		for (const [key, value] of Object.entries(directiveAttributes)) {
+			if (!value || handledProps.has(key)) continue
+			const propName = config.propMap?.[key] ?? key
+			attributes.push(createStringAttribute(propName, value))
+		}
+	} else {
+		// No autoImport — forward all attributes with propMap renaming
+		for (const [key, value] of Object.entries(directiveAttributes)) {
+			if (!value) continue
+			const propName = config.propMap?.[key] ?? key
 			attributes.push(createStringAttribute(propName, value))
 		}
 	}

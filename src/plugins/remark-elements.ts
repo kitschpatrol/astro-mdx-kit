@@ -13,8 +13,6 @@ import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
 import { log } from '../log.js'
 import {
 	createComponentsExportNode,
-	createExpressionAttribute,
-	createExpressionAttributeValue,
 	createJsxFlowElement,
 	createStringAttribute,
 	mergeIntoComponentsExport,
@@ -25,7 +23,7 @@ import {
 	extractCaptionNodes,
 	findMultiImageParagraphs,
 } from '../utils/caption.js'
-import { ImportTracker, isImportablePath, resolveAutoImportAttributes } from '../utils/imports.js'
+import { ImportTracker, resolveAutoImportAttributes } from '../utils/imports.js'
 
 /**
  * Options for the element-to-component remark plugin.
@@ -136,22 +134,39 @@ function buildImageJsxElement(
 	imports: ImportTracker,
 ): MdxJsxFlowElement {
 	const attributes: MdxJsxAttribute[] = []
-
-	// Collect hProperties keys so we can skip autoImport entries that are
-	// overridden by explicit attributes (e.g. {:srcDark="..."} takes priority
-	// over deriving srcDark from node.url).
 	const hProperties = (node.data?.hProperties ?? {}) as Record<string, unknown>
-	const hPropertyKeys = new Set(Object.keys(hProperties))
-
-	// Build a set of autoImport target prop names for quick lookup when
-	// deciding whether an hProperty value should be auto-imported.
-	const autoImportTargets = new Set(config.autoImports?.map((entry) => entry.toProp))
 
 	if (config.autoImports) {
-		// Filter out entries whose target prop is provided by hProperties —
-		// those values will be auto-imported in the hProperties loop below.
-		const entries = config.autoImports.filter((entry) => !hPropertyKeys.has(entry.toProp))
-		attributes.push(...resolveAutoImportAttributes(node.url, entries, imports))
+		// Build propValues: 'src' from node.url, plus string-valued hProperties.
+		// This lets each auto-import entry look up its own fromProp in the map
+		// (e.g. 'src' reads node.url, 'srcDark' reads {:srcDark="..."}).
+		const propValues: Record<string, string> = { src: node.url }
+		for (const [key, value] of Object.entries(hProperties)) {
+			if (typeof value === 'string') {
+				propValues[key] = value
+			}
+		}
+
+		const { attributes: importAttributes, handledProps } = resolveAutoImportAttributes(
+			propValues,
+			config.autoImports,
+			imports,
+		)
+		attributes.push(...importAttributes)
+
+		// Forward remaining hProperties not consumed by auto-import
+		for (const [key, value] of Object.entries(hProperties)) {
+			if (typeof value === 'string' && !handledProps.has(key)) {
+				attributes.push(createStringAttribute(key, value))
+			}
+		}
+	} else {
+		// No autoImport — forward all hProperties as strings
+		for (const [key, value] of Object.entries(hProperties)) {
+			if (typeof value === 'string') {
+				attributes.push(createStringAttribute(key, value))
+			}
+		}
 	}
 
 	if (node.alt) {
@@ -160,21 +175,6 @@ function buildImageJsxElement(
 
 	if (node.title) {
 		attributes.push(createStringAttribute('title', node.title))
-	}
-
-	// Forward attributes set by remark-attribute-list (stored in data.hProperties).
-	// When an attribute key matches an autoImport entry and the value is an
-	// importable path, convert it to an ESM import expression instead of
-	// passing it as a raw string.
-	for (const [key, value] of Object.entries(hProperties)) {
-		if (typeof value === 'string') {
-			if (autoImportTargets.has(key) && isImportablePath(value)) {
-				const importId = imports.addAssetImport(value)
-				attributes.push(createExpressionAttribute(key, importId))
-			} else {
-				attributes.push(createStringAttribute(key, value))
-			}
-		}
 	}
 
 	return createJsxFlowElement(config.componentName, attributes, [])
@@ -235,57 +235,27 @@ function transformJsxElements(
 
 		if (!config.autoImports) return
 
-		// Find the primary auto-import entry (the one without a transform)
-		const primaryEntry = config.autoImports.find((entry) => !entry.transform)
-		if (!primaryEntry) return
-
-		const { fromProp } = primaryEntry
-
+		// Build propValues from string-valued JSX attributes
+		const propValues: Record<string, string> = {}
 		for (const attribute of node.attributes) {
-			if (attribute.type !== 'mdxJsxAttribute' || attribute.name !== fromProp) continue
-			if (typeof attribute.value !== 'string' || !isImportablePath(attribute.value)) continue
-
-			const originalValue = attribute.value
-
-			// Process all auto-import entries for this value
-			for (const entry of config.autoImports) {
-				if (entry.transform) {
-					// Derived import
-					const transformedPath = entry.transform(originalValue)
-					if (transformedPath === undefined) {
-						log.debug(
-							`Skipping derived autoImport for "${entry.toProp}" — transform returned undefined for "${originalValue}"`,
-						)
-						continue
-					}
-
-					// Skip if prop already set explicitly
-					const alreadySet = node.attributes.some(
-						(a) => a.type === 'mdxJsxAttribute' && a.name === entry.toProp,
-					)
-					if (alreadySet) continue
-
-					const importId = imports.addAssetImport(transformedPath)
-					node.attributes.push({
-						name: entry.toProp,
-						type: 'mdxJsxAttribute',
-						value: createExpressionAttributeValue(importId),
-					})
-				} else if (entry.fromProp === entry.toProp) {
-					// Same prop: replace value in-place with imported module
-					const importId = imports.addAssetImport(originalValue)
-					attribute.value = createExpressionAttributeValue(importId)
-				} else {
-					// Different prop: keep original as string, add new prop
-					const importId = imports.addAssetImport(originalValue)
-					node.attributes.push({
-						name: entry.toProp,
-						type: 'mdxJsxAttribute',
-						value: createExpressionAttributeValue(importId),
-					})
-				}
+			if (attribute.type === 'mdxJsxAttribute' && typeof attribute.value === 'string') {
+				propValues[attribute.name] = attribute.value
 			}
 		}
+
+		const { attributes: resolvedAttributes, handledProps } = resolveAutoImportAttributes(
+			propValues,
+			config.autoImports,
+			imports,
+		)
+
+		if (resolvedAttributes.length === 0) return
+
+		// Keep attributes not handled by auto-import, replace handled ones
+		node.attributes = [
+			...node.attributes.filter((a) => a.type !== 'mdxJsxAttribute' || !handledProps.has(a.name)),
+			...resolvedAttributes,
+		]
 	})
 }
 

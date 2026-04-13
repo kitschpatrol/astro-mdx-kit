@@ -100,55 +100,141 @@ export function isImportablePath(value: string): boolean {
 }
 
 /**
- * Process auto-import entries for a given path, generating JSX attributes and
- * registering ESM imports via the tracker.
+ * Result of resolving auto-import entries against a set of prop values.
+ */
+type AutoImportResult = {
+	/** Generated JSX attributes (expression imports or string fallbacks). */
+	attributes: MdxJsxAttribute[]
+	/**
+	 * Prop names that were consumed from `propValues` or produced as output
+	 * attributes. Callers should use this to avoid duplicating these
+	 * attributes when forwarding remaining props (e.g. hProperties or
+	 * directive attributes).
+	 */
+	handledProps: ReadonlySet<string>
+}
+
+/**
+ * Process auto-import entries against a map of prop values, generating JSX
+ * attributes and registering ESM imports via the tracker.
  *
- * For each entry:
+ * Each entry reads its source value from `propValues[entry.fromProp]`,
+ * making `fromProp` semantically meaningful as "the prop to read the value
+ * FROM."
  *
- * - **Derived** (has `transform`): transforms the path, skips if `undefined`
- * - **Primary** (no `transform`): imports as-is if importable, falls back to
- *   string
+ * Processing uses two passes to establish a clear priority model:
  *
- * When a primary entry remaps (`fromProp !== toProp`), the original string
- * value is preserved on `fromProp` alongside the imported expression on
- * `toProp`.
+ * 1. **Direct entries** (no `transform`) are processed first. Each reads
+ *    `propValues[entry.fromProp]`. When importable, creates an expression
+ *    attribute on `toProp` and preserves the original string on `fromProp`
+ *    if `fromProp !== toProp`. When not importable, falls back to a string
+ *    attribute on `toProp`.
  *
- * @param path - The source path to import (e.g. an image URL).
+ * 2. **Derived entries** (with `transform`) run second, skipping any whose
+ *    `toProp` was already resolved by a direct entry. Before applying the
+ *    transform, checks whether `propValues` has an explicit value for
+ *    `toProp` (e.g. from `{:srcDark="./explicit.png"}`), which takes
+ *    priority over the derived value.
+ *
+ * Priority: **direct entry > explicit propValues override > derived transform**.
+ *
+ * @param propValues - Map of prop names to their string values (e.g.
+ *   `{ src: './photo.png', srcDark: './dark.png' }`).
  * @param entries - Resolved auto-import entries to process.
  * @param imports - Import tracker for deduplication and injection.
  *
- * @returns An array of JSX attributes generated from the entries.
+ * @returns Resolved attributes and the set of handled prop names.
  */
 export function resolveAutoImportAttributes(
-	path: string,
+	propValues: Record<string, string>,
 	entries: ResolvedAutoImportEntry[],
 	imports: ImportTracker,
-): MdxJsxAttribute[] {
+): AutoImportResult {
 	const attributes: MdxJsxAttribute[] = []
+	const handledProps = new Set<string>()
 
+	// Pass 1: Direct entries (no transform) — explicit values take priority
+	// over derived ones targeting the same toProp.
 	for (const entry of entries) {
-		if (entry.transform) {
-			const transformedPath = entry.transform(path)
-			if (transformedPath === undefined) {
-				log.debug(
-					`Skipping derived autoImport for "${entry.toProp}" — transform returned undefined for "${path}"`,
-				)
-				continue
-			}
+		if (entry.transform) continue
 
-			const importId = imports.addAssetImport(transformedPath)
-			attributes.push(createExpressionAttribute(entry.toProp, importId))
-		} else if (isImportablePath(path)) {
-			const importId = imports.addAssetImport(path)
+		const value = propValues[entry.fromProp]
+		if (value === undefined) {
+			log.debug(
+				`Skipping autoImport for "${entry.toProp}" — no value found for "${entry.fromProp}"`,
+			)
+			continue
+		}
+
+		handledProps.add(entry.fromProp)
+		handledProps.add(entry.toProp)
+
+		if (isImportablePath(value)) {
+			const importId = imports.addAssetImport(value)
 			attributes.push(createExpressionAttribute(entry.toProp, importId))
 			if (entry.fromProp !== entry.toProp) {
-				attributes.push(createStringAttribute(entry.fromProp, path))
+				attributes.push(createStringAttribute(entry.fromProp, value))
 			}
 		} else {
-			log.debug(`Passing "${path}" as string to "${entry.toProp}" — not an importable path`)
-			attributes.push(createStringAttribute(entry.toProp, path))
+			log.debug(`Passing "${value}" as string to "${entry.toProp}" — not an importable path`)
+			attributes.push(createStringAttribute(entry.toProp, value))
 		}
 	}
 
-	return attributes
+	// Pass 2: Derived entries (with transform) — skip if toProp was already
+	// resolved by a direct entry above.
+	for (const entry of entries) {
+		if (!entry.transform) continue
+
+		if (handledProps.has(entry.toProp)) {
+			log.debug(
+				`Skipping derived autoImport for "${entry.toProp}" — already resolved by direct entry`,
+			)
+			continue
+		}
+
+		// If propValues has an explicit value for the target prop (even though
+		// no direct entry claimed it), prefer it over the derived value. This
+		// lets e.g. {:srcDark="./explicit.png"} override a transform that
+		// would derive srcDark from src.
+		if (entry.fromProp !== entry.toProp) {
+			const explicitValue = propValues[entry.toProp]
+			if (explicitValue !== undefined) {
+				handledProps.add(entry.toProp)
+				if (isImportablePath(explicitValue)) {
+					const importId = imports.addAssetImport(explicitValue)
+					attributes.push(createExpressionAttribute(entry.toProp, importId))
+				} else {
+					log.debug(
+						`Passing explicit "${explicitValue}" as string to "${entry.toProp}" — not an importable path`,
+					)
+					attributes.push(createStringAttribute(entry.toProp, explicitValue))
+				}
+
+				continue
+			}
+		}
+
+		const sourceValue = propValues[entry.fromProp]
+		if (sourceValue === undefined) {
+			log.debug(
+				`Skipping derived autoImport for "${entry.toProp}" — no value found for "${entry.fromProp}"`,
+			)
+			continue
+		}
+
+		const transformedPath = entry.transform(sourceValue)
+		if (transformedPath === undefined) {
+			log.debug(
+				`Skipping derived autoImport for "${entry.toProp}" — transform returned undefined for "${sourceValue}"`,
+			)
+			continue
+		}
+
+		handledProps.add(entry.toProp)
+		const importId = imports.addAssetImport(transformedPath)
+		attributes.push(createExpressionAttribute(entry.toProp, importId))
+	}
+
+	return { attributes, handledProps }
 }

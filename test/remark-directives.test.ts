@@ -237,6 +237,46 @@ describe('remarkMdxKitDirectives', () => {
 		expect(findEsm(tree.children)).toHaveLength(1)
 	})
 
+	it('handles multiple autoImport entries from different directive attributes', () => {
+		const directive: LeafDirective = {
+			attributes: { alt: 'Hero', src: '../assets/hero.png', srcDark: '../assets/dark.png' },
+			children: [],
+			name: 'Picture',
+			type: 'leafDirective',
+		}
+		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+
+		const pictureConfig: ComponentConfig = {
+			autoImport: ['src', 'srcDark'],
+			component: 'Picture',
+			componentModule: 'astro:assets',
+		}
+		runPlugin(tree, Object.fromEntries([['Picture', pictureConfig]]))
+
+		const jsx = findJsxFlow(tree.children)
+		expect(jsx).toBeDefined()
+
+		// Both src and srcDark should be expression (auto-imported)
+		const srcAttribute = jsx!.attributes.find(
+			(a) => a.type === 'mdxJsxAttribute' && a.name === 'src',
+		)
+		expect(srcAttribute!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
+
+		const srcDarkAttribute = jsx!.attributes.find(
+			(a) => a.type === 'mdxJsxAttribute' && a.name === 'srcDark',
+		)
+		expect(srcDarkAttribute!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
+
+		// Alt should remain a string
+		const altAttribute = jsx!.attributes.find(
+			(a) => a.type === 'mdxJsxAttribute' && a.name === 'alt',
+		)
+		expect(altAttribute!.value).toBe('Hero')
+
+		// Component + 2 asset imports
+		expect(findEsm(tree.children)).toHaveLength(3)
+	})
+
 	it('remaps attribute names via propMap', () => {
 		const directive: LeafDirective = {
 			attributes: { icon: 'star', type: 'warning' },

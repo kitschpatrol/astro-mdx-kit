@@ -196,7 +196,7 @@ export function mergeIntoComponentsExport(
  * @param identifier - The identifier name to reference (e.g. an imported asset variable).
  * @returns An attribute value node suitable for use in {@link MdxJsxAttribute}.
  */
-export function createExpressionAttributeValue(identifier: string): MdxJsxAttribute['value'] {
+function createExpressionAttributeValue(identifier: string): MdxJsxAttribute['value'] {
 	return {
 		data: {
 			estree: {

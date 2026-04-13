@@ -265,6 +265,85 @@ describe('remarkMdxKitElements — autoImport (direct AST transform)', () => {
 		expect(srcDarkAttribute!.value).toBe('https://example.com/dark.jpg')
 	})
 
+	it('explicit hProperty overrides derived transform for same toProp', () => {
+		const image: Image = {
+			alt: 'Photo',
+			data: { hProperties: { srcDark: './explicit-dark.png' } },
+			type: 'image',
+			url: './diagram.tldr',
+		}
+		const tree: Root = {
+			children: [{ children: [image], type: 'paragraph' }],
+			type: 'root',
+		}
+
+		runPlugin(tree, {
+			img: {
+				autoImport: [
+					'src',
+					{
+						from: 'src',
+						to: 'srcDark',
+						transform: (path: string) => `${path}?dark=true`,
+					},
+				],
+				component: 'Picture',
+				componentModule: 'astro:assets',
+			},
+		})
+
+		const jsx = findJsxFlowAnywhere(tree)
+		expect(jsx).toBeDefined()
+
+		// SrcDark should be the explicit value, not the derived one
+		const srcDarkAttribute = findAttribute(jsx!, 'srcDark')
+		expect(srcDarkAttribute).toBeDefined()
+		expect(srcDarkAttribute!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
+
+		// Verify the import is the explicit path, not the transformed one
+		const imports = findEsm(tree.children)
+		const importValues = imports.map((n) => n.value)
+		expect(importValues.some((v) => v.includes('explicit-dark.png'))).toBe(true)
+		expect(importValues.some((v) => v.includes('dark=true'))).toBe(false)
+	})
+
+	it('forwards non-autoImport hProperties as strings alongside imported ones', () => {
+		const image: Image = {
+			alt: 'Photo',
+			data: { hProperties: { loading: 'eager', srcDark: '../dark.png' } },
+			type: 'image',
+			url: './photo.png',
+		}
+		const tree: Root = {
+			children: [{ children: [image], type: 'paragraph' }],
+			type: 'root',
+		}
+
+		runPlugin(tree, {
+			img: {
+				autoImport: ['src', 'srcDark'],
+				component: 'Picture',
+				componentModule: 'astro:assets',
+			},
+		})
+
+		const jsx = findJsxFlowAnywhere(tree)
+		expect(jsx).toBeDefined()
+
+		// Src and srcDark are expressions (auto-imported)
+		expect(findAttribute(jsx!, 'src')!.value).toHaveProperty(
+			'type',
+			'mdxJsxAttributeValueExpression',
+		)
+		expect(findAttribute(jsx!, 'srcDark')!.value).toHaveProperty(
+			'type',
+			'mdxJsxAttributeValueExpression',
+		)
+
+		// Loading is forwarded as a plain string
+		expect(findAttribute(jsx!, 'loading')!.value).toBe('eager')
+	})
+
 	it('transforms JSX <img> elements with autoImport', () => {
 		const tree: Root = {
 			children: [
@@ -295,6 +374,47 @@ describe('remarkMdxKitElements — autoImport (direct AST transform)', () => {
 
 		const srcAttribute = findAttribute(jsx!, 'src')
 		expect(srcAttribute!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
+	})
+
+	it('transforms JSX <img> elements with multiple autoImport entries', () => {
+		const tree: Root = {
+			children: [
+				{
+					attributes: [
+						{ name: 'src', type: 'mdxJsxAttribute', value: './photo.webp' },
+						{ name: 'srcDark', type: 'mdxJsxAttribute', value: './dark.webp' },
+						{ name: 'alt', type: 'mdxJsxAttribute', value: 'Photo' },
+					],
+					children: [],
+					name: 'img',
+					type: 'mdxJsxFlowElement',
+				} as unknown as Root['children'][number],
+			],
+			type: 'root',
+		}
+
+		runPlugin(tree, {
+			img: {
+				autoImport: ['src', 'srcDark'],
+				component: 'Picture',
+				componentModule: 'astro:assets',
+			},
+		})
+
+		const jsx = tree.children.find((c): c is MdxJsxFlowElement => c.type === 'mdxJsxFlowElement')
+
+		expect(jsx!.name).toBe('Picture')
+
+		// Both src and srcDark should be expression attributes
+		const srcAttribute = findAttribute(jsx!, 'src')
+		expect(srcAttribute!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
+
+		const srcDarkAttribute = findAttribute(jsx!, 'srcDark')
+		expect(srcDarkAttribute!.value).toHaveProperty('type', 'mdxJsxAttributeValueExpression')
+
+		// Alt should remain a string
+		const altAttribute = findAttribute(jsx!, 'alt')
+		expect(altAttribute!.value).toBe('Photo')
 	})
 })
 
