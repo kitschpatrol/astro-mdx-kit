@@ -290,6 +290,18 @@ mdxKit({
 - **Simple overrides** (like `h1`) use MDX's `export const components` mechanism, covering both Markdown syntax and raw HTML/JSX
 - **Auto-import overrides** (like `img`) use direct AST transformation so that asset paths are converted to ESM imports for Vite processing
 
+Element keys aren't limited to standard HTML element names — you can use any JSX tag name, including PascalCase custom components. This lets you auto-import components that use MDX-style markup without an explicit `import` statement in each file:
+
+```ts
+mdxKit({
+  elements: {
+    Excerpt: 'src/components/Excerpt.astro',
+  },
+})
+```
+
+Now `<Excerpt />` works in any MDX file without importing it. Note that the [directives syntax](#directives) (e.g. `::Excerpt`) is generally preferred for portability, since directives degrade gracefully in non-MDX Markdown renderers while JSX tags do not.
+
 #### Auto-import prop remapping
 
 When the source attribute name differs from the target prop name, use the `{ from, to }` form:

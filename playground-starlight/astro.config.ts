@@ -22,6 +22,7 @@ export default defineConfig({
 				},
 			},
 			elements: {
+				Excerpt: 'src/components/Excerpt.astro',
 				h2: 'src/components/HeadingTwo.astro',
 				img: {
 					...astroPicture,

@@ -60,6 +60,35 @@ describe('remarkMdxKitElements — simple overrides (export const components)', 
 		expect(exportNode!.value).toContain('h1')
 	})
 
+	it('injects export const components for custom PascalCase component names', () => {
+		const tree: Root = {
+			children: [
+				{
+					attributes: [],
+					children: [],
+					name: 'Excerpt',
+					type: 'mdxJsxFlowElement',
+				} as unknown as Root['children'][number],
+			],
+			type: 'root',
+		}
+
+		// eslint-disable-next-line ts/naming-convention -- testing PascalCase component name as element key
+		runPlugin(tree, { Excerpt: 'src/components/Excerpt.astro' })
+
+		const esmNodes = findEsm(tree.children)
+		expect(esmNodes.length).toBeGreaterThanOrEqual(2)
+
+		const importNode = esmNodes.find((n) => n.value.includes('Excerpt.astro'))
+		expect(importNode).toBeDefined()
+		expect(importNode!.value).toContain('_MdxKit_Excerpt')
+
+		const exportNode = esmNodes.find((n) => n.value.includes('export const components'))
+		expect(exportNode).toBeDefined()
+		expect(exportNode!.value).toContain('Excerpt')
+		expect(exportNode!.value).toContain('_MdxKit_Excerpt')
+	})
+
 	it('merges into an existing export const components', () => {
 		const existingExport = createComponentsExportNode({ p: '_UserP' })
 		const tree: Root = {

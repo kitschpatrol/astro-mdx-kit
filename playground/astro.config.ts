@@ -23,6 +23,7 @@ export default defineConfig({
 				},
 			},
 			elements: {
+				Excerpt: 'src/components/Excerpt.astro',
 				h1: 'src/components/Heading.astro',
 				img: {
 					autoImport: 'src',
