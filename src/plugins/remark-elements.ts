@@ -169,11 +169,14 @@ function buildImageJsxElement(
 		}
 	}
 
-	if (node.alt) {
+	// Add alt and title from the mdast node, but only when hProperties
+	// didn't already provide them (avoids duplicate attributes while
+	// letting explicit attribute syntax like {:alt="..."} take precedence).
+	if (node.alt && !('alt' in hProperties)) {
 		attributes.push(createStringAttribute('alt', node.alt))
 	}
 
-	if (node.title) {
+	if (node.title && !('title' in hProperties)) {
 		attributes.push(createStringAttribute('title', node.title))
 	}
 

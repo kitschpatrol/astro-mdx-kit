@@ -225,6 +225,61 @@ describe('remarkMdxKitElements — autoImport (direct AST transform)', () => {
 		expect(loadingAttribute!.value).toBe('eager')
 	})
 
+	it('does not duplicate alt when hProperties also contains alt', () => {
+		const image: Image = {
+			alt: 'Photo',
+			data: { hProperties: { alt: 'Photo', loading: 'eager' } },
+			type: 'image',
+			url: './photo.png',
+		}
+		const tree: Root = {
+			children: [{ children: [image], type: 'paragraph' }],
+			type: 'root',
+		}
+
+		runPlugin(tree, {
+			img: {
+				autoImport: 'src',
+				component: 'Picture',
+				componentModule: 'astro:assets',
+			},
+		})
+
+		const jsx = findJsxFlowAnywhere(tree)
+		expect(jsx).toBeDefined()
+
+		const altAttributes = jsx!.attributes.filter(
+			(a): a is MdxJsxAttribute => a.type === 'mdxJsxAttribute' && a.name === 'alt',
+		)
+		expect(altAttributes).toHaveLength(1)
+		expect(altAttributes[0]!.value).toBe('Photo')
+	})
+
+	it('uses hProperties alt over node.alt when both exist', () => {
+		const image: Image = {
+			alt: 'Node alt',
+			data: { hProperties: { alt: 'Override alt' } },
+			type: 'image',
+			url: './photo.png',
+		}
+		const tree: Root = {
+			children: [{ children: [image], type: 'paragraph' }],
+			type: 'root',
+		}
+
+		runPlugin(tree, {
+			img: {
+				autoImport: 'src',
+				component: 'Picture',
+				componentModule: 'astro:assets',
+			},
+		})
+
+		const jsx = findJsxFlowAnywhere(tree)
+		expect(jsx).toBeDefined()
+		expect(findAttribute(jsx!, 'alt')!.value).toBe('Override alt')
+	})
+
 	it('auto-imports hProperties values that match autoImport entries', () => {
 		const image: Image = {
 			alt: 'Dark mode photo',

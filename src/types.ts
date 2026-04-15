@@ -293,4 +293,19 @@ export type MdxKitOptions = {
 	 * @default false
 	 */
 	unwrapImages?: boolean
+	/**
+	 * Remove `<p>` elements nested inside HTML elements that only allow
+	 * phrasing content per the HTML spec.
+	 *
+	 * In MDX, writing block content inside elements like `<span>`, `<button>`,
+	 * or `<label>` causes Markdown to wrap the text in `<p>` tags, producing
+	 * invalid HTML (e.g. `<span><p>text</p></span>`). When enabled, the `<p>`
+	 * is replaced with its children so the content is valid.
+	 *
+	 * Only targets elements that cannot contain `<p>` per the HTML spec —
+	 * no risk of altering valid HTML. Runs as a rehype plugin (post-Markdown
+	 * processing).
+	 * @default false
+	 */
+	unwrapPhrasingContent?: boolean
 }

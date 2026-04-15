@@ -26,6 +26,7 @@ import { createDirectiveTransform } from './plugins/remark-directives.js'
 import { createElementTransform } from './plugins/remark-elements.js'
 import { createFrontmatterInjectTransform } from './plugins/remark-frontmatter-inject.js'
 import { unwrapImagesTransform } from './plugins/remark-unwrap-images.js'
+import { unwrapPhrasingContentTransform } from './plugins/remark-unwrap-phrasing.js'
 import { resolveComponentConfig, resolveElementConfig } from './utils/resolve-config.js'
 
 /**
@@ -46,11 +47,21 @@ import { resolveComponentConfig, resolveElementConfig } from './utils/resolve-co
  * 	unified().use(remarkParse).use(remarkMdxKitPlugin, options).use(remarkRehype)
  * 	```
  */
+// eslint-disable-next-line complexity -- pipeline builder, one branch per feature
 const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 	this: Processor,
 	options: MdxKitOptions = {},
 ) {
-	const { attributes, captionImages, directives, elements, mdast, rawMdx, unwrapImages } = options
+	const {
+		attributes,
+		captionImages,
+		directives,
+		elements,
+		mdast,
+		rawMdx,
+		unwrapImages,
+		unwrapPhrasingContent,
+	} = options
 
 	// ---------------------------------------------------------------------------
 	// Parser extensions — registered on the processor via this.data()
@@ -121,6 +132,10 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 
 	if (captionImages) {
 		transforms.push(captionImagesTransform)
+	}
+
+	if (unwrapPhrasingContent) {
+		transforms.push(unwrapPhrasingContentTransform)
 	}
 
 	if (unwrapImages) {

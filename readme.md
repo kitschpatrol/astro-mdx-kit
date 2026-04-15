@@ -62,6 +62,8 @@ In addition to support for mapping directives to, `astro-mdx-kit` bundles some a
   Kramdown-style `{:key="value"}` syntax for adding attributes to any Markdown element.
 - **Image unwrapping**\
   Remove `<p>` wrappers from stand-alone images.
+- **Phrasing unwrapping**\
+  Remove invalid `<p>` elements nested inside phrasing-only HTML elements like `<span>`, `<button>`, and `<label>`.
 - **Frontmatter injection**\
   Expose raw MDX source or the parsed AST tree in frontmatter.
 
@@ -164,6 +166,7 @@ import {
   remarkMdxKitElements, // MDX + Astro
   remarkMdxKitFrontmatterInject, // Markdown or MDX + Astro
   remarkMdxKitUnwrapImages, // Markdown or MDX
+  remarkMdxKitUnwrapPhrasingContent, // MDX
 } from 'astro-mdx-kit'
 ```
 
@@ -527,6 +530,28 @@ mdxKit({
 
 By default, `![alt](src)` on its own line produces `<p><img ...></p>`. With `unwrapImages: true`, the paragraph is removed so the image is a direct child of the document flow. Works with both native images and component overrides (`img`, `Image`, and `Picture` are recognized by default). When using `remarkMdxKitUnwrapImages` as a standalone plugin, pass `imageComponentNames` to customize which JSX element names are treated as images.
 
+### Unwrap phrasing
+
+Remove `<p>` elements that Markdown incorrectly nests inside HTML elements that only allow phrasing content:
+
+```ts
+mdxKit({
+  unwrapPhrasingContent: true,
+})
+```
+
+In MDX, writing block content inside elements like `<span>` or `<button>` causes Markdown to wrap the text in `<p>` tags, producing invalid HTML:
+
+```mdx
+<span>Some text</span>
+
+<!-- Produces: <span><p>Some text</p></span> — invalid! -->
+```
+
+With `unwrapPhrasingContent: true`, the `<p>` is replaced with its children, producing valid `<span>Some text</span>`.
+
+This targets all elements that cannot contain `<p>` per the HTML spec: `span`, `em`, `strong`, `small`, `s`, `cite`, `q`, `dfn`, `abbr`, `code`, `var`, `samp`, `kbd`, `sub`, `sup`, `i`, `b`, `u`, `mark`, `bdi`, `bdo`, `data`, `time`, `ruby`, `button`, `label`, and `output`. Elements with flow content models like `<div>` and `<a>` (transparent) are not affected.
+
 ### Frontmatter injection
 
 Expose the raw MDX source or the parsed AST tree in frontmatter. Useful for debugging or in layouts and components:
@@ -573,8 +598,9 @@ The plugin processes content in two phases:
 2. **Directive transforms** — converts directives to JSX components
 3. **Element overrides** — replaces HTML elements with components (per-element captions handled here)
 4. **Global image captions** — wraps remaining captioned images in `<figure>`
-5. **Unwrap images** — removes `<p>` from stand-alone images
-6. **MDAST injection** — captures the transformed tree
+5. **Unwrap phrasing** — removes `<p>` from inside phrasing-only elements
+6. **Unwrap images** — removes `<p>` from stand-alone images
+7. **MDAST injection** — captures the transformed tree
 
 ## Full configuration example
 
@@ -613,6 +639,7 @@ export default defineConfig({
       mdast: true,
       rawMdx: true,
       unwrapImages: true,
+      unwrapPhrasingContent: true,
     }),
     mdx(),
   ],
