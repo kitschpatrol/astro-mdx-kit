@@ -11,13 +11,15 @@ import { log } from '../log.js'
 import { createJsxFlowElement, createStringAttribute } from './ast.js'
 
 /**
- * Extract caption nodes from a paragraph, excluding the node at
- * `excludeIndex` (typically the image). Leading and trailing whitespace
- * text nodes are trimmed or removed so the caption content is clean.
+ * Extract caption nodes from a paragraph, excluding the node at `excludeIndex`
+ * (typically the image). Leading and trailing whitespace text nodes are trimmed
+ * or removed so the caption content is clean.
+ *
  * @param parent - The paragraph node containing the image and caption text.
  * @param excludeIndex - Index of the child to exclude (the image node).
- * @returns An array of phrasing content nodes representing the caption,
- *   or an empty array if no meaningful caption text was found.
+ *
+ * @returns An array of phrasing content nodes representing the caption, or an
+ *   empty array if no meaningful caption text was found.
  */
 export function extractCaptionNodes(parent: MdastParent, excludeIndex: number): PhrasingContent[] {
 	// eslint-disable-next-line ts/no-unsafe-type-assertion -- paragraph children are PhrasingContent at runtime
@@ -85,15 +87,19 @@ export function serializePhrasingContent(
 }
 
 /**
- * Build a replacement node that wraps an image JSX element with its
- * caption, according to the configured caption mode.
+ * Build a replacement node that wraps an image JSX element with its caption,
+ * according to the configured caption mode.
  *
- * - `'figure'` — wraps in `<figure><Image /><figcaption>...</figcaption></figure>`
+ * - `'figure'` — wraps in `<figure><Image
+ *   /><figcaption>...</figcaption></figure>`
  * - `'children'` — passes caption nodes as children: `<Image>...</Image>`
- * - `{ prop, format? }` — serializes caption text and passes as a string prop: `<Image caption="..." />`
+ * - `{ prop, format? }` — serializes caption text and passes as a string prop:
+ *   `<Image caption="..." />`
+ *
  * @param caption - The caption handling mode from the element config.
  * @param imageJsx - The already-constructed JSX element for the image.
  * @param captionNodes - The phrasing content nodes extracted as caption text.
+ *
  * @returns A single JSX flow element representing the image with its caption.
  */
 export function buildCaptionReplacement(
@@ -128,8 +134,8 @@ export function buildCaptionReplacement(
 /**
  * Pre-scan a tree for paragraphs containing multiple images.
  *
- * Returns a `WeakSet` of paragraph nodes that should be skipped during
- * caption processing to avoid ambiguity about which image a caption belongs to.
+ * Returns a `WeakSet` of paragraph nodes that should be skipped during caption
+ * processing to avoid ambiguity about which image a caption belongs to.
  */
 export function findMultiImageParagraphs(tree: Root): WeakSet<MdastParent> {
 	const result = new WeakSet<MdastParent>()
@@ -143,18 +149,27 @@ export function findMultiImageParagraphs(tree: Root): WeakSet<MdastParent> {
 }
 
 /**
- * Apply collected paragraph-level replacements by visiting all paragraphs
- * and swapping those found in the replacements map.
+ * Apply collected paragraph-level replacements by visiting all paragraphs and
+ * swapping those found in the replacements map.
  */
 export function applyParagraphReplacements(
 	tree: Root,
 	replacements: Map<MdastParent, MdxJsxFlowElement>,
 ): void {
-	if (replacements.size === 0) return
+	if (replacements.size === 0) {
+		return
+	}
+
 	visit(tree, 'paragraph', (node, index, parent) => {
-		if (index === undefined || !parent) return
+		if (index === undefined || !parent) {
+			return
+		}
+
 		const replacement = replacements.get(node)
-		if (!replacement) return
+		if (!replacement) {
+			return
+		}
+
 		;(parent as Parent).children[index] = replacement
 		return SKIP
 	})

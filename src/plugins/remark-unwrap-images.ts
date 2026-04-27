@@ -23,8 +23,14 @@ function isWhitespaceText(node: { type: string; value?: string }): boolean {
 }
 
 function isImageLike(node: { name?: string; type: string }, names: Set<string>): boolean {
-	if (node.type === 'image') return true
-	if (node.type !== 'mdxJsxFlowElement' && node.type !== 'mdxJsxTextElement') return false
+	if (node.type === 'image') {
+		return true
+	}
+
+	if (node.type !== 'mdxJsxFlowElement' && node.type !== 'mdxJsxTextElement') {
+		return false
+	}
+
 	return node.name !== undefined && names.has(node.name)
 }
 
@@ -33,7 +39,10 @@ function isStandaloneImage(paragraph: Parent, names: Set<string>): boolean {
 		(child) => !isWhitespaceText(child as { type: string; value?: string }),
 	)
 
-	if (meaningful.length !== 1) return false
+	if (meaningful.length !== 1) {
+		return false
+	}
+
 	// eslint-disable-next-line ts/no-unsafe-type-assertion
 	return isImageLike(meaningful[0] as { name?: string; type: string }, names)
 }
@@ -59,17 +68,28 @@ export function unwrapImagesTransform(tree: Root, options?: RemarkUnwrapImagesOp
 	// Walk in reverse so splicing doesn't shift unvisited indices
 	for (let index = tree.children.length - 1; index >= 0; index--) {
 		const child = tree.children[index]
-		if (child?.type !== 'paragraph') continue
-		if (!isStandaloneImage(child, names)) continue
+		if (child?.type !== 'paragraph') {
+			continue
+		}
+
+		if (!isStandaloneImage(child, names)) {
+			continue
+		}
 
 		unwrapParagraph(tree, index, child)
 	}
 
 	// Also handle images nested deeper (e.g. inside block quotes, list items)
 	visit(tree, 'paragraph', (node, index, parent) => {
-		if (index === undefined || !parent) return
-		if (!isStandaloneImage(node, names)) return
-		unwrapParagraph(parent as { children: unknown[] }, index, node)
+		if (index === undefined || !parent) {
+			return
+		}
+
+		if (!isStandaloneImage(node, names)) {
+			return
+		}
+
+		unwrapParagraph(parent, index, node)
 	})
 }
 

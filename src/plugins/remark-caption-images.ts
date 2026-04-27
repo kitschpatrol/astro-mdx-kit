@@ -15,16 +15,17 @@ import {
 } from '../utils/caption.js'
 
 /**
- * Tree transformer that wraps stand-alone images with adjacent caption
- * text in `<figure>/<figcaption>` elements.
+ * Tree transformer that wraps stand-alone images with adjacent caption text in
+ * `<figure>/<figcaption>` elements.
  *
- * When an image is followed by text in the same paragraph
- * (`![alt](src) Caption text`), the paragraph is replaced with a
- * `<figure>` containing the original image and a `<figcaption>`.
- * Paragraphs with multiple images are skipped to avoid ambiguity.
+ * When an image is followed by text in the same paragraph (`![alt](src) Caption
+ * text`), the paragraph is replaced with a `<figure>` containing the original
+ * image and a `<figcaption>`. Paragraphs with multiple images are skipped to
+ * avoid ambiguity.
  *
- * The original MDAST `image` node is preserved inside the figure so
- * that Astro's built-in image optimization still applies.
+ * The original MDAST `image` node is preserved inside the figure so that
+ * Astro's built-in image optimization still applies.
+ *
  * @param tree - The root MDAST node to transform in-place.
  */
 export function captionImagesTransform(tree: Root): void {
@@ -32,11 +33,18 @@ export function captionImagesTransform(tree: Root): void {
 	const paragraphReplacements = new Map<MdastParent, MdxJsxFlowElement>()
 
 	visit(tree, 'image', (node: Image, index, parent) => {
-		if (index === undefined || !parent) return SKIP
-		if (multiImageParagraphs.has(parent)) return SKIP
+		if (index === undefined || !parent) {
+			return SKIP
+		}
+
+		if (multiImageParagraphs.has(parent)) {
+			return SKIP
+		}
 
 		const captionNodes = extractCaptionNodes(parent, index)
-		if (captionNodes.length === 0) return SKIP
+		if (captionNodes.length === 0) {
+			return SKIP
+		}
 
 		const figcaption = createJsxFlowElement('figcaption', [], captionNodes)
 		const figure = createJsxFlowElement('figure', [], [node, figcaption])
@@ -54,7 +62,7 @@ export function captionImagesTransform(tree: Root): void {
 
 /**
  * Remark plugin that wraps images with adjacent caption text in
- * `<figure>/<figcaption>`. The original image node is preserved for
- * Astro's image optimization pipeline.
+ * `<figure>/<figcaption>`. The original image node is preserved for Astro's
+ * image optimization pipeline.
  */
 export const remarkMdxKitCaptionImages: Plugin<never[], Root> = () => captionImagesTransform

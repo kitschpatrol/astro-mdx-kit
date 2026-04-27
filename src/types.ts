@@ -1,12 +1,14 @@
 /**
- * HTML element names that standard Markdown syntax (CommonMark + GFM) generates.
+ * HTML element names that standard Markdown syntax (CommonMark + GFM)
+ * generates.
  *
  * Defined locally instead of reusing Astro's `HTMLTag` type because `astro` is
  * an optional peer dependency — the `./remark` entry point works in non-Astro
  * unified pipelines where astro types aren't available.
  *
- * MDX content can also contain arbitrary HTML elements and custom web components,
- * which are accepted via the `string` fallback in {@link MdxKitOptions.elements} keys.
+ * MDX content can also contain arbitrary HTML elements and custom web
+ * components, which are accepted via the `string` fallback in
+ * {@link MdxKitOptions.elements} keys.
  */
 export type MarkdownElementName =
 	| 'a'
@@ -40,11 +42,11 @@ export type MarkdownElementName =
 	| 'ul'
 
 /**
- * A single auto-import entry describing how a prop value should be
- * imported as an ESM module.
+ * A single auto-import entry describing how a prop value should be imported as
+ * an ESM module.
  *
- * - `string`: The prop name whose value should be imported (e.g., `'src'`).
- *   The imported module replaces the string value on the same prop.
+ * - `string`: The prop name whose value should be imported (e.g., `'src'`). The
+ *   imported module replaces the string value on the same prop.
  * - `{ from, to }`: Read the value from `from` prop, import it, and set the
  *   imported module on the `to` prop.
  * - `{ from, to, transform }`: Like `{ from, to }`, but the path is transformed
@@ -58,7 +60,10 @@ export type AutoImportEntry =
 			from: string
 			/** Prop name to set the imported module on (e.g., `'srcDark'`). */
 			to: string
-			/** Transform the import path before generating the import. Return `undefined` to skip. */
+			/**
+			 * Transform the import path before generating the import. Return
+			 * `undefined` to skip.
+			 */
 			transform?: (path: string) => string | undefined
 	  }
 
@@ -67,17 +72,18 @@ export type AutoImportEntry =
  *
  * A single entry or an array of entries. The first entry is the primary import;
  * subsequent entries can derive additional imports from the same source path.
- * @example
- * ```ts
- * // Simple: import the `src` prop value
- * autoImport: 'src'
  *
- * // With derived dark variant for .tldr files
- * autoImport: [
- *   'src',
- *   { from: 'src', to: 'srcDark', transform: (p) => p.endsWith('.tldr') ? `${p}?dark=true&tldr` : undefined },
- * ]
- * ```
+ * @example
+ * 	```ts
+ * 	// Simple: import the `src` prop value
+ * 	autoImport: 'src'
+ *
+ * 	// With derived dark variant for .tldr files
+ * 	autoImport: [
+ * 	'src',
+ * 	{ from: 'src', to: 'srcDark', transform: (p) => p.endsWith('.tldr') ? `${p}?dark=true&tldr` : undefined },
+ * 	]
+ * 	```
  */
 export type AutoImportConfig = AutoImportEntry | AutoImportEntry[]
 
@@ -87,6 +93,7 @@ export type AutoImportConfig = AutoImportEntry | AutoImportEntry[]
 export type CaptionPropConfig = {
 	/**
 	 * Serialization format for the caption text.
+	 *
 	 * - `'plain'` (default) — plain text, formatting stripped
 	 * - `'raw'` — raw markdown string
 	 * - `'rendered'` — rendered HTML string
@@ -109,30 +116,34 @@ export type CaptionPropConfig = {
 export type CaptionConfig = 'children' | 'figure' | CaptionPropConfig
 
 /**
- * Configuration for extracting a directive's `[label]` / `[content]` into a named prop.
+ * Configuration for extracting a directive's `[label]` / `[content]` into a
+ * named prop.
  *
- * - `string`: Extract as plain text and pass as that prop name.
- *   `label: 'title'` → `<Component title="Label text" />`
+ * - `string`: Extract as plain text and pass as that prop name. `label: 'title'`
+ *   → `<Component title="Label text" />`
  * - `{ prop, format? }`: Extract with a specific serialization format.
  *
  * Works for all directive types:
- * - Container (`:::Name[label]`): extracts the label paragraph, preserves body children.
+ *
+ * - Container (`:::Name[label]`): extracts the label paragraph, preserves body
+ *   children.
  * - Leaf (`::Name[content]`) and text (`:Name[content]`): extracts the content,
  *   clears children.
  *
  * Without this option, `[label]`/`[content]` stays in the component's children
- * (the default behavior per the directives spec).
- * If no `[label]`/`[content]` is present in the markdown, this option has no effect.
+ * (the default behavior per the directives spec). If no `[label]`/`[content]`
+ * is present in the markdown, this option has no effect.
+ *
  * @example
- * ```ts
- * directives: {
- *   Callout: {
- *     component: 'src/components/Callout.astro',
- *     label: 'title',
- *     // or: label: { prop: 'title', format: 'rendered' },
- *   },
- * }
- * ```
+ * 	;```ts
+ * 	directives: {
+ * 	  Callout: {
+ * 	    component: 'src/components/Callout.astro',
+ * 	    label: 'title',
+ * 	    // or: label: { prop: 'title', format: 'rendered' },
+ * 	  },
+ * 	}
+ * 	```
  */
 export type LabelConfig = CaptionPropConfig | string
 
@@ -144,34 +155,43 @@ export type DetailedComponentConfig = {
 	autoImport?: AutoImportConfig
 	/** Component name (for named exports) or file path (for default exports). */
 	component: string
-	/** Module to import the component from (e.g., `'astro:assets'`). When set, `component` is treated as a named export. */
+	/**
+	 * Module to import the component from (e.g., `'astro:assets'`). When set,
+	 * `component` is treated as a named export.
+	 */
 	componentModule?: string
 	/**
-	 * Extract the directive's `[label]` / `[content]` and pass it as a named prop.
+	 * Extract the directive's `[label]` / `[content]` and pass it as a named
+	 * prop.
+	 *
 	 * @see {@link LabelConfig}
 	 */
 	label?: LabelConfig
 	/**
-	 * Rename directive attributes before passing them as component props.
-	 * Keys are the directive attribute names, values are the target prop names.
-	 * Unmapped attributes pass through as-is. The original attribute name is dropped.
+	 * Rename directive attributes before passing them as component props. Keys
+	 * are the directive attribute names, values are the target prop names.
+	 * Unmapped attributes pass through as-is. The original attribute name is
+	 * dropped.
+	 *
 	 * @example
-	 * ```ts
-	 * // ::Block{icon="star" type="warning"}
-	 * // → <Block iconName="star" variant="warning" />
-	 * propMap: { icon: 'iconName', type: 'variant' }
-	 * ```
+	 * 	;```ts
+	 * 	// ::Block{icon="star" type="warning"}
+	 * 	// → <Block iconName="star" variant="warning" />
+	 * 	propMap: { icon: 'iconName', type: 'variant' }
+	 * 	```
 	 */
 	propMap?: Record<string, string>
 }
 
 /**
- * Detailed configuration for mapping an HTML element to a component.
- * Extends directive config with element-specific options like `caption`.
+ * Detailed configuration for mapping an HTML element to a component. Extends
+ * directive config with element-specific options like `caption`.
  */
 export type DetailedElementConfig = DetailedComponentConfig & {
 	/**
-	 * Caption handling for image elements. Only applies to `img` element overrides.
+	 * Caption handling for image elements. Only applies to `img` element
+	 * overrides.
+	 *
 	 * @see {@link CaptionConfig}
 	 */
 	caption?: CaptionConfig
@@ -180,8 +200,10 @@ export type DetailedElementConfig = DetailedComponentConfig & {
 /**
  * Configuration for mapping a directive to a component.
  *
- * - `string`: A file path for default import (e.g., `'src/components/block.astro'`).
- * - `DetailedComponentConfig`: Full configuration with optional module and auto-import.
+ * - `string`: A file path for default import (e.g.,
+ *   `'src/components/block.astro'`).
+ * - `DetailedComponentConfig`: Full configuration with optional module and
+ *   auto-import.
  */
 export type ComponentConfig = DetailedComponentConfig | string
 
@@ -189,7 +211,8 @@ export type ComponentConfig = DetailedComponentConfig | string
  * Configuration for mapping an HTML element to a component.
  *
  * - `string`: A file path for default import.
- * - `DetailedElementConfig`: Full configuration with optional module, auto-import, and caption.
+ * - `DetailedElementConfig`: Full configuration with optional module,
+ *   auto-import, and caption.
  */
 export type ElementConfig = DetailedElementConfig | string
 
@@ -205,26 +228,29 @@ export type MdxKitOptions = {
 	 * `remark-attribute-list` under the hood.
 	 *
 	 * Compatible with directive syntax — both can be used simultaneously.
+	 *
 	 * @example
-	 * ```md
-	 * ![Alt](./image.jpg){:data-lightbox="true"}
-	 * A paragraph{:.highlight}
-	 * ```
+	 * 	;```md
+	 * 	![Alt](./image.jpg){:data-lightbox="true"}
+	 * 	A paragraph{:.highlight}
+	 * 	```
+	 *
 	 * @default false
 	 */
 	attributes?: boolean
 	/**
 	 * Wrap images that have adjacent caption text in `<figure>/<figcaption>`.
 	 *
-	 * When an image is followed by text in the same paragraph
-	 * (`![alt](src) Caption text`), the paragraph is replaced with a
-	 * `<figure>` containing the original image and a `<figcaption>`.
+	 * When an image is followed by text in the same paragraph (`![alt](src)
+	 * Caption text`), the paragraph is replaced with a `<figure>` containing the
+	 * original image and a `<figcaption>`.
 	 *
-	 * The original MDAST image node is preserved inside the figure, so
-	 * Astro's built-in image optimization still applies.
+	 * The original MDAST image node is preserved inside the figure, so Astro's
+	 * built-in image optimization still applies.
 	 *
-	 * If an `img` element override also has its own `caption` config, the
-	 * element override takes precedence (it transforms the image first).
+	 * If an `img` element override also has its own `caption` config, the element
+	 * override takes precedence (it transforms the image first).
+	 *
 	 * @default false
 	 */
 	captionImages?: boolean
@@ -232,38 +258,40 @@ export type MdxKitOptions = {
 	 * Map directive names to components.
 	 *
 	 * Directives use the standard markdown directive syntax (remark-directive):
+	 *
 	 * - Container: `:::Name[label]{props}...content...:::`
 	 * - Leaf: `::Name[label]{props}`
 	 * - Text/Inline: `:Name[label]{props}`
 	 *
-	 * The directive type (container/leaf/text) is determined automatically
-	 * by how the user writes it in markdown. No need to specify the type.
+	 * The directive type (container/leaf/text) is determined automatically by how
+	 * the user writes it in markdown. No need to specify the type.
 	 */
 	directives?: Record<string, ComponentConfig>
 	/**
 	 * Map HTML element names to components.
 	 *
-	 * Simple overrides use MDX's `export const components` mechanism.
-	 * Overrides with `autoImport` use direct AST transformation.
+	 * Simple overrides use MDX's `export const components` mechanism. Overrides
+	 * with `autoImport` use direct AST transformation.
+	 *
 	 * @example
-	 * ```ts
-	 * elements: {
-	 *   h1: 'src/components/CustomHeading.astro',
-	 *   img: {
-	 *     autoImport: 'src',
-	 *     component: 'Picture',
-	 *     componentModule: 'astro:assets',
-	 *   },
-	 * }
-	 * ```
+	 * 	;```ts
+	 * 	elements: {
+	 * 	  h1: 'src/components/CustomHeading.astro',
+	 * 	  img: {
+	 * 	    autoImport: 'src',
+	 * 	    component: 'Picture',
+	 * 	    componentModule: 'astro:assets',
+	 * 	  },
+	 * 	}
+	 * 	```
 	 */
 	elements?: Partial<Record<MarkdownElementName | (string & {}), ElementConfig>>
 	/**
 	 * Inject the MDAST (Markdown Abstract Syntax Tree) into frontmatter.
 	 *
-	 * The tree reflects the state **after** astro-mdx-kit transforms
-	 * (directives → JSX, element overrides) but **before** rehype/MDX
-	 * compilation. Read-only — modifying it will not affect rendered output.
+	 * The tree reflects the state **after** astro-mdx-kit transforms (directives
+	 * → JSX, element overrides) but **before** rehype/MDX compilation. Read-only
+	 * — modifying it will not affect rendered output.
 	 *
 	 * - `false` / `undefined` — disabled (default)
 	 * - `true` — inject as `frontmatter.mdast`
@@ -283,28 +311,29 @@ export type MdxKitOptions = {
 	/**
 	 * Remove the wrapping `<p>` element from stand-alone images.
 	 *
-	 * In standard markdown, `![alt](src)` on its own line produces
-	 * `<p><img ...></p>`. When enabled, the paragraph wrapper is removed
-	 * so the image (or its component override) is a direct child of the
-	 * document flow.
+	 * In standard markdown, `![alt](src)` on its own line produces `<p><img
+	 * ...></p>`. When enabled, the paragraph wrapper is removed so the image (or
+	 * its component override) is a direct child of the document flow.
 	 *
-	 * Runs **after** element overrides, so it also unwraps images that
-	 * have been replaced by custom components (e.g. `<Picture>`).
+	 * Runs **after** element overrides, so it also unwraps images that have been
+	 * replaced by custom components (e.g. `<Picture>`).
+	 *
 	 * @default false
 	 */
 	unwrapImages?: boolean
 	/**
-	 * Remove `<p>` elements nested inside HTML elements that only allow
-	 * phrasing content per the HTML spec.
+	 * Remove `<p>` elements nested inside HTML elements that only allow phrasing
+	 * content per the HTML spec.
 	 *
-	 * In MDX, writing block content inside elements like `<span>`, `<button>`,
-	 * or `<label>` causes Markdown to wrap the text in `<p>` tags, producing
-	 * invalid HTML (e.g. `<span><p>text</p></span>`). When enabled, the `<p>`
-	 * is replaced with its children so the content is valid.
+	 * In MDX, writing block content inside elements like `<span>`, `<button>`, or
+	 * `<label>` causes Markdown to wrap the text in `<p>` tags, producing invalid
+	 * HTML (e.g. `<span><p>text</p></span>`). When enabled, the `<p>` is replaced
+	 * with its children so the content is valid.
 	 *
-	 * Only targets elements that cannot contain `<p>` per the HTML spec —
-	 * no risk of altering valid HTML. Runs as a rehype plugin (post-Markdown
+	 * Only targets elements that cannot contain `<p>` per the HTML spec — no risk
+	 * of altering valid HTML. Runs as a rehype plugin (post-Markdown
 	 * processing).
+	 *
 	 * @default false
 	 */
 	unwrapPhrasingContent?: boolean

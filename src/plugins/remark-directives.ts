@@ -46,7 +46,10 @@ function toFlowChildren(
 		return [...node.children]
 	}
 
-	if (node.children.length === 0) return []
+	if (node.children.length === 0) {
+		return []
+	}
+
 	return [{ children: [...node.children], type: 'paragraph' }]
 }
 
@@ -60,17 +63,23 @@ function extractContainerLabel(
 	children: Array<BlockContent | DefinitionContent>,
 	config: ResolvedComponentConfig,
 ): MdxJsxAttribute | undefined {
-	if (!config.label) return undefined
+	if (!config.label) {
+		return undefined
+	}
 
 	const labelIndex = children.findIndex(
 		(child) => child.type === 'paragraph' && child.data?.directiveLabel === true,
 	)
-	if (labelIndex === -1) return undefined
+	if (labelIndex === -1) {
+		return undefined
+	}
 
 	const labelParagraph = children[labelIndex]
 	children.splice(labelIndex, 1)
 
-	if (!labelParagraph || !('children' in labelParagraph)) return undefined
+	if (!labelParagraph || !('children' in labelParagraph)) {
+		return undefined
+	}
 
 	const serialized = serializePhrasingContent(
 		// eslint-disable-next-line ts/no-unsafe-type-assertion -- directiveLabel paragraphs contain PhrasingContent
@@ -89,7 +98,9 @@ function extractPhrasingLabel(
 	children: PhrasingContent[],
 	config: ResolvedComponentConfig,
 ): MdxJsxAttribute | undefined {
-	if (!config.label || children.length === 0) return undefined
+	if (!config.label || children.length === 0) {
+		return undefined
+	}
 
 	const serialized = serializePhrasingContent(children, config.label.format)
 	children.length = 0
@@ -126,14 +137,20 @@ function buildDirectiveAttributes(
 		// Forward remaining attributes not consumed by auto-import, with
 		// propMap renaming applied.
 		for (const [key, value] of Object.entries(directiveAttributes)) {
-			if (!value || handledProps.has(key)) continue
+			if (!value || handledProps.has(key)) {
+				continue
+			}
+
 			const propName = config.propMap?.[key] ?? key
 			attributes.push(createStringAttribute(propName, value))
 		}
 	} else {
 		// No autoImport — forward all attributes with propMap renaming
 		for (const [key, value] of Object.entries(directiveAttributes)) {
-			if (!value) continue
+			if (!value) {
+				continue
+			}
+
 			const propName = config.propMap?.[key] ?? key
 			attributes.push(createStringAttribute(propName, value))
 		}
@@ -164,7 +181,9 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 		const imports = new ImportTracker()
 
 		visit(tree, (node, index, parent) => {
-			if (!parent || index === undefined || !isDirectiveNode(node)) return
+			if (!parent || index === undefined || !isDirectiveNode(node)) {
+				return
+			}
 
 			if (!(node.name in configs)) {
 				log.debug(`Skipping unknown directive ":${node.name}" — no matching config`)
@@ -187,7 +206,7 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 				}
 
 				const jsxNode = createJsxTextElement(config.componentName, attributes, children)
-				parent.children[index] = jsxNode as (typeof parent.children)[number]
+				parent.children[index] = jsxNode
 			} else {
 				const children = toFlowChildren(node)
 
@@ -211,7 +230,7 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 				}
 
 				const jsxNode = createJsxFlowElement(config.componentName, attributes, children)
-				parent.children[index] = jsxNode as (typeof parent.children)[number]
+				parent.children[index] = jsxNode
 			}
 		})
 

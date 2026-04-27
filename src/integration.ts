@@ -12,18 +12,16 @@ import remarkMdxKitPlugin, { SKIP_PARSER_EXTENSIONS } from './remark-plugin.js'
  * `remarkMdxKit()` directly in `remarkPlugins` for more control.
  *
  * @example
- * 	;```ts
  * 	import { mdxKit } from 'astro-mdx-kit'
  *
  * 	export default defineConfig({
- * 	  integrations: [
- * 	    mdxKit({
- * 	      directives: { Block: 'src/components/Block.astro' },
- * 	      elements: { h1: 'src/components/Heading.astro' },
- * 	    }),
- * 	  ],
+ * 		integrations: [
+ * 			mdxKit({
+ * 				directives: { Block: 'src/components/Block.astro' },
+ * 				elements: { h1: 'src/components/Heading.astro' },
+ * 			}),
+ * 		],
  * 	})
- * 	```
  */
 export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 	return {

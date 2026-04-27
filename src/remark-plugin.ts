@@ -37,15 +37,16 @@ import { resolveComponentConfig, resolveElementConfig } from './utils/resolve-co
  * pipeline or via the Astro integration wrapper.
  *
  * @example
- * 	;```ts
  * 	import remarkMdxKitPlugin from 'astro-mdx-kit/remark'
  *
  * 	// In Astro MDX config:
  * 	mdx({ remarkPlugins: [[remarkMdxKitPlugin, options]] })
  *
  * 	// Or in any unified pipeline:
- * 	unified().use(remarkParse).use(remarkMdxKitPlugin, options).use(remarkRehype)
- * 	```
+ * 	unified()
+ * 		.use(remarkParse)
+ * 		.use(remarkMdxKitPlugin, options)
+ * 		.use(remarkRehype)
  */
 // eslint-disable-next-line complexity -- pipeline builder, one branch per feature
 const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
@@ -101,7 +102,10 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 	const resolvedElements: Record<string, ResolvedComponentConfig> = {}
 	if (elements) {
 		for (const [name, config] of Object.entries(elements)) {
-			if (config === undefined) continue
+			if (config === undefined) {
+				continue
+			}
+
 			resolvedElements[name] = resolveElementConfig(name, config)
 		}
 	}
@@ -177,15 +181,13 @@ export default remarkMdxKitPlugin
  * `remarkPlugins` arrays. Provides full autocomplete on the options object.
  *
  * @example
- * 	;```ts
  * 	import { remarkMdxKit } from 'astro-mdx-kit'
  *
  * 	export default {
- * 	  markdown: {
- * 	    remarkPlugins: [remarkMdxKit({ directives: { ... } })],
- * 	  },
+ * 	markdown: {
+ * 	remarkPlugins: [remarkMdxKit({ directives: { ... } })],
+ * 	},
  * 	}
- * 	```
  */
 // eslint-disable-next-line ts/no-explicit-any -- interop with Astro's RemarkPlugin type
 export function remarkMdxKit(options: MdxKitOptions = {}): [plugin: any, options: MdxKitOptions] {

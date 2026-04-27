@@ -37,7 +37,9 @@ export class ImportTracker {
 	 */
 	addAssetImport(assetPath: string): string {
 		const existing = this.assetImports.get(assetPath)
-		if (existing) return existing
+		if (existing) {
+			return existing
+		}
 
 		const name = `_mdxKitAsset${Math.random().toString(36).slice(2, 14)}`
 		this.assetImports.set(assetPath, name)
@@ -57,7 +59,10 @@ export class ImportTracker {
 	 */
 	addComponentImport(localName: string, importPath: string, isNamed: boolean): void {
 		const key = `${isNamed ? 'named' : 'default'}|${localName}|${importPath}`
-		if (this.importKeys.has(key)) return
+		if (this.importKeys.has(key)) {
+			return
+		}
+
 		this.importKeys.add(key)
 		this.imports.push({ importPath, isNamed, localName })
 	}
@@ -69,7 +74,9 @@ export class ImportTracker {
 	 * @param tree - The root MDAST node to prepend imports into.
 	 */
 	injectIntoTree(tree: Root): void {
-		if (this.imports.length === 0) return
+		if (this.imports.length === 0) {
+			return
+		}
 
 		// MdxjsEsm nodes are valid RootContent via type augmentation from
 		// mdast-util-mdxjs-esm, but the inference doesn't always pick it up.
@@ -93,9 +100,18 @@ export class ImportTracker {
  * @returns `true` if the value should be treated as an importable path.
  */
 export function isImportablePath(value: string): boolean {
-	if (value.includes('://')) return false
-	if (value.startsWith('data:')) return false
-	if (value.startsWith('#')) return false
+	if (value.includes('://')) {
+		return false
+	}
+
+	if (value.startsWith('data:')) {
+		return false
+	}
+
+	if (value.startsWith('#')) {
+		return false
+	}
+
 	return true
 }
 
@@ -107,9 +123,9 @@ type AutoImportResult = {
 	attributes: MdxJsxAttribute[]
 	/**
 	 * Prop names that were consumed from `propValues` or produced as output
-	 * attributes. Callers should use this to avoid duplicating these
-	 * attributes when forwarding remaining props (e.g. hProperties or
-	 * directive attributes).
+	 * attributes. Callers should use this to avoid duplicating these attributes
+	 * when forwarding remaining props (e.g. hProperties or directive
+	 * attributes).
 	 */
 	handledProps: ReadonlySet<string>
 }
@@ -118,28 +134,27 @@ type AutoImportResult = {
  * Process auto-import entries against a map of prop values, generating JSX
  * attributes and registering ESM imports via the tracker.
  *
- * Each entry reads its source value from `propValues[entry.fromProp]`,
- * making `fromProp` semantically meaningful as "the prop to read the value
- * FROM."
+ * Each entry reads its source value from `propValues[entry.fromProp]`, making
+ * `fromProp` semantically meaningful as "the prop to read the value FROM."
  *
  * Processing uses two passes to establish a clear priority model:
  *
  * 1. **Direct entries** (no `transform`) are processed first. Each reads
  *    `propValues[entry.fromProp]`. When importable, creates an expression
- *    attribute on `toProp` and preserves the original string on `fromProp`
- *    if `fromProp !== toProp`. When not importable, falls back to a string
+ *    attribute on `toProp` and preserves the original string on `fromProp` if
+ *    `fromProp !== toProp`. When not importable, falls back to a string
  *    attribute on `toProp`.
- *
  * 2. **Derived entries** (with `transform`) run second, skipping any whose
  *    `toProp` was already resolved by a direct entry. Before applying the
- *    transform, checks whether `propValues` has an explicit value for
- *    `toProp` (e.g. from `{:srcDark="./explicit.png"}`), which takes
- *    priority over the derived value.
+ *    transform, checks whether `propValues` has an explicit value for `toProp`
+ *    (e.g. from `{:srcDark="./explicit.png"}`), which takes priority over the
+ *    derived value.
  *
- * Priority: **direct entry > explicit propValues override > derived transform**.
+ * Priority: **direct entry > explicit propValues override > derived
+ * transform**.
  *
- * @param propValues - Map of prop names to their string values (e.g.
- *   `{ src: './photo.png', srcDark: './dark.png' }`).
+ * @param propValues - Map of prop names to their string values (e.g. `{ src:
+ *   './photo.png', srcDark: './dark.png' }`).
  * @param entries - Resolved auto-import entries to process.
  * @param imports - Import tracker for deduplication and injection.
  *
@@ -156,7 +171,9 @@ export function resolveAutoImportAttributes(
 	// Pass 1: Direct entries (no transform) — explicit values take priority
 	// over derived ones targeting the same toProp.
 	for (const entry of entries) {
-		if (entry.transform) continue
+		if (entry.transform) {
+			continue
+		}
 
 		const value = propValues[entry.fromProp]
 		if (value === undefined) {
@@ -184,7 +201,9 @@ export function resolveAutoImportAttributes(
 	// Pass 2: Derived entries (with transform) — skip if toProp was already
 	// resolved by a direct entry above.
 	for (const entry of entries) {
-		if (!entry.transform) continue
+		if (!entry.transform) {
+			continue
+		}
 
 		if (handledProps.has(entry.toProp)) {
 			log.debug(

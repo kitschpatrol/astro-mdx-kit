@@ -688,13 +688,13 @@ _Note: If you're using [@kitschpatrol/shared-config](https://www.npmjs.com/packa
 
 ## Maintainers
 
-@kitschpatrol
+[kitschpatrol](https://github.com/kitschpatrol)
 
 ## Acknowledgments
 
-This project was heavily inspired by [Christian Fuss](https://github.com/christian-hackyourshack)'s [m2dx](https://astro-m2dx.netlify.app/) project and [tomixy](https://tomixyz-biography.net/)'s [astro-mdx-directive](https://github.com/tetracalibers/astro-mdx-directive).
+This project was heavily inspired by [Christian Fuss'](https://github.com/christian-hackyourshack) [m2dx](https://astro-m2dx.netlify.app/) project and [tomixy's](https://tomixyz-biography.net/) [astro-mdx-directive](https://github.com/tetracalibers/astro-mdx-directive).
 
-Though I didn't find it until after developing `astro-mdx-kit`, [Florian](https://flo-bit.dev/)'s [astro-custom-embeds](https://github.com/flo-bit/astro-custom-embeds) looks great and it looks like we both arrived at similar approaches to configuration API.
+Though I didn't find it until after developing `astro-mdx-kit`, [Florian's](https://flo-bit.dev/) [astro-custom-embeds](https://github.com/flo-bit/astro-custom-embeds) looks great and it looks like we both arrived at similar approaches to configuration API.
 
 Gratitude is always due to the [unified](https://unifiedjs.com) [team](https://github.com/unifiedjs/collective/?tab=readme-ov-file#unified-team) for [remark](https://remark.js.org) and their entire ecosystem of AST-wrangling libraries and tools.
 
@@ -702,7 +702,11 @@ Gratitude is always due to the [unified](https://unifiedjs.com) [team](https://g
 
 ## Contributing
 
-[Issues](https://github.com/kitschpatrol/astro-mdx-kit/issues) and pull requests are welcome.
+[Issues](https://github.com/kitschpatrol/astro-mdx-kit/issues) are welcome and appreciated.
+
+Please open an issue to discuss changes before submitting a pull request. Unsolicited PRs (especially AI-generated ones) are unlikely to be merged.
+
+This repository uses [@kitschpatrol/shared-config](https://github.com/kitschpatrol/shared-config) (via its `ksc` CLI) for linting and formatting, plus [MDAT](https://github.com/kitschpatrol/mdat) for readme placeholder expansion.
 
 <!-- /contributing -->
 
@@ -710,6 +714,6 @@ Gratitude is always due to the [unified](https://unifiedjs.com) [team](https://g
 
 ## License
 
-[MIT](license.txt) © Eric Mika
+[MIT](license.txt) © [Eric Mika](https://ericmika.com)
 
 <!-- /license -->

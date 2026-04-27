@@ -8,8 +8,8 @@ import mdxKit from '../src/integration'
 const noop = () => {}
 
 /**
- * Build a minimal mock of the `astro:config:setup` hook params.
- * Only `updateConfig` and `logger` are exercised by our integration.
+ * Build a minimal mock of the `astro:config:setup` hook params. Only
+ * `updateConfig` and `logger` are exercised by our integration.
  */
 function createMockHookParams(onUpdate: (config: Record<string, unknown>) => void) {
 	return {

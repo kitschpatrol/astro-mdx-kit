@@ -4,7 +4,7 @@
 /// <reference types="mdast-util-mdx-jsx" />
 /// <reference types="mdast-util-mdxjs-esm" />
 
-import type { Expression, ImportDeclaration, Program, Property, SpreadElement } from 'estree'
+import type { ImportDeclaration, Program, Property, SpreadElement } from 'estree'
 import type { PhrasingContent } from 'mdast'
 import type { MdxJsxAttribute, MdxJsxFlowElement, MdxJsxTextElement } from 'mdast-util-mdx-jsx'
 import type { MdxjsEsm } from 'mdast-util-mdxjs-esm'
@@ -47,11 +47,14 @@ function createImportEstree(localName: string, importPath: string, isNamed: bool
 /**
  * Create an `mdxjsEsm` AST node representing an ESM import statement.
  *
- * Produces either `import { localName } from '...'` (named) or
- * `import localName from '...'` (default) depending on `isNamed`.
+ * Produces either `import { localName } from '...'` (named) or `import
+ * localName from '...'` (default) depending on `isNamed`.
+ *
  * @param localName - The local identifier for the imported binding.
  * @param importPath - The module specifier string.
- * @param isNamed - Whether to emit a named import (`true`) or default import (`false`).
+ * @param isNamed - Whether to emit a named import (`true`) or default import
+ *   (`false`).
+ *
  * @returns An `MdxjsEsm` node with both a `value` string and an `estree` AST.
  */
 export function createEsmImportNode(
@@ -73,11 +76,13 @@ export function createEsmImportNode(
 /**
  * Create an `mdxjsEsm` AST node for `export const components = { ... }`.
  *
- * This is the standard MDX mechanism for overriding HTML elements with
- * custom components. The generated node contains both the serialized
- * `value` string and a full ESTree `estree` program.
- * @param mappings - Map of HTML element names to their local component identifiers
- *   (e.g. `{ img: 'Picture', h1: '_MdxKit_H1' }`).
+ * This is the standard MDX mechanism for overriding HTML elements with custom
+ * components. The generated node contains both the serialized `value` string
+ * and a full ESTree `estree` program.
+ *
+ * @param mappings - Map of HTML element names to their local component
+ *   identifiers (e.g. `{ img: 'Picture', h1: '_MdxKit_H1' }`).
+ *
  * @returns An `MdxjsEsm` node.
  */
 export function createComponentsExportNode(mappings: Record<string, string>): MdxjsEsm {
@@ -127,30 +132,43 @@ export function createComponentsExportNode(mappings: Record<string, string>): Md
 }
 
 /**
- * Merge additional component mappings into an existing
- * `export const components = { ... }` ESTree declaration.
+ * Merge additional component mappings into an existing `export const components
+ * = { ... }` ESTree declaration.
  *
- * New entries are prepended so that user-defined entries (later in the
- * object) take precedence in the case of duplicate keys.
- * @param node - An existing `mdxjsEsm` node that may contain a `components` export.
- * @param mappings - Map of HTML element names to their local component identifiers.
- * @returns `true` if a matching `components` export was found and merged into, `false` otherwise.
+ * New entries are prepended so that user-defined entries (later in the object)
+ * take precedence in the case of duplicate keys.
+ *
+ * @param node - An existing `mdxjsEsm` node that may contain a `components`
+ *   export.
+ * @param mappings - Map of HTML element names to their local component
+ *   identifiers.
+ *
+ * @returns `true` if a matching `components` export was found and merged into,
+ *   `false` otherwise.
  */
 export function mergeIntoComponentsExport(
 	node: MdxjsEsm,
 	mappings: Record<string, string>,
 ): boolean {
 	const estree = node.data?.estree
-	if (!estree) return false
+	if (!estree) {
+		return false
+	}
 
 	for (const statement of estree.body) {
-		if (statement.type !== 'ExportNamedDeclaration') continue
+		if (statement.type !== 'ExportNamedDeclaration') {
+			continue
+		}
 
 		const { declaration } = statement
-		if (declaration?.type !== 'VariableDeclaration') continue
+		if (declaration?.type !== 'VariableDeclaration') {
+			continue
+		}
 
 		for (const declarator of declaration.declarations) {
-			if (declarator.id.type !== 'Identifier' || declarator.id.name !== 'components') continue
+			if (declarator.id.type !== 'Identifier' || declarator.id.name !== 'components') {
+				continue
+			}
 
 			const newProperties: Array<Property | SpreadElement> = Object.entries(mappings).map(
 				([key, value]) => ({
@@ -169,7 +187,7 @@ export function mergeIntoComponentsExport(
 			} else {
 				// Wrap non-object expression: { ...ours, ...existingExpr }
 				const existingSpread: SpreadElement[] = declarator.init
-					? [{ argument: declarator.init as Expression, type: 'SpreadElement' }]
+					? [{ argument: declarator.init, type: 'SpreadElement' }]
 					: []
 				declarator.init = {
 					properties: [...newProperties, ...existingSpread],
@@ -189,11 +207,15 @@ export function mergeIntoComponentsExport(
 // ---------------------------------------------------------------------------
 
 /**
- * Create an MDX JSX expression attribute value wrapping an identifier reference.
+ * Create an MDX JSX expression attribute value wrapping an identifier
+ * reference.
  *
  * Produces a `mdxJsxAttributeValueExpression` node equivalent to `{identifier}`
  * in JSX syntax, with a backing ESTree expression.
- * @param identifier - The identifier name to reference (e.g. an imported asset variable).
+ *
+ * @param identifier - The identifier name to reference (e.g. an imported asset
+ *   variable).
+ *
  * @returns An attribute value node suitable for use in {@link MdxJsxAttribute}.
  */
 function createExpressionAttributeValue(identifier: string): MdxJsxAttribute['value'] {
@@ -217,6 +239,7 @@ function createExpressionAttributeValue(identifier: string): MdxJsxAttribute['va
 
 /**
  * Create a string-valued MDX JSX attribute (e.g. `alt="photo"`).
+ *
  * @param name - The attribute name.
  * @param value - The string value.
  */
@@ -225,8 +248,9 @@ export function createStringAttribute(name: string, value: string): MdxJsxAttrib
 }
 
 /**
- * Create an expression-valued MDX JSX attribute referencing an identifier
- * (e.g. `src={_mdxKitAsset3a1b9c}`).
+ * Create an expression-valued MDX JSX attribute referencing an identifier (e.g.
+ * `src={_mdxKitAsset3a1b9c}`).
+ *
  * @param name - The attribute name.
  * @param identifier - The identifier to reference as the attribute value.
  */
@@ -240,10 +264,12 @@ export function createExpressionAttribute(name: string, identifier: string): Mdx
 
 /**
  * Create a block-level (`mdxJsxFlowElement`) MDX JSX element node.
+ *
  * @param name - The component or element name (e.g. `'Picture'`, `'figure'`).
  * @param attributes - JSX attributes for the element.
- * @param children - Child AST nodes. Accepts `Node[]` for flexibility since JSX elements
- *   can contain any mix of block, phrasing, or image content at runtime.
+ * @param children - Child AST nodes. Accepts `Node[]` for flexibility since JSX
+ *   elements can contain any mix of block, phrasing, or image content at
+ *   runtime.
  */
 export function createJsxFlowElement(
 	name: string,
@@ -264,6 +290,7 @@ export function createJsxFlowElement(
 
 /**
  * Create an inline (`mdxJsxTextElement`) MDX JSX element node.
+ *
  * @param name - The component or element name.
  * @param attributes - JSX attributes for the element.
  * @param children - Inline (phrasing) child AST nodes.

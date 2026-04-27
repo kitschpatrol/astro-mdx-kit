@@ -62,19 +62,31 @@ function isWhitespaceText(node: { type: string; value?: string }): boolean {
  */
 export function unwrapPhrasingContentTransform(tree: Root): void {
 	visit(tree, (node) => {
-		if (node.type !== 'mdxJsxFlowElement' && node.type !== 'mdxJsxTextElement') return
-		if (node.name === null) return
-		if (!PHRASING_ONLY_ELEMENTS.has(node.name)) return
+		if (node.type !== 'mdxJsxFlowElement' && node.type !== 'mdxJsxTextElement') {
+			return
+		}
+
+		if (node.name === null) {
+			return
+		}
+
+		if (!PHRASING_ONLY_ELEMENTS.has(node.name)) {
+			return
+		}
 
 		const parent = node as Parent
 		const meaningful = parent.children.filter(
 			(child) => !isWhitespaceText(child as { type: string; value?: string }),
 		)
 
-		if (meaningful.length !== 1) return
+		if (meaningful.length !== 1) {
+			return
+		}
 
 		const only = meaningful[0]
-		if (only?.type !== 'paragraph') return
+		if (only?.type !== 'paragraph') {
+			return
+		}
 
 		const paragraph = only as Parent
 		const pIndex = parent.children.indexOf(only)
@@ -89,4 +101,5 @@ export function unwrapPhrasingContentTransform(tree: Root): void {
  * Fixes invalid nesting produced by Markdown's paragraph wrapping inside MDX
  * elements like `<span>`, `<button>`, `<label>`, etc.
  */
-export const remarkMdxKitUnwrapPhrasingContent: Plugin<never[], Root> = () => unwrapPhrasingContentTransform
+export const remarkMdxKitUnwrapPhrasingContent: Plugin<never[], Root> = () =>
+	unwrapPhrasingContentTransform

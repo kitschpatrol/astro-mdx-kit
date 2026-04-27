@@ -11,7 +11,7 @@ import { unwrapPhrasingContentTransform } from '../src/plugins/remark-unwrap-phr
 const unwrap = unwrapPhrasingContentTransform
 
 function childrenOf(node: unknown): Array<{ type: string; value?: string }> {
-	return (node as Parent).children as Array<{ type: string; value?: string }>
+	return (node as Parent).children
 }
 
 describe('remarkMdxKitUnwrapPhrasingContent', () => {

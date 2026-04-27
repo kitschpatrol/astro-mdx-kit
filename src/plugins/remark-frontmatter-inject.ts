@@ -28,8 +28,14 @@ export type RemarkFrontmatterInjectOptions = {
 }
 
 function resolveKey(option: boolean | string | undefined, defaultKey: string): string | undefined {
-	if (option === true) return defaultKey
-	if (typeof option === 'string') return option
+	if (option === true) {
+		return defaultKey
+	}
+
+	if (typeof option === 'string') {
+		return option
+	}
+
 	return undefined
 }
 
@@ -57,13 +63,15 @@ function setFrontmatter(file: VFile, key: string, value: unknown): void {
 /* eslint-enable ts/no-unsafe-type-assertion */
 
 /**
- * Create a tree transformer that injects raw MDX source and/or the MDAST
- * tree into Astro's `file.data.astro.frontmatter` object, making them
- * accessible in layouts and components via `Astro.props.frontmatter`.
+ * Create a tree transformer that injects raw MDX source and/or the MDAST tree
+ * into Astro's `file.data.astro.frontmatter` object, making them accessible in
+ * layouts and components via `Astro.props.frontmatter`.
  *
- * Exported separately from the plugin wrapper so it can be composed into
- * larger transform pipelines or used directly in tests.
+ * Exported separately from the plugin wrapper so it can be composed into larger
+ * transform pipelines or used directly in tests.
+ *
  * @param options - Controls which values to inject and under what keys.
+ *
  * @returns A tree transformer function.
  */
 export function createFrontmatterInjectTransform(
@@ -84,10 +92,11 @@ export function createFrontmatterInjectTransform(
 }
 
 /**
- * Remark plugin that injects raw MDX source and/or the MDAST tree
- * into `file.data.astro.frontmatter` for access in layouts and components.
+ * Remark plugin that injects raw MDX source and/or the MDAST tree into
+ * `file.data.astro.frontmatter` for access in layouts and components.
  *
- * Use {@link createFrontmatterInjectTransform} for the underlying tree transformer.
+ * Use {@link createFrontmatterInjectTransform} for the underlying tree
+ * transformer.
  */
 export const remarkMdxKitFrontmatterInject: Plugin<[RemarkFrontmatterInjectOptions], Root> = (
 	options,

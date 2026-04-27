@@ -40,7 +40,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Block',
 			type: 'leafDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		runPlugin(tree, Object.fromEntries([['Block', 'src/components/block.astro']]))
 
@@ -87,7 +87,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Callout',
 			type: 'containerDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		runPlugin(tree, Object.fromEntries([['Callout', 'src/components/Callout.astro']]))
 
@@ -104,7 +104,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Picture',
 			type: 'leafDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		const pictureConfig: ComponentConfig = {
 			autoImport: 'src',
@@ -138,7 +138,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'CustomImage',
 			type: 'leafDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		const config: ComponentConfig = {
 			autoImport: { from: 'src', to: 'srcImported' },
@@ -205,7 +205,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Unknown',
 			type: 'leafDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		runPlugin(tree, Object.fromEntries([['Block', 'src/components/block.astro']]))
 
@@ -219,7 +219,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Pic',
 			type: 'leafDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		const picConfig: ComponentConfig = {
 			autoImport: 'src',
@@ -244,7 +244,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Picture',
 			type: 'leafDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		const pictureConfig: ComponentConfig = {
 			autoImport: ['src', 'srcDark'],
@@ -284,7 +284,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Block',
 			type: 'leafDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		const config: ComponentConfig = {
 			component: 'src/components/Block.astro',
@@ -317,7 +317,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Block',
 			type: 'leafDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		const config: ComponentConfig = {
 			component: 'src/components/Block.astro',
@@ -337,7 +337,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Pic',
 			type: 'leafDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		const config: ComponentConfig = {
 			autoImport: 'source',
@@ -374,7 +374,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Callout',
 			type: 'containerDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		const config: ComponentConfig = {
 			component: 'src/components/Callout.astro',
@@ -410,7 +410,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Note',
 			type: 'containerDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		const config: ComponentConfig = {
 			component: 'src/components/Note.astro',
@@ -432,7 +432,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Note',
 			type: 'containerDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		const config: ComponentConfig = {
 			component: 'src/components/Note.astro',
@@ -457,7 +457,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Note',
 			type: 'leafDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		const config: ComponentConfig = {
 			component: 'src/components/Note.astro',
@@ -494,11 +494,15 @@ describe('remarkMdxKitDirectives', () => {
 
 		const paragraph = tree.children.find((c) => c.type === 'paragraph')
 		expect(paragraph?.type).toBe('paragraph')
-		if (paragraph?.type !== 'paragraph') return
+		if (paragraph?.type !== 'paragraph') {
+			return
+		}
 
 		const textJsx = paragraph.children.find((c) => c.type === 'mdxJsxTextElement')
 		expect(textJsx).toBeDefined()
-		if (textJsx?.type !== 'mdxJsxTextElement') return
+		if (textJsx?.type !== 'mdxJsxTextElement') {
+			return
+		}
 
 		const text = textJsx.attributes.find((a) => a.type === 'mdxJsxAttribute' && a.name === 'text')
 		expect(text).toBeDefined()
@@ -513,7 +517,7 @@ describe('remarkMdxKitDirectives', () => {
 			name: 'Note',
 			type: 'leafDirective',
 		}
-		const tree: Root = { children: [directive as Root['children'][number]], type: 'root' }
+		const tree: Root = { children: [directive], type: 'root' }
 
 		runPlugin(tree, Object.fromEntries([['Note', 'src/components/Note.astro']]))
 

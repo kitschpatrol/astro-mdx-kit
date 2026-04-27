@@ -3,7 +3,6 @@ import { eslintConfig } from '@kitschpatrol/eslint-config'
 export default eslintConfig(
 	{
 		astro: true,
-		ignores: ['references/**/*'],
 		type: 'lib',
 	},
 	{

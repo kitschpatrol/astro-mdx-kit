@@ -17,8 +17,11 @@ function asImportDeclaration(
 	if (statement === undefined) {
 		throw new Error(`Expected ImportDeclaration, got ${statement}`)
 	}
-	if (statement.type !== 'ImportDeclaration')
+
+	if (statement.type !== 'ImportDeclaration') {
 		throw new Error(`Expected ImportDeclaration, got ${statement.type}`)
+	}
+
 	return statement
 }
 
@@ -30,8 +33,11 @@ function asExportNamedDeclaration(
 	if (statement === undefined) {
 		throw new Error(`Expected ImportDeclaration, got ${statement}`)
 	}
-	if (statement.type !== 'ExportNamedDeclaration')
+
+	if (statement.type !== 'ExportNamedDeclaration') {
 		throw new Error(`Expected ExportNamedDeclaration, got ${statement.type}`)
+	}
+
 	return statement
 }
 
@@ -82,7 +88,10 @@ describe('mergeIntoComponentsExport', () => {
 
 		const statement = asExportNamedDeclaration(existing.data!.estree)
 		const { declaration } = statement
-		if (declaration?.type !== 'VariableDeclaration') throw new Error('Expected VariableDeclaration')
+		if (declaration?.type !== 'VariableDeclaration') {
+			throw new Error('Expected VariableDeclaration')
+		}
+
 		const someDeclaration = declaration.declarations.at(0)
 
 		expect(someDeclaration?.init?.type).toBe('ObjectExpression')

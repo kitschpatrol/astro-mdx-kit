@@ -93,7 +93,7 @@ describe('remarkMdxKitElements — simple overrides (export const components)', 
 		const existingExport = createComponentsExportNode({ p: '_UserP' })
 		const tree: Root = {
 			children: [
-				existingExport as unknown as Root['children'][number],
+				existingExport,
 				{ children: [{ type: 'text', value: 'Title' }], depth: 1, type: 'heading' },
 			],
 			type: 'root',
@@ -574,6 +574,7 @@ describe('remarkMdxKitElements — caption modes', () => {
 		if (imageChild === undefined) {
 			throw new Error('imageChild is undefined')
 		}
+
 		expect(imageChild.type).toBe('mdxJsxFlowElement')
 		expect((imageChild as MdxJsxFlowElement).name).toBe('Picture')
 
@@ -582,6 +583,7 @@ describe('remarkMdxKitElements — caption modes', () => {
 		if (figcaptionChild === undefined) {
 			throw new Error('figcaptionChild is undefined')
 		}
+
 		expect(figcaptionChild.type).toBe('mdxJsxFlowElement')
 		expect((figcaptionChild as MdxJsxFlowElement).name).toBe('figcaption')
 	})

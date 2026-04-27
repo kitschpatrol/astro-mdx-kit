@@ -192,7 +192,9 @@ function transformImageNodes(
 	const paragraphReplacements = new Map<MdastParent, MdxJsxFlowElement>()
 
 	visit(tree, 'image', (node: Image, index, parent) => {
-		if (index === undefined || !parent) return SKIP
+		if (index === undefined || !parent) {
+			return SKIP
+		}
 
 		const imageJsx = buildImageJsxElement(node, config, imports)
 
@@ -229,14 +231,20 @@ function transformJsxElements(
 	imports: ImportTracker,
 ): void {
 	visit(tree, (node) => {
-		if (node.type !== 'mdxJsxFlowElement' && node.type !== 'mdxJsxTextElement') return
+		if (node.type !== 'mdxJsxFlowElement' && node.type !== 'mdxJsxTextElement') {
+			return
+		}
 
-		if (node.name !== elementName) return
+		if (node.name !== elementName) {
+			return
+		}
 
 		// Rename element to component
 		node.name = config.componentName
 
-		if (!config.autoImports) return
+		if (!config.autoImports) {
+			return
+		}
 
 		// Build propValues from string-valued JSX attributes
 		const propValues: Record<string, string> = {}
@@ -252,7 +260,9 @@ function transformJsxElements(
 			imports,
 		)
 
-		if (resolvedAttributes.length === 0) return
+		if (resolvedAttributes.length === 0) {
+			return
+		}
 
 		// Keep attributes not handled by auto-import, replace handled ones
 		node.attributes = [
@@ -269,8 +279,13 @@ function transformJsxElements(
 function injectComponentsExport(tree: Root, mappings: Record<string, string>): void {
 	// Try to merge into an existing `export const components`
 	for (const child of tree.children) {
-		if (child.type !== 'mdxjsEsm') continue
-		if (mergeIntoComponentsExport(child, mappings)) return
+		if (child.type !== 'mdxjsEsm') {
+			continue
+		}
+
+		if (mergeIntoComponentsExport(child, mappings)) {
+			return
+		}
 	}
 
 	// No existing export found — create one
