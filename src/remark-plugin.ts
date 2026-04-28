@@ -11,15 +11,8 @@ import { directiveFromMarkdown } from 'mdast-util-directive'
 import { directive } from 'micromark-extension-directive'
 import remarkAttributeList from 'remark-attribute-list'
 import type { MdxKitOptions } from './types.js'
-
-/**
- * Internal options key used by the Astro integration to signal that parser
- * extensions (directive, attribute-list) have already been registered as
- * separate remark plugins via `updateConfig`. When set, the remark plugin skips
- * its own `this.data()` / `this.use()` registration to avoid duplicates.
- */
-export const SKIP_PARSER_EXTENSIONS = Symbol('skipParserExtensions')
 import type { ResolvedComponentConfig } from './utils/resolve-config.js'
+import { SKIP_PARSER_EXTENSIONS } from './internal.js'
 import { log } from './log.js'
 import { captionImagesTransform } from './plugins/remark-caption-images.js'
 import { createDirectiveTransform } from './plugins/remark-directives.js'

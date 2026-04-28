@@ -2,7 +2,8 @@ import type { AstroIntegration } from 'astro'
 import remarkAttributeList from 'remark-attribute-list'
 import remarkDirective from 'remark-directive'
 import type { MdxKitOptions } from './types.js'
-import remarkMdxKitPlugin, { SKIP_PARSER_EXTENSIONS } from './remark-plugin.js'
+import { SKIP_PARSER_EXTENSIONS } from './internal.js'
+import remarkMdxKitPlugin from './remark-plugin.js'
 
 /**
  * Astro integration for astro-mdx-kit.
