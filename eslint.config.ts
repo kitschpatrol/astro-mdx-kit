@@ -6,6 +6,7 @@ export default eslintConfig(
 		type: 'lib',
 	},
 	{
+		// Unpublished workspace packages...
 		files: ['playground/package.json', 'playground-starlight/package.json'],
 		rules: {
 			'json-package/require-keywords': 'off',
