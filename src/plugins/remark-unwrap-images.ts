@@ -46,8 +46,9 @@ function isStandaloneImage(paragraph: Parent, names: Set<string>): boolean {
 	return isImageLike(meaningful[0] as { name?: string; type: string }, names)
 }
 
-function hasChildren(node: { children?: unknown }): node is Parent {
-	return Array.isArray(node.children)
+function hasChildren(node: unknown): node is Parent {
+	// eslint-disable-next-line ts/no-unsafe-type-assertion -- narrowing unknown to detect a children array
+	return Array.isArray((node as undefined | { children?: unknown })?.children)
 }
 
 function unwrapInParent(parent: Parent, names: Set<string>): void {

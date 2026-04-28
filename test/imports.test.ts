@@ -61,7 +61,10 @@ function findAttribute(attributes: MdxJsxAttribute[], name: string): MdxJsxAttri
 }
 
 function isExpressionAttribute(attribute: MdxJsxAttribute): boolean {
-	return attribute.value?.type === 'mdxJsxAttributeValueExpression'
+	return (
+		typeof attribute.value === 'object' &&
+		attribute.value?.type === 'mdxJsxAttributeValueExpression'
+	)
 }
 
 describe('resolveAutoImportAttributes', () => {
