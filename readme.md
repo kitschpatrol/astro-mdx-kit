@@ -18,6 +18,10 @@
 
 <!-- /short-description -->
 
+> [!WARNING]
+>
+> **This project is under development. It should not be considered suitable for general use until a 1.0 release.**
+
 ## Overview
 
 MDX makes it easy to embed components in your Markdown files, but this can lead to tight coupling between your content and its presentation. The [directives](https://talk.commonmark.org/t/generic-directives-plugins-syntax/444) syntax proposal has been circling the runway in the CommonMark project since 2014. It specifies implementation-agnostic syntax for defining component-like data in your Markdown. It's yet to land, but there's decent support for it in just about every major Markdown toolchain.
