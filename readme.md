@@ -253,7 +253,7 @@ Something important.
 
 The label is removed from children and serialized as plain text by default. For richer formatting, use the object form:
 
-```text
+```txt
 label: { prop: 'title', format: 'rendered' }
 ```
 
@@ -503,7 +503,7 @@ mdxKit({
 A paragraph with a class.
 {:.highlight}
 
-[A link](https://example.com){:target="\_blank" rel="noopener"}
+[A link](https://example.com){:target="\_blank" rel="noopener noreferrer"}
 
 ![Image](./photo.jpg){:data-lightbox="true"}
 ```
