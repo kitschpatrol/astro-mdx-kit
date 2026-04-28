@@ -77,7 +77,7 @@ Astro's architecture (currently) means that this syntax still must live in a `.m
 
 We'll assume you have an [Astro](https://astro.build/) project set up.
 
-You will also need [`@astrojs/mdx`](https://docs.astro.build/it/guides/integrations-guide/mdx/) (or a framework that includes it, like [Starlight](https://starlight.astro.build/)) for MDX file processing.
+You will also need [`@astrojs/mdx`](https://docs.astro.build/en/guides/integrations-guide/mdx/) (or a framework that includes it, like [Starlight](https://starlight.astro.build/)) for MDX file processing.
 
 ### Installation
 
@@ -174,7 +174,7 @@ import {
 
 ### Directives
 
-Map [remark-directive](https://github.com/remarkjs/remark-directive) syntax to Astro components. All three directive forms (container, leaf, text) are supported — the type is determined automatically by how you write it in Markdown. The directive parser extensions are registered automatically; no need to install or configure `remark-directive` separately.
+Map [remark-directive](https://github.com/remarkjs/remark-directive) syntax to Astro components. All three directive forms (container, leaf, text) are supported — the type is determined automatically by how you write it in Markdown. `remark-directive` is wired up automatically — you don't need to add it to your `remarkPlugins` array manually. (It's still a peer dependency, so install it alongside `astro-mdx-kit` or rely on your package manager's hoisting.)
 
 ```ts
 mdxKit({

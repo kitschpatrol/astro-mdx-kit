@@ -331,8 +331,8 @@ export type MdxKitOptions = {
 	 * with its children so the content is valid.
 	 *
 	 * Only targets elements that cannot contain `<p>` per the HTML spec — no risk
-	 * of altering valid HTML. Runs as a rehype plugin (post-Markdown
-	 * processing).
+	 * of altering valid HTML. Runs as a remark transform on the MDAST tree, after
+	 * element overrides.
 	 *
 	 * @default false
 	 */
