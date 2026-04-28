@@ -1,6 +1,5 @@
 import type { Parent, Root } from 'mdast'
 import type { Plugin } from 'unified'
-import { visit } from 'unist-util-visit'
 
 /**
  * Options for the unwrap-images transform.
@@ -47,8 +46,27 @@ function isStandaloneImage(paragraph: Parent, names: Set<string>): boolean {
 	return isImageLike(meaningful[0] as { name?: string; type: string }, names)
 }
 
-function unwrapParagraph(parent: { children: unknown[] }, index: number, paragraph: Parent): void {
-	parent.children.splice(index, 1, ...paragraph.children)
+function hasChildren(node: { children?: unknown }): node is Parent {
+	return Array.isArray(node.children)
+}
+
+function unwrapInParent(parent: Parent, names: Set<string>): void {
+	// Iterate in reverse so splicing doesn't shift unvisited indices
+	for (let index = parent.children.length - 1; index >= 0; index--) {
+		const child = parent.children[index]
+		if (!child) {
+			continue
+		}
+
+		if (child.type === 'paragraph' && isStandaloneImage(child, names)) {
+			parent.children.splice(index, 1, ...child.children)
+			continue
+		}
+
+		if (hasChildren(child)) {
+			unwrapInParent(child, names)
+		}
+	}
 }
 
 /**
@@ -64,33 +82,7 @@ function unwrapParagraph(parent: { children: unknown[] }, index: number, paragra
  */
 export function unwrapImagesTransform(tree: Root, options?: RemarkUnwrapImagesOptions): void {
 	const names = options?.imageComponentNames ?? DEFAULT_IMAGE_NAMES
-
-	// Walk in reverse so splicing doesn't shift unvisited indices
-	for (let index = tree.children.length - 1; index >= 0; index--) {
-		const child = tree.children[index]
-		if (child?.type !== 'paragraph') {
-			continue
-		}
-
-		if (!isStandaloneImage(child, names)) {
-			continue
-		}
-
-		unwrapParagraph(tree, index, child)
-	}
-
-	// Also handle images nested deeper (e.g. inside block quotes, list items)
-	visit(tree, 'paragraph', (node, index, parent) => {
-		if (index === undefined || !parent) {
-			return
-		}
-
-		if (!isStandaloneImage(node, names)) {
-			return
-		}
-
-		unwrapParagraph(parent, index, node)
-	})
+	unwrapInParent(tree, names)
 }
 
 /**

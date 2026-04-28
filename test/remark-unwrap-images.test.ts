@@ -142,6 +142,58 @@ describe('remarkMdxKitUnwrapImages', () => {
 		expect(tree.children.at(0)?.type).toBe('paragraph')
 	})
 
+	it('unwraps stand-alone images nested inside a block quote', () => {
+		const image: Image = { alt: 'Photo', type: 'image', url: './photo.png' }
+		const tree: Root = {
+			children: [
+				{
+					children: [{ children: [image], type: 'paragraph' }],
+					type: 'blockquote',
+				},
+			],
+			type: 'root',
+		}
+
+		unwrap(tree)
+
+		const blockquote = tree.children.at(0)
+		expect(blockquote?.type).toBe('blockquote')
+		if (blockquote?.type === 'blockquote') {
+			expect(blockquote.children).toHaveLength(1)
+			expect(blockquote.children.at(0)?.type).toBe('image')
+		}
+	})
+
+	it('unwraps stand-alone images nested inside a list item', () => {
+		const image: Image = { alt: 'Photo', type: 'image', url: './photo.png' }
+		const tree: Root = {
+			children: [
+				{
+					children: [
+						{
+							children: [{ children: [image], type: 'paragraph' }],
+							type: 'listItem',
+						},
+					],
+					ordered: false,
+					type: 'list',
+				},
+			],
+			type: 'root',
+		}
+
+		unwrap(tree)
+
+		const list = tree.children.at(0)
+		if (list?.type === 'list') {
+			const item = list.children.at(0)
+			if (item?.type === 'listItem') {
+				expect(item.children).toHaveLength(1)
+				expect(item.children.at(0)?.type).toBe('image')
+			}
+		}
+	})
+
 	it('handles multiple stand-alone images', () => {
 		const img1: Image = { alt: 'First', type: 'image', url: './a.png' }
 		const img2: Image = { alt: 'Second', type: 'image', url: './b.png' }
