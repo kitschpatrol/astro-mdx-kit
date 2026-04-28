@@ -107,7 +107,11 @@ export function buildCaptionReplacement(
 	imageJsx: MdxJsxFlowElement,
 	captionNodes: PhrasingContent[],
 ): MdxJsxFlowElement {
-	const name = imageJsx.name!
+	if (imageJsx.name === null) {
+		throw new Error('buildCaptionReplacement: imageJsx must have a name')
+	}
+
+	const { name } = imageJsx
 	const imageAttributes = imageJsx.attributes.filter(
 		(a): a is MdxJsxAttribute => a.type === 'mdxJsxAttribute',
 	)

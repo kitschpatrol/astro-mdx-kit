@@ -28,7 +28,8 @@ export class ImportTracker {
 	 *
 	 * Returns the local identifier name that will reference the imported module.
 	 * If the same `assetPath` was already registered, the existing identifier is
-	 * returned (deduplication).
+	 * returned (deduplication). Identifiers are generated with a random suffix to
+	 * avoid collisions if multiple processors share state across files.
 	 *
 	 * @param assetPath - The path to import (e.g. `'./hero.png'`).
 	 *

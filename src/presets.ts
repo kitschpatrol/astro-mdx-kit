@@ -1,5 +1,7 @@
 import type { AutoImportEntry, DetailedElementConfig } from './types.js'
 
+const TLDRAW_EXTENSION_REGEX = /\.tldr(?:\?|$)/
+
 /**
  * Element override that replaces `<img>` with Astro's `<Image>` component from
  * `astro:assets`, with automatic ESM imports for the `src` prop.
@@ -50,8 +52,6 @@ export const astroPicture: DetailedElementConfig = {
  * 	},
  * 	}
  */
-const TLDRAW_EXTENSION_REGEX = /\.tldr(?:\?|$)/
-
 export const tldrawDarkImport: AutoImportEntry = {
 	from: 'src',
 	to: 'srcDark',
