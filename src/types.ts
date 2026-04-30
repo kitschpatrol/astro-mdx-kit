@@ -74,16 +74,19 @@ export type AutoImportEntry =
  * subsequent entries can derive additional imports from the same source path.
  *
  * @example
- * 	```ts
  * 	// Simple: import the `src` prop value
  * 	autoImport: 'src'
  *
  * 	// With derived dark variant for .tldr files
  * 	autoImport: [
- * 	'src',
- * 	{ from: 'src', to: 'srcDark', transform: (p) => p.endsWith('.tldr') ? `${p}?dark=true&tldr` : undefined },
+ * 		'src',
+ * 		{
+ * 			from: 'src',
+ * 			to: 'srcDark',
+ * 			transform: (p) =>
+ * 				p.endsWith('.tldr') ? `${p}?dark=true&tldr` : undefined,
+ * 		},
  * 	]
- * 	```
  */
 export type AutoImportConfig = AutoImportEntry | AutoImportEntry[]
 
@@ -135,15 +138,13 @@ export type CaptionConfig = 'children' | 'figure' | CaptionPropConfig
  * is present in the markdown, this option has no effect.
  *
  * @example
- * 	;```ts
  * 	directives: {
- * 	  Callout: {
- * 	    component: 'src/components/Callout.astro',
- * 	    label: 'title',
- * 	    // or: label: { prop: 'title', format: 'rendered' },
- * 	  },
+ * 	Callout: {
+ * 	component: 'src/components/Callout.astro',
+ * 	label: 'title',
+ * 	// or: label: { prop: 'title', format: 'rendered' },
+ * 	},
  * 	}
- * 	```
  */
 export type LabelConfig = CaptionPropConfig | string
 
@@ -174,11 +175,9 @@ export type DetailedComponentConfig = {
 	 * dropped.
 	 *
 	 * @example
-	 * 	;```ts
 	 * 	// ::Block{icon="star" type="warning"}
 	 * 	// → <Block iconName="star" variant="warning" />
 	 * 	propMap: { icon: 'iconName', type: 'variant' }
-	 * 	```
 	 */
 	propMap?: Record<string, string>
 }
@@ -230,10 +229,8 @@ export type MdxKitOptions = {
 	 * Compatible with directive syntax — both can be used simultaneously.
 	 *
 	 * @example
-	 * 	;```md
 	 * 	![Alt](./image.jpg){:data-lightbox="true"}
 	 * 	A paragraph{:.highlight}
-	 * 	```
 	 *
 	 * @default false
 	 */
@@ -274,16 +271,14 @@ export type MdxKitOptions = {
 	 * with `autoImport` use direct AST transformation.
 	 *
 	 * @example
-	 * 	;```ts
 	 * 	elements: {
-	 * 	  h1: 'src/components/CustomHeading.astro',
-	 * 	  img: {
-	 * 	    autoImport: 'src',
-	 * 	    component: 'Picture',
-	 * 	    componentModule: 'astro:assets',
-	 * 	  },
+	 * 	h1: 'src/components/CustomHeading.astro',
+	 * 	img: {
+	 * 	autoImport: 'src',
+	 * 	component: 'Picture',
+	 * 	componentModule: 'astro:assets',
+	 * 	},
 	 * 	}
-	 * 	```
 	 */
 	elements?: Partial<Record<MarkdownElementName | (string & {}), ElementConfig>>
 	/**

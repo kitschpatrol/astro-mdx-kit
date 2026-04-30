@@ -73,7 +73,7 @@ In addition to support for mapping directives to, `astro-mdx-kit` bundles some a
 
 Available as an Astro integration, a standalone remark plugin, or as individual sub-plugins for use in any unified pipeline.
 
-Astro's architecture (currently) means that this syntax still must live in a `.mdx` file instead of `.md`, but it still helps the long term portability your Markdown content to use platform-agnostic syntax like directives instead of importing and marking up concrete components.
+Astro's architecture (currently) means that this syntax still must live in a `.mdx` file instead of `.md`, but it can still help the long term portability your Markdown content to use platform-agnostic syntax like directives instead of importing and marking up concrete components.
 
 ## Getting started
 
