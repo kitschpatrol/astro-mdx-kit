@@ -2,14 +2,7 @@ packages:
   - .
   - playground
   - playground-starlight
-
 ignoreWorkspaceRootCheck: true
-
-onlyBuiltDependencies:
-  - esbuild
-  - sharp
-  - unrs-resolver
-
 publicHoistPattern:
   - '@kitschpatrol/repo-config'
   - '@kitschpatrol/typescript-config'
@@ -21,3 +14,7 @@ publicHoistPattern:
   - '*prettier*'
   - '*remark*'
   - '*stylelint*'
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
