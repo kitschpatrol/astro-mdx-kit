@@ -1,6 +1,6 @@
 {
 	"name": "astro-mdx-kit",
-	"version": "0.2.1",
+	"version": "0.3.0",
 	"description": "Astro integration for MDX directive-to-component mapping, element overrides, and auto-imports.",
 	"keywords": [
 		"astro",
