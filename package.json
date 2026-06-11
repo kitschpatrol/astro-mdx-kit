@@ -53,6 +53,7 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
+		"@astrojs/markdown-remark": "^7.2.0",
 		"@types/mdast": "^4.0.4",
 		"hast-util-to-html": "^9.0.5",
 		"lognow": "^0.6.2",
@@ -68,27 +69,27 @@
 		"vfile": "^6.0.3"
 	},
 	"devDependencies": {
-		"@arethetypeswrong/core": "^0.18.2",
+		"@arethetypeswrong/core": "^0.18.3",
 		"@astrojs/check": "^0.9.9",
-		"@kitschpatrol/shared-config": "^7.6.0",
+		"@kitschpatrol/shared-config": "^7.6.3",
 		"@types/estree": "^1.0.9",
-		"@types/node": "~20.19.41",
+		"@types/node": "~22.19.19",
 		"@types/unist": "^3.0.3",
-		"astro": "^6.3.3",
+		"astro": "^6.4.6",
 		"bumpp": "^11.1.0",
-		"node-addon-api": "^8.7.0",
+		"node-addon-api": "^8.8.0",
 		"node-gyp": "^12.3.0",
 		"publint": "^0.3.21",
 		"remark-attribute-list": "^0.4.0",
 		"remark-directive": "^4.0.0",
 		"remark-parse": "^11.0.0",
 		"shx": "^0.4.0",
-		"tsdown": "^0.22.0",
+		"tsdown": "^0.22.1",
 		"typescript": "~5.9.3",
-		"vitest": "^4.1.6"
+		"vitest": "^4.1.8"
 	},
 	"peerDependencies": {
-		"astro": "^6.1.0",
+		"astro": "^6.4.0",
 		"remark-attribute-list": "^0.4.0",
 		"remark-directive": "^4.0.0"
 	},
@@ -97,14 +98,14 @@
 			"optional": true
 		}
 	},
-	"packageManager": "pnpm@11.1.2",
+	"packageManager": "pnpm@11.5.1",
 	"engines": {
-		"node": ">=20.19.0"
+		"node": ">=22.12.0"
 	},
 	"devEngines": {
 		"runtime": {
 			"name": "node",
-			"version": ">=22.18.0"
+			"version": ">=22.22.2"
 		}
 	}
 }

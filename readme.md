@@ -79,9 +79,11 @@ Astro's architecture (currently) means that this syntax still must live in a `.m
 
 ### Prerequisites
 
-We'll assume you have an [Astro](https://astro.build/) project set up.
+We'll assume you have an [Astro](https://astro.build/) 6.4+ project set up.
 
-You will also need [`@astrojs/mdx`](https://docs.astro.build/en/guides/integrations-guide/mdx/) (or a framework that includes it, like [Starlight](https://starlight.astro.build/)) for MDX file processing.
+You will also need [`@astrojs/mdx`](https://docs.astro.build/en/guides/integrations-guide/mdx/) 6+ (or a framework that includes it, like [Starlight](https://starlight.astro.build/)) for MDX file processing.
+
+`astro-mdx-kit` registers its plugins on Astro's default [`unified()` markdown processor](https://docs.astro.build/en/guides/markdown-content/). Alternative processors that don't run remark plugins (like Sätteri) are not supported.
 
 ### Installation
 
@@ -127,6 +129,7 @@ For direct control over the remark plugin pipeline, use `remarkMdxKit` which ret
 
 ```ts
 // Astro.config.ts
+import { unified } from '@astrojs/markdown-remark'
 import mdx from '@astrojs/mdx'
 import { remarkMdxKit } from 'astro-mdx-kit'
 import { defineConfig } from 'astro/config'
@@ -134,16 +137,18 @@ import { defineConfig } from 'astro/config'
 export default defineConfig({
   integrations: [mdx()],
   markdown: {
-    remarkPlugins: [
-      remarkMdxKit({
-        directives: {
-          /* ... */
-        },
-        elements: {
-          /* ... */
-        },
-      }),
-    ],
+    processor: unified({
+      remarkPlugins: [
+        remarkMdxKit({
+          directives: {
+            /* ... */
+          },
+          elements: {
+            /* ... */
+          },
+        }),
+      ],
+    }),
   },
 })
 ```
