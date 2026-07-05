@@ -5,24 +5,20 @@
 /// <reference types="mdast-util-mdxjs-esm" />
 
 import type { Image, Parent as MdastParent, Root } from 'mdast'
-import type { MdxJsxAttribute, MdxJsxFlowElement } from 'mdast-util-mdx-jsx'
+import type { MdxJsxFlowElement } from 'mdast-util-mdx-jsx'
 import type { Plugin } from 'unified'
 import type { Parent } from 'unist'
 import { SKIP, visit } from 'unist-util-visit'
 import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
 import { log } from '../log.js'
-import {
-	createComponentsExportNode,
-	createJsxFlowElement,
-	createStringAttribute,
-	mergeIntoComponentsExport,
-} from '../utils/ast.js'
+import { createComponentsExportNode, mergeIntoComponentsExport } from '../utils/ast.js'
 import {
 	applyParagraphReplacements,
 	buildCaptionReplacement,
 	extractCaptionNodes,
 	findMultiImageParagraphs,
 } from '../utils/caption.js'
+import { buildImageJsxElement } from '../utils/images.js'
 import { ImportTracker, resolveAutoImportAttributes } from '../utils/imports.js'
 
 /**
@@ -127,61 +123,6 @@ export const remarkMdxKitElements: Plugin<[RemarkElementsOptions], Root> = (opti
 // ---------------------------------------------------------------------------
 // Image node transformation (![alt](src))
 // ---------------------------------------------------------------------------
-
-function buildImageJsxElement(
-	node: Image,
-	config: ResolvedComponentConfig,
-	imports: ImportTracker,
-): MdxJsxFlowElement {
-	const attributes: MdxJsxAttribute[] = []
-	const hProperties = (node.data?.hProperties ?? {}) as Record<string, unknown>
-
-	if (config.autoImports) {
-		// Build propValues: 'src' from node.url, plus string-valued hProperties.
-		// This lets each auto-import entry look up its own fromProp in the map
-		// (e.g. 'src' reads node.url, 'srcDark' reads {:srcDark="..."}).
-		const propValues: Record<string, string> = { src: node.url }
-		for (const [key, value] of Object.entries(hProperties)) {
-			if (typeof value === 'string') {
-				propValues[key] = value
-			}
-		}
-
-		const { attributes: importAttributes, handledProps } = resolveAutoImportAttributes(
-			propValues,
-			config.autoImports,
-			imports,
-		)
-		attributes.push(...importAttributes)
-
-		// Forward remaining hProperties not consumed by auto-import
-		for (const [key, value] of Object.entries(hProperties)) {
-			if (typeof value === 'string' && !handledProps.has(key)) {
-				attributes.push(createStringAttribute(key, value))
-			}
-		}
-	} else {
-		// No autoImport — forward all hProperties as strings
-		for (const [key, value] of Object.entries(hProperties)) {
-			if (typeof value === 'string') {
-				attributes.push(createStringAttribute(key, value))
-			}
-		}
-	}
-
-	// Add alt and title from the mdast node, but only when hProperties
-	// didn't already provide them (avoids duplicate attributes while
-	// letting explicit attribute syntax like {:alt="..."} take precedence).
-	if (node.alt && !('alt' in hProperties)) {
-		attributes.push(createStringAttribute('alt', node.alt))
-	}
-
-	if (node.title && !('title' in hProperties)) {
-		attributes.push(createStringAttribute('title', node.title))
-	}
-
-	return createJsxFlowElement(config.componentName, attributes, [])
-}
 
 function transformImageNodes(
 	tree: Root,

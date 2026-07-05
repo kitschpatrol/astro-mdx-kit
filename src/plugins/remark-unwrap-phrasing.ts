@@ -5,50 +5,7 @@
 import type { Parent, Root } from 'mdast'
 import type { Plugin } from 'unified'
 import { visit } from 'unist-util-visit'
-
-/**
- * HTML elements whose content model is phrasing content — they cannot legally
- * contain `<p>` per the HTML spec.
- *
- * Excludes `<a>` (transparent content model, can contain flow content) and
- * heading elements (Markdown doesn't nest `<p>` inside them).
- *
- * @see https://html.spec.whatwg.org/multipage/text-level-semantics.html
- * @see https://html.spec.whatwg.org/multipage/form-elements.html
- */
-const PHRASING_ONLY_ELEMENTS = new Set([
-	'abbr',
-	'b',
-	'bdi',
-	'bdo',
-	'button',
-	'cite',
-	'code',
-	'data',
-	'dfn',
-	'em',
-	'i',
-	'kbd',
-	'label',
-	'mark',
-	'output',
-	'q',
-	'ruby',
-	's',
-	'samp',
-	'small',
-	'span',
-	'strong',
-	'sub',
-	'sup',
-	'time',
-	'u',
-	'var',
-])
-
-function isWhitespaceText(node: { type: string; value?: string }): boolean {
-	return node.type === 'text' && !node.value?.trim()
-}
+import { isWhitespaceText, PHRASING_ONLY_ELEMENTS } from '../utils/ast.js'
 
 /**
  * Tree transformer that unwraps `<p>` elements from inside MDX JSX elements

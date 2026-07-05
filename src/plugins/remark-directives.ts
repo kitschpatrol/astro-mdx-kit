@@ -4,16 +4,20 @@
 /// <reference types="mdast-util-mdx-jsx" />
 /// <reference types="mdast-util-mdxjs-esm" />
 
-import type { BlockContent, DefinitionContent, PhrasingContent, Root } from 'mdast'
-import type { ContainerDirective, LeafDirective, TextDirective } from 'mdast-util-directive'
-import type { MdxJsxAttribute } from 'mdast-util-mdx-jsx'
+import type { PhrasingContent, Root } from 'mdast'
 import type { Plugin } from 'unified'
 import { visit } from 'unist-util-visit'
 import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
 import { log } from '../log.js'
-import { createJsxFlowElement, createJsxTextElement, createStringAttribute } from '../utils/ast.js'
-import { serializePhrasingContent } from '../utils/caption.js'
-import { ImportTracker, resolveAutoImportAttributes } from '../utils/imports.js'
+import { createJsxFlowElement, createJsxTextElement } from '../utils/ast.js'
+import {
+	buildDirectiveAttributes,
+	extractContainerLabel,
+	extractPhrasingLabel,
+	isDirectiveNode,
+	toFlowChildren,
+} from '../utils/directives.js'
+import { ImportTracker } from '../utils/imports.js'
 
 /**
  * Options for the directive-to-component remark plugin.
@@ -27,136 +31,6 @@ export type RemarkDirectivesOptions = {
 	 * handle its imports.
 	 */
 	configs: Record<string, ResolvedComponentConfig>
-}
-
-type Directive = ContainerDirective | LeafDirective | TextDirective
-
-function isDirectiveNode(node: { type: string }): node is Directive {
-	return (
-		node.type === 'containerDirective' ||
-		node.type === 'leafDirective' ||
-		node.type === 'textDirective'
-	)
-}
-
-function toFlowChildren(
-	node: ContainerDirective | LeafDirective,
-): Array<BlockContent | DefinitionContent> {
-	if (node.type === 'containerDirective') {
-		return [...node.children]
-	}
-
-	if (node.children.length === 0) {
-		return []
-	}
-
-	return [{ children: [...node.children], type: 'paragraph' }]
-}
-
-/**
- * Extract the `[label]` from container directive children (marked with
- * `data.directiveLabel`), remove it from the children array, and return a
- * serialized string attribute. Returns `undefined` if no label paragraph is
- * found.
- */
-function extractContainerLabel(
-	children: Array<BlockContent | DefinitionContent>,
-	config: ResolvedComponentConfig,
-): MdxJsxAttribute | undefined {
-	if (!config.label) {
-		return undefined
-	}
-
-	const labelIndex = children.findIndex(
-		(child) => child.type === 'paragraph' && child.data?.directiveLabel === true,
-	)
-	if (labelIndex === -1) {
-		return undefined
-	}
-
-	const labelParagraph = children[labelIndex]
-	children.splice(labelIndex, 1)
-
-	if (!labelParagraph || !('children' in labelParagraph)) {
-		return undefined
-	}
-
-	const serialized = serializePhrasingContent(
-		// eslint-disable-next-line ts/no-unsafe-type-assertion -- directiveLabel paragraphs contain PhrasingContent
-		labelParagraph.children as PhrasingContent[],
-		config.label.format,
-	)
-	return createStringAttribute(config.label.prop, serialized)
-}
-
-/**
- * Extract the `[content]` from a text or leaf directive's children, serialize
- * it as a label prop, and clear the children array. Returns `undefined` if the
- * directive has no children.
- */
-function extractPhrasingLabel(
-	children: PhrasingContent[],
-	config: ResolvedComponentConfig,
-): MdxJsxAttribute | undefined {
-	if (!config.label || children.length === 0) {
-		return undefined
-	}
-
-	const serialized = serializePhrasingContent(children, config.label.format)
-	children.length = 0
-	return createStringAttribute(config.label.prop, serialized)
-}
-
-/**
- * Build JSX attributes from a directive's attributes record, applying `propMap`
- * renaming and `autoImport` resolution.
- */
-function buildDirectiveAttributes(
-	directiveAttributes: NonNullable<Directive['attributes']>,
-	config: ResolvedComponentConfig,
-	imports: ImportTracker,
-): MdxJsxAttribute[] {
-	const attributes: MdxJsxAttribute[] = []
-
-	if (config.autoImports) {
-		// Build propValues from all non-empty directive attributes
-		const propValues: Record<string, string> = {}
-		for (const [key, value] of Object.entries(directiveAttributes)) {
-			if (value) {
-				propValues[key] = value
-			}
-		}
-
-		const { attributes: importAttributes, handledProps } = resolveAutoImportAttributes(
-			propValues,
-			config.autoImports,
-			imports,
-		)
-		attributes.push(...importAttributes)
-
-		// Forward remaining attributes not consumed by auto-import, with
-		// propMap renaming applied.
-		for (const [key, value] of Object.entries(directiveAttributes)) {
-			if (!value || handledProps.has(key)) {
-				continue
-			}
-
-			const propName = config.propMap?.[key] ?? key
-			attributes.push(createStringAttribute(propName, value))
-		}
-	} else {
-		// No autoImport — forward all attributes with propMap renaming
-		for (const [key, value] of Object.entries(directiveAttributes)) {
-			if (!value) {
-				continue
-			}
-
-			const propName = config.propMap?.[key] ?? key
-			attributes.push(createStringAttribute(propName, value))
-		}
-	}
-
-	return attributes
 }
 
 /**

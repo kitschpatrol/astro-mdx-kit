@@ -8,7 +8,7 @@ export default defineConfig({
 		neverBundle: ['astro'],
 	},
 	dts: true,
-	entry: ['src/index.ts', 'src/remark-plugin.ts'],
+	entry: ['src/index.ts', 'src/remark-plugin.ts', 'src/satteri-plugin.ts'],
 	fixedExtension: false,
 	platform: 'neutral',
 	publint: true,

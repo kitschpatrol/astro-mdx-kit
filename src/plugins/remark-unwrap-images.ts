@@ -1,5 +1,6 @@
 import type { Parent, Root } from 'mdast'
 import type { Plugin } from 'unified'
+import { DEFAULT_IMAGE_NAMES, isStandaloneImage } from '../utils/images.js'
 
 /**
  * Options for the unwrap-images transform.
@@ -15,43 +16,12 @@ export type RemarkUnwrapImagesOptions = {
 	imageComponentNames?: Set<string>
 }
 
-const DEFAULT_IMAGE_NAMES = new Set(['Image', 'img', 'Picture'])
-
-function isWhitespaceText(node: { type: string; value?: string }): boolean {
-	return node.type === 'text' && !node.value?.trim()
-}
-
-function isImageLike(node: { name?: string; type: string }, names: Set<string>): boolean {
-	if (node.type === 'image') {
-		return true
-	}
-
-	if (node.type !== 'mdxJsxFlowElement' && node.type !== 'mdxJsxTextElement') {
-		return false
-	}
-
-	return node.name !== undefined && names.has(node.name)
-}
-
-function isStandaloneImage(paragraph: Parent, names: Set<string>): boolean {
-	const meaningful = paragraph.children.filter(
-		(child) => !isWhitespaceText(child as { type: string; value?: string }),
-	)
-
-	if (meaningful.length !== 1) {
-		return false
-	}
-
-	// eslint-disable-next-line ts/no-unsafe-type-assertion
-	return isImageLike(meaningful[0] as { name?: string; type: string }, names)
-}
-
 function hasChildren(node: unknown): node is Parent {
 	// eslint-disable-next-line ts/no-unsafe-type-assertion -- narrowing unknown to detect a children array
 	return Array.isArray((node as undefined | { children?: unknown })?.children)
 }
 
-function unwrapInParent(parent: Parent, names: Set<string>): void {
+function unwrapInParent(parent: Parent, names: ReadonlySet<string>): void {
 	// Iterate in reverse so splicing doesn't shift unvisited indices
 	for (let index = parent.children.length - 1; index >= 0; index--) {
 		const child = parent.children[index]

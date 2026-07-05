@@ -10,6 +10,62 @@ import type { MdxJsxAttribute, MdxJsxFlowElement, MdxJsxTextElement } from 'mdas
 import type { MdxjsEsm } from 'mdast-util-mdxjs-esm'
 import type { Node } from 'unist'
 
+/**
+ * Check whether a node is a text node containing only whitespace.
+ */
+export function isWhitespaceText(node: { type: string; value?: string }): boolean {
+	return node.type === 'text' && !node.value?.trim()
+}
+
+/**
+ * Normalize a possibly-absent children array. Sätteri lazy nodes report
+ * `undefined` instead of `[]` for childless nodes, even though the static mdast
+ * types declare `children` as always present.
+ */
+export function lazyChildren<T>(children: T[] | undefined): T[] {
+	return children ?? []
+}
+
+/**
+ * HTML elements whose content model is phrasing content — they cannot legally
+ * contain `<p>` per the HTML spec.
+ *
+ * Excludes `<a>` (transparent content model, can contain flow content) and
+ * heading elements (Markdown doesn't nest `<p>` inside them).
+ *
+ * @see https://html.spec.whatwg.org/multipage/text-level-semantics.html
+ * @see https://html.spec.whatwg.org/multipage/form-elements.html
+ */
+export const PHRASING_ONLY_ELEMENTS: ReadonlySet<string> = new Set([
+	'abbr',
+	'b',
+	'bdi',
+	'bdo',
+	'button',
+	'cite',
+	'code',
+	'data',
+	'dfn',
+	'em',
+	'i',
+	'kbd',
+	'label',
+	'mark',
+	'output',
+	'q',
+	'ruby',
+	's',
+	'samp',
+	'small',
+	'span',
+	'strong',
+	'sub',
+	'sup',
+	'time',
+	'u',
+	'var',
+])
+
 // ---------------------------------------------------------------------------
 // ESM import / export nodes
 // ---------------------------------------------------------------------------
@@ -45,10 +101,28 @@ function createImportEstree(localName: string, importPath: string, isNamed: bool
 }
 
 /**
- * Create an `mdxjsEsm` AST node representing an ESM import statement.
+ * Build the source string for an ESM import statement.
  *
  * Produces either `import { localName } from '...'` (named) or `import
  * localName from '...'` (default) depending on `isNamed`.
+ *
+ * @param localName - The local identifier for the imported binding.
+ * @param importPath - The module specifier string.
+ * @param isNamed - Whether to emit a named import (`true`) or default import
+ *   (`false`).
+ */
+export function buildEsmImportValue(
+	localName: string,
+	importPath: string,
+	isNamed: boolean,
+): string {
+	return isNamed
+		? `import { ${localName} } from ${JSON.stringify(importPath)}`
+		: `import ${localName} from ${JSON.stringify(importPath)}`
+}
+
+/**
+ * Create an `mdxjsEsm` AST node representing an ESM import statement.
  *
  * @param localName - The local identifier for the imported binding.
  * @param importPath - The module specifier string.
@@ -62,14 +136,10 @@ export function createEsmImportNode(
 	importPath: string,
 	isNamed: boolean,
 ): MdxjsEsm {
-	const value = isNamed
-		? `import { ${localName} } from ${JSON.stringify(importPath)}`
-		: `import ${localName} from ${JSON.stringify(importPath)}`
-
 	return {
 		data: { estree: createImportEstree(localName, importPath, isNamed) },
 		type: 'mdxjsEsm',
-		value,
+		value: buildEsmImportValue(localName, importPath, isNamed),
 	}
 }
 

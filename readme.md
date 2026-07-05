@@ -79,11 +79,16 @@ Astro's architecture (currently) means that this syntax still must live in a `.m
 
 ### Prerequisites
 
-We'll assume you have an [Astro](https://astro.build/) 6.4+ project set up.
+We'll assume you have an [Astro](https://astro.build/) 7+ project set up.
 
-You will also need [`@astrojs/mdx`](https://docs.astro.build/en/guides/integrations-guide/mdx/) 6+ (or a framework that includes it, like [Starlight](https://starlight.astro.build/)) for MDX file processing.
+You will also need [`@astrojs/mdx`](https://docs.astro.build/en/guides/integrations-guide/mdx/) 7+ (or a framework that includes it, like [Starlight](https://starlight.astro.build/)) for MDX file processing.
 
-`astro-mdx-kit` registers its plugins on Astro's default [`unified()` markdown processor](https://docs.astro.build/en/guides/markdown-content/). Alternative processors that don't run remark plugins (like Sätteri) are not supported.
+`astro-mdx-kit` registers its plugins on Astro's `markdown.processor` and supports both processors:
+
+- **[Sätteri](https://satteri.bruits.org)** — transforms run as native Sätteri MDAST plugins
+- **`unified()`** from `@astrojs/markdown-remark` — transforms run as remark plugins
+
+Astro 7 configures Sätteri by default, so unless you set `markdown.processor` yourself, that's the pipeline `astro-mdx-kit` uses — no extra configuration needed. The unified pipeline is only used if you explicitly set `markdown.processor` to `unified()`.
 
 ### Installation
 
@@ -123,6 +128,34 @@ export default defineConfig({
 })
 ```
 
+### Alternative: Sätteri plugins
+
+For direct control over the Sätteri pipeline, use `satteriMdxKit` which returns the ordered list of Sätteri MDAST plugins:
+
+```ts
+// Astro.config.ts
+import { satteri } from '@astrojs/markdown-satteri'
+import mdx from '@astrojs/mdx'
+import { satteriMdxKit } from 'astro-mdx-kit'
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  integrations: [mdx()],
+  markdown: {
+    processor: satteri({
+      // Required when using directives
+      features: { directive: true },
+      mdastPlugins: satteriMdxKit({
+        directives: {/* ... */},
+        elements: {/* ... */},
+      }),
+    }),
+  },
+})
+```
+
+The plugins are also available via `astro-mdx-kit/satteri` for use with [Sätteri](https://satteri.bruits.org) outside Astro. Note that with `attributes` enabled, `.mdx` sources must be pre-processed with the exported `escapeMdxAttributeLists` helper before compiling (the Astro integration does this automatically via a Vite transform); plain markdown needs no escaping.
+
 ### Alternative: remark plugin
 
 For direct control over the remark plugin pipeline, use `remarkMdxKit` which returns a typed `[plugin, options]` tuple with full autocomplete on the options object:
@@ -140,12 +173,8 @@ export default defineConfig({
     processor: unified({
       remarkPlugins: [
         remarkMdxKit({
-          directives: {
-            /* ... */
-          },
-          elements: {
-            /* ... */
-          },
+          directives: {/* ... */},
+          elements: {/* ... */},
         }),
       ],
     }),
@@ -527,6 +556,10 @@ Attribute lists work with element overrides — when a Markdown element is repla
 
 Compatible with directive syntax — both can be used simultaneously in the same file, but using both directive and attribute list syntax on the same element is redundant and not supported.
 
+On the unified processor, attribute lists are parsed by [`remark-attribute-list`](https://github.com/utelecon/remark-attribute-list). On the Sätteri processor, the integration escapes attribute lists in `.mdx` sources (Sätteri's MDX parser would otherwise reject `{:...}` as an invalid expression) and applies them with a Sätteri plugin that mirrors the remark behavior. Kramdown [attribute list definitions](https://kramdown.gettalong.org/syntax.html#attribute-list-definitions) (`{:name: ...}` references) are not supported on the Sätteri processor.
+
+Sätteri currently only parses attributes natively on headings and directives; universal attribute handling is requested in [bruits/satteri#139](https://github.com/bruits/satteri/issues/139). If that lands, this escape-based implementation could be retired in favor of the native parser feature (note the proposed syntax is `{...}` without the Kramdown colon, so migration would involve a syntax change).
+
 ### Unwrap images
 
 Remove the `<p>` wrapper that Markdown adds around stand-alone images:
@@ -594,7 +627,7 @@ setLogger(console)
 
 ## Processing order
 
-The plugin processes content in two phases:
+The plugin processes content in two phases (on Sätteri, the directive parser is the built-in `directive` feature and attribute lists run as the first transform):
 
 **Parse phase** (before transforms):
 

@@ -3,6 +3,7 @@
 /* eslint-disable ts/no-unsafe-type-assertion -- mock Astro hook params require type widening */
 
 import { unified } from '@astrojs/markdown-remark'
+import { satteri } from '@astrojs/markdown-satteri'
 import { describe, expect, it } from 'vitest'
 import mdxKit from '../src/integration'
 
@@ -89,13 +90,88 @@ describe('mdxKit integration', () => {
 		expect(processor.options.remarkPlugins.length).toBe(1)
 	})
 
-	it('warns and registers nothing on a non-unified processor', () => {
+	it('registers mdast plugins on the satteri processor', () => {
+		const integration = mdxKit({
+			directives: Object.fromEntries([['Block', 'src/components/Block.astro']]),
+			elements: { h1: 'src/components/Heading.astro' },
+		})
+
+		const processor = satteri()
+		void integration.hooks['astro:config:setup']!(createMockHookParams(processor))
+
+		// Directives plugin + components-export merge and inject passes
+		expect(processor.options.mdastPlugins.length).toBe(3)
+		expect(processor.options.features.directive).toBe(true)
+	})
+
+	it('does not enable the directive feature when no directives are configured', () => {
+		const integration = mdxKit({
+			elements: { h1: 'src/components/Heading.astro' },
+		})
+
+		const processor = satteri()
+		void integration.hooks['astro:config:setup']!(createMockHookParams(processor))
+
+		expect(processor.options.mdastPlugins.length).toBe(2)
+		expect(processor.options.features.directive).toBeUndefined()
+	})
+
+	it('appends to mdast plugins already configured on the satteri processor', () => {
+		const existingSatteriPlugin = { name: 'existing' }
+		const processor = satteri({ mdastPlugins: [existingSatteriPlugin] })
+
+		const integration = mdxKit({
+			elements: { h1: 'src/Heading.astro' },
+		})
+		void integration.hooks['astro:config:setup']!(createMockHookParams(processor))
+
+		expect(processor.options.mdastPlugins.length).toBe(3)
+		expect(processor.options.mdastPlugins[0]).toBe(existingSatteriPlugin)
+	})
+
+	it('registers the attribute-escape vite plugin and attributes plugin on satteri', () => {
+		const integration = mdxKit({
+			attributes: true,
+			elements: { h1: 'src/Heading.astro' },
+		})
+
+		const updates: unknown[] = []
+		const processor = satteri()
+		const parameters = createMockHookParams(processor) as {
+			updateConfig: (config: unknown) => void
+		}
+		parameters.updateConfig = (config: unknown) => {
+			updates.push(config)
+		}
+
+		void integration.hooks['astro:config:setup']!(parameters as never)
+
+		// Attributes plugin + components-export merge and inject passes
+		expect(processor.options.mdastPlugins.length).toBe(3)
+		expect(processor.options.mdastPlugins[0]?.name).toBe('astro-mdx-kit:attributes')
+
+		const viteUpdate = updates[0] as {
+			vite?: { plugins?: Array<{ name: string; transform: (code: string, id: string) => unknown }> }
+		}
+		const plugin = viteUpdate.vite?.plugins?.[0]
+		expect(plugin?.name).toBe('astro-mdx-kit:attribute-escape')
+
+		// The transform escapes .mdx sources and leaves other files alone
+		expect(plugin?.transform('![a](x){:.zoom}', '/page.mdx')).toEqual({
+			code: String.raw`![a](x)\{\:.zoom}`,
+			// eslint-disable-next-line unicorn/no-null -- Vite's transform API uses null for "no sourcemap"
+			map: null,
+		})
+		expect(plugin?.transform('![a](x){:.zoom}', '/page.md')).toBeUndefined()
+	})
+
+	it('warns and registers nothing on an unknown processor', () => {
 		const integration = mdxKit({
 			elements: { h1: 'src/Heading.astro' },
 		})
 
 		const processor = {
-			name: 'satteri',
+			name: 'mystery',
 			options: {},
 		}
 		const warnings: string[] = []
@@ -107,7 +183,7 @@ describe('mdxKit integration', () => {
 			void integration.hooks['astro:config:setup']!(parameters)
 		}).not.toThrow()
 		expect(warnings.length).toBe(1)
-		expect(warnings[0]).toContain('satteri')
+		expect(warnings[0]).toContain('mystery')
 		expect(processor.options).toEqual({})
 	})
 })

@@ -117,6 +117,21 @@ export function isImportablePath(value: string): boolean {
 }
 
 /**
+ * Minimal importer interface consumed by {@link resolveAutoImportAttributes}.
+ *
+ * Implemented by {@link ImportTracker} for the remark pipeline and by the
+ * Sätteri import tracker for the Sätteri pipeline, so the auto-import
+ * resolution logic can be shared between both.
+ */
+export type AssetImporter = {
+	/**
+	 * Register an asset import and return the local identifier that references
+	 * the imported module.
+	 */
+	addAssetImport(assetPath: string): string
+}
+
+/**
  * Result of resolving auto-import entries against a set of prop values.
  */
 type AutoImportResult = {
@@ -164,7 +179,7 @@ type AutoImportResult = {
 export function resolveAutoImportAttributes(
 	propValues: Record<string, string>,
 	entries: ResolvedAutoImportEntry[],
-	imports: ImportTracker,
+	imports: AssetImporter,
 ): AutoImportResult {
 	const attributes: MdxJsxAttribute[] = []
 	const handledProps = new Set<string>()
