@@ -27,6 +27,6 @@
 	],
 	"exclude": ["**/dist/", "**/bin/"],
 	"mdx": {
-		"plugins": ["remark-directive", "remark-attribute-list"]
+		"plugins": ["remark-directive"]
 	}
 }

@@ -9,7 +9,7 @@ import type { Plugin, Processor } from 'unified'
 import type { VFile } from 'vfile'
 import { directiveFromMarkdown } from 'mdast-util-directive'
 import { directive } from 'micromark-extension-directive'
-import remarkAttributeList from 'remark-attribute-list'
+import remarkAttributes from 'remark-attributes'
 import type { MdxKitOptions } from './types.js'
 import type { ResolvedComponentConfig } from './utils/resolve-config.js'
 import { isFrontmatterKeyEnabled, SKIP_PARSER_EXTENSIONS } from './internal.js'
@@ -78,8 +78,11 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 		}
 
 		if (attributes) {
+			// `mdx: true` uses the escaped `\{...\}` syntax, which is required in
+			// MDX (unescaped braces are MDX expressions) and also works in plain
+			// Markdown — one uniform syntax for both pipelines.
 			// eslint-disable-next-line unicorn/no-this-outside-of-class -- unified plugins receive the processor as `this`
-			this.use(remarkAttributeList)
+			this.use(remarkAttributes, { mdx: true })
 		}
 	}
 

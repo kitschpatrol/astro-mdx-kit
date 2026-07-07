@@ -62,8 +62,8 @@ In addition to support for mapping directives to components, `astro-mdx-kit` bun
   Automatically import components and assets (like images) without manual `import` statements.
 - **Image captions**\
   Extract caption text adjacent to images and wrap in `<figure>/<figcaption>` or pass to components.
-- **Attribute lists**\
-  Kramdown-style `{:key="value"}` syntax for adding attributes to any Markdown element. (Unified processor only.)
+- **Attributes**\
+  markdown-it / Pandoc-style `\{key="value"\}` syntax for adding attributes to any Markdown element. (Unified processor only.)
 - **Image unwrapping**\
   Remove `<p>` wrappers from stand-alone images.
 - **Phrasing unwrapping**\
@@ -524,12 +524,12 @@ If both `captionImages` (global) and per-element `caption` are set, the element 
 
 This might seem a bit fussy, but it can be useful for handling the caption content differently in your custom component.
 
-### Attribute lists
+### Attributes
 
 > [!NOTE]
-> Attribute lists are only supported on the unified processor (`unified()` from `@astrojs/markdown-remark`). Sätteri's parser has no custom syntax extensions, so on the (default) Sätteri processor the `attributes` option logs a warning and is ignored. Sätteri parses attributes natively on headings and directives; universal attribute handling is requested in [bruits/satteri#139](https://github.com/bruits/satteri/issues/139) (note the proposed syntax is `{...}` without the Kramdown colon).
+> Attributes are only supported on the unified processor (`unified()` from `@astrojs/markdown-remark`). Sätteri's parser has no custom syntax extensions, so on the (default) Sätteri processor the `attributes` option logs a warning and is ignored. Sätteri parses attributes natively on headings and directives; universal attribute handling is requested in [bruits/satteri#139](https://github.com/bruits/satteri/issues/139).
 
-Enable [Kramdown-style attribute list syntax](https://github.com/utelecon/remark-attribute-list) for adding attributes to Markdown elements:
+Enable [markdown-it / Pandoc-style attribute syntax](https://github.com/manuelmeister/remark-attributes) for adding attributes to Markdown elements:
 
 ```ts
 mdxKit({
@@ -541,22 +541,26 @@ mdxKit({
 
 ```md
 A paragraph with a class.
-{:.highlight}
+\{.highlight\}
 
-[A link](https://example.com){:target="\_blank" rel="noopener noreferrer"}
+[A link](https://example.com)\{target="_blank" rel="noopener noreferrer"\}
 
-![Image](./photo.jpg){:data-lightbox="true"}
+![Image](./photo.jpg)\{data-lightbox="true"\}
 ```
 
 **Syntax rules:**
 
-- **Block elements** (headings, paragraphs, blockquotes): attributes go on the **next line** after the element
+- The braces must be backslash-escaped (`\{...\}`) — unescaped braces are MDX expressions. The underlying plugin ([`remark-attributes`](https://github.com/manuelmeister/remark-attributes)) is registered in its `mdx` mode, so the same escaped form applies in `.md` files too.
+- **Block elements** (headings, paragraphs, blockquotes, lists): attributes go at the end of the element's text or on the **next line** after the element
 - **Inline elements** (links, emphasis, images): attributes go **directly after** on the same line
-- ID: `{:#my-id}`, class: `{:.my-class}`, arbitrary: `{:key="value"}`
+- ID: `\{#my-id\}`, class: `\{.my-class\}`, arbitrary: `\{key="value"\}`
 
-Attribute lists work with element overrides — when a Markdown element is replaced by a custom component via the `elements` option, any attributes set via `{:key="value"}` are forwarded as props to the component. For simple overrides, attributes flow through MDX's component mechanism automatically. For auto-import overrides (like `img`), attributes are forwarded to the final component during AST transformation.
+Attributes work with element overrides — when a Markdown element is replaced by a custom component via the `elements` option, any attributes set via `\{key="value"\}` are forwarded as props to the component. For simple overrides, attributes flow through MDX's component mechanism automatically. For auto-import overrides (like `img`), attributes are forwarded to the final component during AST transformation.
 
-Compatible with directive syntax — both can be used simultaneously in the same file, but using both directive and attribute list syntax on the same element is redundant and not supported.
+Compatible with directive syntax — both can be used simultaneously in the same file, but using both directive and attribute syntax on the same element is redundant and not supported.
+
+> [!NOTE]
+> `remark-attributes` currently trips micromark's development-only assertions when a bundler or test runner resolves the `development` export condition — Vitest does this by default ([manuelmeister/remark-attributes#10](https://github.com/manuelmeister/remark-attributes/issues/10)). Astro's dev server and builds are unaffected. If you unit-test a pipeline with `attributes: true`, force production resolution (e.g. set `NODE_ENV=production` before Vitest loads its config).
 
 ### Unwrap images
 
@@ -625,12 +629,12 @@ setLogger(console)
 
 ## Processing order
 
-The plugin processes content in two phases (on Sätteri, the directive parser is the built-in `directive` feature and attribute lists are not supported):
+The plugin processes content in two phases (on Sätteri, the directive parser is the built-in `directive` feature and attributes are not supported):
 
 **Parse phase** (before transforms):
 
 1. **Directive parser** — registers `:::`/`::`/`:` syntax extensions
-2. **Attribute lists** — applies `{:...}` attributes to nodes (unified only)
+2. **Attributes** — applies `\{...\}` attributes to nodes (unified only)
 
 **Transform phase** (in order):
 
@@ -689,14 +693,14 @@ export default defineConfig({
 
 ## MDX VS Code Plugin Integration
 
-If you are working in VS Code with MDX files, you'll need to handle some additional configuration to help the [VS Code MDX extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) understand the non-standard attribute and directive syntax.
+If you are working in VS Code with MDX files, you'll need to handle some additional configuration to help the [VS Code MDX extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) understand the non-standard directive syntax. (The escaped `\{...\}` attribute syntax is already valid MDX text, so it needs no editor configuration.)
 
 _Note: If you're using [@kitschpatrol/shared-config](https://www.npmjs.com/package/@kitschpatrol/shared-config) or are building from a [@kitschpatrol/create-project](https://www.npmjs.com/package/@kitschpatrol/create-project) template, skip to step 3._
 
 1. Install remark plugin dependencies:
 
    ```sh
-   pnpm install -D remark-attribute-list remark-directive
+   pnpm install -D remark-directive
    ```
 
    These dependencies must be hoisted to be discoverable by the VS Code plugin.
@@ -705,11 +709,10 @@ _Note: If you're using [@kitschpatrol/shared-config](https://www.npmjs.com/packa
 
    ```js
    // .remarkrc.js
-   import remarkAttributeList from 'remark-attribute-list'
    import remarkDirective from 'remark-directive'
 
    export default {
-     plugins: [remarkAttributeList, remarkDirective],
+     plugins: [remarkDirective],
    }
    ```
 
@@ -722,7 +725,7 @@ _Note: If you're using [@kitschpatrol/shared-config](https://www.npmjs.com/packa
        // ...
      },
      "mdx": {
-       "plugins": ["remark-directive", "remark-attribute-list"],
+       "plugins": ["remark-directive"],
      },
    }
    ```

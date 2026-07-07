@@ -220,11 +220,12 @@ export type ElementConfig = DetailedElementConfig | string
  */
 export type MdxKitOptions = {
 	/**
-	 * Enable Kramdown-style attribute list syntax for markdown elements.
+	 * Enable markdown-it / Pandoc-style attribute syntax for markdown elements.
 	 *
 	 * Allows attaching attributes to block and inline elements using
-	 * `{:key="value"}`, `{:.class}`, `{:#id}` syntax. Uses
-	 * `remark-attribute-list` under the hood.
+	 * `\{key="value"\}`, `\{.class\}`, `\{#id\}` syntax. The braces must be
+	 * backslash-escaped — unescaped braces are MDX expressions. Uses
+	 * `remark-attributes` under the hood (in `mdx` mode).
 	 *
 	 * Only supported on the unified processor (`unified()` from
 	 * `@astrojs/markdown-remark`) — Sätteri's parser has no custom syntax
@@ -234,8 +235,8 @@ export type MdxKitOptions = {
 	 * Compatible with directive syntax — both can be used simultaneously.
 	 *
 	 * @example
-	 * 	![Alt](./image.jpg){:data-lightbox="true"}
-	 * 	A paragraph{:.highlight}
+	 * 	![Alt](./image.jpg)\{data-lightbox="true"\}
+	 * 	A paragraph\{.highlight\}
 	 *
 	 * @default false
 	 */

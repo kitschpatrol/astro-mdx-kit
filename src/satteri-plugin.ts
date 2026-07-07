@@ -40,7 +40,7 @@ import { resolveComponentConfig, resolveElementConfig } from './utils/resolve-co
  *
  * 	Note: the `attributes` option is not supported on Sätteri (its parser has no
  * 	custom syntax extensions) — enabling it logs a warning and is otherwise
- * 	ignored. Use the unified processor for attribute lists.
+ * 	ignored. Use the unified processor for attribute syntax.
  */
 export function satteriMdxKit(options: MdxKitOptions = {}): MdastPluginDefinition[] {
 	const {
@@ -56,7 +56,7 @@ export function satteriMdxKit(options: MdxKitOptions = {}): MdastPluginDefinitio
 
 	if (attributes) {
 		log.warn(
-			'The `attributes` option is not supported on the Sätteri processor and will be ignored. Attribute lists (`{:...}`) require the `unified()` processor from `@astrojs/markdown-remark`. Native Sätteri attribute support is tracked in https://github.com/bruits/satteri/issues/139',
+			'The `attributes` option is not supported on the Sätteri processor and will be ignored. Attribute syntax (`\\{...\\}`) requires the `unified()` processor from `@astrojs/markdown-remark`. Native Sätteri attribute support is tracked in https://github.com/bruits/satteri/issues/139',
 		)
 	}
 
