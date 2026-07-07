@@ -12,5 +12,5 @@ const { caption, src } = Astro.props
 
 <figure>
 	<Image alt="" src={src} />
-	{caption && <figcaption set:html={caption} />}
+	{caption !== undefined && caption !== '' && <figcaption set:html={caption} />}
 </figure>

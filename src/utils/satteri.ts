@@ -28,14 +28,13 @@ const STATE_KEY = Symbol('astro-mdx-kit')
  * document.
  */
 export function getCompileState(context: MdastVisitorContext): SatteriCompileState {
-	// eslint-disable-next-line ts/no-unsafe-type-assertion -- symbol keys are outside satteri's string-keyed Data type
 	const data = context.data as unknown as Record<symbol, unknown>
 	data[STATE_KEY] ??= {
 		componentsExportHandled: false,
 		fired: new Set<string>(),
 		trackers: new Map<string, SatteriImportTracker>(),
 	} satisfies SatteriCompileState
-	// eslint-disable-next-line ts/no-unsafe-type-assertion -- written above with the correct shape
+
 	return data[STATE_KEY] as SatteriCompileState
 }
 
@@ -84,7 +83,7 @@ export class SatteriImportTracker implements AssetImporter {
 	 */
 	addAssetImport(assetPath: string): string {
 		const existing = this.assetImports.get(assetPath)
-		if (existing) {
+		if (existing !== undefined) {
 			return existing
 		}
 
@@ -201,17 +200,15 @@ export function setSatteriFrontmatter(
 ): void {
 	const data = context.data as Record<string, unknown>
 
-	if (!data.astro || typeof data.astro !== 'object') {
+	if (typeof data.astro !== 'object' || !data.astro) {
 		data.astro = { frontmatter: {} }
 	}
 
-	// eslint-disable-next-line ts/no-unsafe-type-assertion -- guarded above
 	const astro = data.astro as Record<string, unknown>
-	if (!astro.frontmatter || typeof astro.frontmatter !== 'object') {
+	if (typeof astro.frontmatter !== 'object' || !astro.frontmatter) {
 		astro.frontmatter = {}
 	}
 
-	// eslint-disable-next-line ts/no-unsafe-type-assertion -- guarded above
 	const frontmatter = astro.frontmatter as Record<string, unknown>
 	frontmatter[key] ??= value
 }

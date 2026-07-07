@@ -22,8 +22,8 @@ const TRANSFORM_PLUGIN = 'astro-mdx-kit:elements'
 const EXPORT_MERGE_PLUGIN = 'astro-mdx-kit:elements-components-merge'
 const EXPORT_INJECT_PLUGIN = 'astro-mdx-kit:elements-components-inject'
 
-const COMPONENTS_EXPORT_OPEN_REGEX = /(export\s+(?:const|let|var)\s+components\s*=\s*\{)/
-const COMPONENTS_EXPORT_REGEX = /export\s+(?:const|let|var)\s+components\b/
+const COMPONENTS_EXPORT_OPEN_REGEX = /export\s+(?:const|let|var)\s+components\s*=\s*\{/v
+const COMPONENTS_EXPORT_REGEX = /export\s+(?:const|let|var)\s+components\b/v
 
 /**
  * Create Sätteri MDAST plugins that map HTML elements to custom components.
@@ -96,7 +96,7 @@ function createTransformPlugin(
 		const imageJsx = buildImageJsxElement(node, config, imports)
 
 		const parent = context.parent(node)
-		if (!config.caption || parent.type !== 'paragraph') {
+		if (config.caption === undefined || parent.type !== 'paragraph') {
 			return imageJsx
 		}
 
@@ -247,7 +247,10 @@ function createExportMergePlugin(
 			context.setProperty(
 				node,
 				'value',
-				node.value.replace(COMPONENTS_EXPORT_OPEN_REGEX, `$1 ${buildMappingEntries(overrides)},`),
+				node.value.replace(
+					COMPONENTS_EXPORT_OPEN_REGEX,
+					(open) => `${open} ${buildMappingEntries(overrides)},`,
+				),
 			)
 		},
 		name: EXPORT_MERGE_PLUGIN,

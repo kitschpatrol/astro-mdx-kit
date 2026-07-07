@@ -72,16 +72,16 @@ export type ResolvedComponentConfig = {
 	propMap?: Record<string, string>
 }
 
-const FILE_EXTENSION_REGEX = /\.\w+$/
-const SEPARATOR_THEN_CHAR_REGEX = /[-_./\\]+(.)/g
-const FIRST_CHAR_REGEX = /^(.)/
+const FILE_EXTENSION_REGEX = /\.\w+$/v
+const SEPARATOR_THEN_CHAR_REGEX = /[_.\\\-\/]+(.)/gv
+const FIRST_CHAR_REGEX = /^(.)/v
 
 function toPascalCase(string_: string): string {
 	return string_
 		.replace(FILE_EXTENSION_REGEX, '') // Strip file extension
 		.replaceAll(SEPARATOR_THEN_CHAR_REGEX, (_, c: string) => c.toUpperCase())
 		.replace(FIRST_CHAR_REGEX, (_, c: string) => c.toUpperCase())
-		.replaceAll(/[^\dA-Z]/gi, '')
+		.replaceAll(/[^\dA-Z]/giv, '')
 }
 
 /**
@@ -113,7 +113,7 @@ function resolveAutoImportEntry(entry: AutoImportEntry): ResolvedAutoImportEntry
 	return {
 		fromProp: entry.from,
 		toProp: entry.to,
-		...(entry.transform ? { transform: entry.transform } : {}),
+		...(entry.transform && { transform: entry.transform }),
 	}
 }
 
@@ -147,27 +147,28 @@ function resolveDetailed(
 	},
 	caption?: CaptionConfig,
 ): ResolvedComponentConfig {
-	const result: ResolvedComponentConfig = config.componentModule
-		? {
-				componentName: config.component,
-				importPath: config.componentModule,
-				isNamedImport: true,
-			}
-		: {
-				componentName: `_MdxKit_${toPascalCase(name)}`,
-				importPath: resolveImportPath(config.component),
-				isNamedImport: false,
-			}
+	const result: ResolvedComponentConfig =
+		config.componentModule === undefined
+			? {
+					componentName: `_MdxKit_${toPascalCase(name)}`,
+					importPath: resolveImportPath(config.component),
+					isNamedImport: false,
+				}
+			: {
+					componentName: config.component,
+					importPath: config.componentModule,
+					isNamedImport: true,
+				}
 
-	if (config.autoImport) {
+	if (config.autoImport !== undefined) {
 		result.autoImports = resolveAutoImports(name, config.autoImport)
 	}
 
-	if (caption) {
+	if (caption !== undefined) {
 		result.caption = caption
 	}
 
-	if (config.label) {
+	if (config.label !== undefined) {
 		result.label = resolveLabelConfig(config.label)
 	}
 
@@ -218,13 +219,13 @@ export function resolveComponentConfig(
  * @returns A resolved config ready for use by the element transform.
  */
 export function resolveElementConfig(name: string, config: ElementConfig): ResolvedComponentConfig {
-	if (typeof config !== 'string' && config.caption && name !== 'img') {
+	if (typeof config !== 'string' && config.caption !== undefined && name !== 'img') {
 		log.warn(
 			`Element override "${name}" has a \`caption\` config, but captions only apply to \`img\` elements. The \`caption\` option will be ignored.`,
 		)
 	}
 
-	if (typeof config !== 'string' && config.label) {
+	if (typeof config !== 'string' && config.label !== undefined) {
 		log.warn(
 			`Element override "${name}" has a \`label\` config, but labels only apply to directives. The \`label\` option will be ignored.`,
 		)

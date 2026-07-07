@@ -17,13 +17,11 @@ function makeFile(content: string): VFile {
 	return new VFile({ path: 'test.mdx', value: content })
 }
 
-/* eslint-disable ts/no-unsafe-type-assertion -- accessing untyped Astro frontmatter */
 function getFrontmatter(file: VFile): Record<string, unknown> {
 	const astro = file.data.astro as Record<string, unknown> | undefined
 	const frontmatter = astro?.frontmatter as Record<string, unknown> | undefined
 	return frontmatter ?? {}
 }
-/* eslint-enable ts/no-unsafe-type-assertion */
 
 describe('createFrontmatterInjectTransform', () => {
 	it('does nothing when both options are falsy', () => {

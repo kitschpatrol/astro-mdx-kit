@@ -31,8 +31,8 @@ export type ParsedAttributeList = {
 	pairs: Record<string, string>
 }
 
-const NAME_CHAR_REGEX = /[-\w]/
-const KEY_CHAR_REGEX = /[-:\w]/
+const NAME_CHAR_REGEX = /[\w\-]/v
+const KEY_CHAR_REGEX = /[:\w\-]/v
 
 /**
  * Accepted value quote pairs. Includes curly quotes because smart punctuation
@@ -148,7 +148,7 @@ export function parseAttributeList(source: string, start: number): ParsedAttribu
 	}
 }
 
-const FENCE_OPEN_REGEX = /^ {0,3}(`{3,}|~{3,})/
+const FENCE_OPEN_REGEX = /^ {0,3}(`{3,}|~{3,})/v
 
 /**
  * Escape valid inline attribute lists in MDX source (`{:` → `\{\:`) so the MDX
@@ -202,7 +202,7 @@ export function escapeMdxAttributeLists(code: string): string {
 		if (fenceMatch) {
 			output.push(line)
 			const marker = fenceMatch[1]!
-			fenceClose = new RegExp(String.raw`^ {0,3}${marker[0]}{${marker.length},}\s*$`)
+			fenceClose = new RegExp(String.raw`^ {0,3}${marker[0]}{${marker.length},}\s*$`, 'v')
 			continue
 		}
 
@@ -227,7 +227,7 @@ function escapeLine(line: string): string {
 			}
 
 			const closing = line.indexOf('`'.repeat(runLength), index + runLength)
-			const end = closing === -1 ? index + runLength : closing + runLength
+			const end = (closing === -1 ? index : closing) + runLength
 			result += line.slice(index, end)
 			index = end
 			continue

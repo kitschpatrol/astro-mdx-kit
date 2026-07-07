@@ -1,5 +1,4 @@
 /* eslint-disable ts/naming-convention -- directive names are PascalCase by convention */
-/* eslint-disable ts/no-unsafe-type-assertion -- tests inspect untyped compile output */
 
 import type { Data } from 'satteri'
 import { markdownToHtml, mdxToJs } from 'satteri'
@@ -7,11 +6,11 @@ import { describe, expect, it } from 'vitest'
 import type { MdxKitOptions } from '../src/types'
 import { satteriMdxKit } from '../src/satteri-plugin'
 
-const ASSET_IMPORT_REGEX = /import _mdxKitAsset\w+ from "\.\/photo\.jpg"/
-const SRC_ATTRIBUTE_REGEX = /src: _mdxKitAsset\w+/
-const H1_MAPPING_REGEX = /h1: _MdxKit_H1/
-const PICTURE_IN_PARAGRAPH_REGEX = /_components\.p, \{\s*children: _jsx\(Picture/
-const PARAGRAPH_IN_SPAN_REGEX = /span[\s\S]*?_components\.p/
+const ASSET_IMPORT_REGEX = /import _mdxKitAsset\w+ from "\.\/photo\.jpg"/v
+const SRC_ATTRIBUTE_REGEX = /src: _mdxKitAsset\w+/v
+const H1_MAPPING_REGEX = /h1: _MdxKit_H1/v
+const PICTURE_IN_PARAGRAPH_REGEX = /_components\.p, \{\s*children: _jsx\(Picture/v
+const PARAGRAPH_IN_SPAN_REGEX = /span[\s\S]*?_components\.p/v
 
 async function compileMdx(source: string, options: MdxKitOptions, data: Data = {}) {
 	return mdxToJs(source, {

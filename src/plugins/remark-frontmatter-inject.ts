@@ -32,7 +32,7 @@ function resolveKey(option: boolean | string | undefined, defaultKey: string): s
 		return defaultKey
 	}
 
-	if (typeof option === 'string') {
+	if (typeof option === 'string' && option !== '') {
 		return option
 	}
 
@@ -44,7 +44,7 @@ function resolveKey(option: boolean | string | undefined, defaultKey: string): s
 // accessing nested Astro-specific structure requires type narrowing that
 // the strict linter considers "unsafe". The runtime guards below ensure
 // the structure exists before writing.
-/* eslint-disable ts/no-unsafe-type-assertion -- Astro frontmatter is inherently untyped */
+
 function setFrontmatter(file: VFile, key: string, value: unknown): void {
 	const { data } = file
 
@@ -53,14 +53,13 @@ function setFrontmatter(file: VFile, key: string, value: unknown): void {
 	}
 
 	const astro = data.astro as Record<string, unknown>
-	if (!astro.frontmatter || typeof astro.frontmatter !== 'object') {
+	if (typeof astro.frontmatter !== 'object' || !astro.frontmatter) {
 		astro.frontmatter = {}
 	}
 
 	const frontmatter = astro.frontmatter as Record<string, unknown>
 	frontmatter[key] ??= value
 }
-/* eslint-enable ts/no-unsafe-type-assertion */
 
 /**
  * Create a tree transformer that injects raw MDX source and/or the MDAST tree
@@ -81,11 +80,11 @@ export function createFrontmatterInjectTransform(
 	const mdastKey = resolveKey(options.mdast, DEFAULT_MDAST_KEY)
 
 	return (tree: Root, file: VFile) => {
-		if (rawMdxKey) {
+		if (rawMdxKey !== undefined) {
 			setFrontmatter(file, rawMdxKey, file.value)
 		}
 
-		if (mdastKey) {
+		if (mdastKey !== undefined) {
 			setFrontmatter(file, mdastKey, tree)
 		}
 	}

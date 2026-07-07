@@ -10,7 +10,7 @@ import remarkMdxKitPlugin from './remark-plugin.js'
 import { satteriMdxKit } from './satteri-plugin.js'
 import { escapeMdxAttributeLists } from './utils/attribute-list.js'
 
-const MDX_FILE_REGEX = /\.mdx(?:\?|$)/
+const MDX_FILE_REGEX = /\.mdx(?:\?|$)/v
 
 /**
  * Astro integration for astro-mdx-kit.

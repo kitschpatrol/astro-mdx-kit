@@ -46,7 +46,6 @@ export function isStandaloneImage(paragraph: Parent, names: ReadonlySet<string>)
 		return false
 	}
 
-	// eslint-disable-next-line ts/no-unsafe-type-assertion
 	return isImageLike(meaningful[0] as { name?: string; type: string }, names)
 }
 
@@ -103,11 +102,11 @@ export function buildImageJsxElement(
 	// Add alt and title from the mdast node, but only when hProperties
 	// didn't already provide them (avoids duplicate attributes while
 	// letting explicit attribute syntax like {:alt="..."} take precedence).
-	if (node.alt && !('alt' in hProperties)) {
+	if (typeof node.alt === 'string' && node.alt !== '' && !('alt' in hProperties)) {
 		attributes.push(createStringAttribute('alt', node.alt))
 	}
 
-	if (node.title && !('title' in hProperties)) {
+	if (typeof node.title === 'string' && node.title !== '' && !('title' in hProperties)) {
 		attributes.push(createStringAttribute('title', node.title))
 	}
 

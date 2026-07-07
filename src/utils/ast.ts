@@ -14,7 +14,7 @@ import type { Node } from 'unist'
  * Check whether a node is a text node containing only whitespace.
  */
 export function isWhitespaceText(node: { type: string; value?: string }): boolean {
-	return node.type === 'text' && !node.value?.trim()
+	return node.type === 'text' && (node.value ?? '').trim() === ''
 }
 
 /**
@@ -236,36 +236,34 @@ export function mergeIntoComponentsExport(
 		}
 
 		for (const declarator of declaration.declarations) {
-			if (declarator.id.type !== 'Identifier' || declarator.id.name !== 'components') {
-				continue
-			}
+			if (declarator.id.type === 'Identifier' && declarator.id.name === 'components') {
+				const newProperties: Array<Property | SpreadElement> = Object.entries(mappings).map(
+					([key, value]) => ({
+						computed: false,
+						key: { name: key, type: 'Identifier' as const },
+						kind: 'init' as const,
+						method: false,
+						shorthand: false,
+						type: 'Property' as const,
+						value: { name: value, type: 'Identifier' as const },
+					}),
+				)
 
-			const newProperties: Array<Property | SpreadElement> = Object.entries(mappings).map(
-				([key, value]) => ({
-					computed: false,
-					key: { name: key, type: 'Identifier' as const },
-					kind: 'init' as const,
-					method: false,
-					shorthand: false,
-					type: 'Property' as const,
-					value: { name: value, type: 'Identifier' as const },
-				}),
-			)
-
-			if (declarator.init?.type === 'ObjectExpression') {
-				declarator.init.properties = [...newProperties, ...declarator.init.properties]
-			} else {
-				// Wrap non-object expression: { ...ours, ...existingExpr }
-				const existingSpread: SpreadElement[] = declarator.init
-					? [{ argument: declarator.init, type: 'SpreadElement' }]
-					: []
-				declarator.init = {
-					properties: [...newProperties, ...existingSpread],
-					type: 'ObjectExpression',
+				if (declarator.init?.type === 'ObjectExpression') {
+					declarator.init.properties = [...newProperties, ...declarator.init.properties]
+				} else {
+					// Wrap non-object expression: { ...ours, ...existingExpr }
+					const existingSpread: SpreadElement[] = declarator.init
+						? [{ argument: declarator.init, type: 'SpreadElement' }]
+						: []
+					declarator.init = {
+						properties: [...newProperties, ...existingSpread],
+						type: 'ObjectExpression',
+					}
 				}
-			}
 
-			return true
+				return true
+			}
 		}
 	}
 
@@ -350,7 +348,6 @@ export function createJsxFlowElement(
 	// any mix of block, phrasing, or image content at runtime.
 	const element: MdxJsxFlowElement = {
 		attributes,
-		// eslint-disable-next-line ts/no-unsafe-type-assertion -- Node[] is safe at runtime; narrow MDAST types are overly strict
 		children: children as MdxJsxFlowElement['children'],
 		name,
 		type: 'mdxJsxFlowElement',

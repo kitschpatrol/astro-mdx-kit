@@ -5,6 +5,7 @@
 /// <reference types="mdast-util-mdxjs-esm" />
 
 import type { PhrasingContent, Root } from 'mdast'
+import type { MdxJsxFlowElement, MdxJsxTextElement } from 'mdast-util-mdx-jsx'
 import type { Plugin } from 'unified'
 import { visit } from 'unist-util-visit'
 import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
@@ -59,19 +60,18 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 				return
 			}
 
-			if (!(node.name in configs)) {
+			const config = configs[node.name]
+			if (config === undefined) {
 				log.debug(`Skipping unknown directive ":${node.name}" — no matching config`)
 				return
 			}
-
-			// Safe: the `in` check above guarantees the key exists
-			const config = configs[node.name]!
 
 			log.debug(`Transforming :${node.name} directive → <${config.componentName}>`)
 			imports.addComponentImport(config.componentName, config.importPath, config.isNamedImport)
 
 			const attributes = buildDirectiveAttributes(node.attributes ?? {}, config, imports)
 
+			let jsxNode: MdxJsxFlowElement | MdxJsxTextElement
 			if (node.type === 'textDirective') {
 				const children: PhrasingContent[] = [...node.children]
 				const labelAttribute = extractPhrasingLabel(children, config)
@@ -79,8 +79,7 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 					attributes.push(labelAttribute)
 				}
 
-				const jsxNode = createJsxTextElement(config.componentName, attributes, children)
-				parent.children[index] = jsxNode
+				jsxNode = createJsxTextElement(config.componentName, attributes, children)
 			} else {
 				const children = toFlowChildren(node)
 
@@ -103,9 +102,10 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 					}
 				}
 
-				const jsxNode = createJsxFlowElement(config.componentName, attributes, children)
-				parent.children[index] = jsxNode
+				jsxNode = createJsxFlowElement(config.componentName, attributes, children)
 			}
+
+			parent.children[index] = jsxNode
 		})
 
 		imports.injectIntoTree(tree)

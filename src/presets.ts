@@ -1,6 +1,6 @@
 import type { AutoImportEntry, DetailedElementConfig } from './types.js'
 
-const TLDRAW_EXTENSION_REGEX = /\.tldr(?:\?|$)/
+const TLDRAW_EXTENSION_REGEX = /\.tldr(?:\?|$)/v
 
 /**
  * Element override that replaces `<img>` with Astro's `<Image>` component from

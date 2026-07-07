@@ -21,11 +21,7 @@ export type Directive = ContainerDirective | LeafDirective | TextDirective
  * Check whether an AST node is one of the three directive node types.
  */
 export function isDirectiveNode(node: { type: string }): node is Directive {
-	return (
-		node.type === 'containerDirective' ||
-		node.type === 'leafDirective' ||
-		node.type === 'textDirective'
-	)
+	return ['containerDirective', 'leafDirective', 'textDirective'].includes(node.type)
 }
 
 /**
@@ -78,7 +74,6 @@ export function extractContainerLabel(
 	}
 
 	const serialized = serializePhrasingContent(
-		// eslint-disable-next-line ts/no-unsafe-type-assertion -- directiveLabel paragraphs contain PhrasingContent
 		labelParagraph.children as PhrasingContent[],
 		config.label.format,
 	)
@@ -118,7 +113,7 @@ export function buildDirectiveAttributes(
 		// Build propValues from all non-empty directive attributes
 		const propValues: Record<string, string> = {}
 		for (const [key, value] of Object.entries(directiveAttributes)) {
-			if (value) {
+			if (typeof value === 'string' && value !== '') {
 				propValues[key] = value
 			}
 		}
@@ -133,7 +128,7 @@ export function buildDirectiveAttributes(
 		// Forward remaining attributes not consumed by auto-import, with
 		// propMap renaming applied.
 		for (const [key, value] of Object.entries(directiveAttributes)) {
-			if (!value || handledProps.has(key)) {
+			if (typeof value !== 'string' || value === '' || handledProps.has(key)) {
 				continue
 			}
 
@@ -143,7 +138,7 @@ export function buildDirectiveAttributes(
 	} else {
 		// No autoImport — forward all attributes with propMap renaming
 		for (const [key, value] of Object.entries(directiveAttributes)) {
-			if (!value) {
+			if (typeof value !== 'string' || value === '') {
 				continue
 			}
 

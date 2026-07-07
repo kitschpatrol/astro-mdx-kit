@@ -1,4 +1,3 @@
-/* eslint-disable ts/no-unsafe-type-assertion -- accessing mixed-type JSX children in tests */
 /* eslint-disable ts/triple-slash-reference */
 
 /// <reference types="mdast-util-mdx-jsx" />
@@ -12,7 +11,7 @@ import { captionImagesTransform } from '../src/plugins/remark-caption-images'
 function findJsxFlowAnywhere(tree: Root, name?: string): MdxJsxFlowElement | undefined {
 	let found: MdxJsxFlowElement | undefined
 	visit(tree, 'mdxJsxFlowElement', (node) => {
-		if (!name || node.name === name) {
+		if (name === undefined || node.name === name) {
 			found = node
 		}
 	})
@@ -102,7 +101,7 @@ describe('captionImagesTransform', () => {
 		expect(figure).toBeDefined()
 
 		// The image node should be the exact same MDAST node, not a JSX replacement
-		const imageChild = figure!.children[0] as unknown as Record<string, unknown>
+		const imageChild = figure!.children.at(0) as unknown as Record<string, unknown>
 		expect(imageChild.type).toBe('image')
 		expect(imageChild.url).toBe('./sunset.png')
 		expect(imageChild.alt).toBe('Sunset')
@@ -114,7 +113,7 @@ describe('captionImagesTransform', () => {
 
 		const figcaption = findJsxFlowAnywhere(tree, 'figcaption')
 		expect(figcaption).toBeDefined()
-		const textNode = figcaption!.children[0] as unknown as Record<string, unknown>
+		const textNode = figcaption!.children.at(0) as unknown as Record<string, unknown>
 		expect(textNode.type).toBe('text')
 		expect(textNode.value).toBe('Trimmed caption')
 	})

@@ -1,6 +1,7 @@
 import type { MdastPluginDefinition } from 'satteri'
 import type { MdxKitOptions } from './types.js'
 import type { ResolvedComponentConfig } from './utils/resolve-config.js'
+import { isFrontmatterKeyEnabled } from './internal.js'
 import { log } from './log.js'
 import { createSatteriAttributesPlugin } from './plugins/satteri-attributes.js'
 import { createSatteriCaptionImagesPlugin } from './plugins/satteri-caption-images.js'
@@ -91,7 +92,7 @@ export function satteriMdxKit(options: MdxKitOptions = {}): MdastPluginDefinitio
 		plugins.push(createSatteriAttributesPlugin())
 	}
 
-	if (rawMdx) {
+	if (isFrontmatterKeyEnabled(rawMdx)) {
 		plugins.push(createSatteriRawMdxInjectPlugin(rawMdx, attributes ?? false))
 	}
 
@@ -126,7 +127,7 @@ export function satteriMdxKit(options: MdxKitOptions = {}): MdastPluginDefinitio
 		)
 	}
 
-	if (mdast) {
+	if (isFrontmatterKeyEnabled(mdast)) {
 		plugins.push(createSatteriMdastInjectPlugin(mdast))
 	}
 

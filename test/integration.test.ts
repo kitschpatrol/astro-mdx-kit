@@ -1,6 +1,5 @@
 /* eslint-disable ts/consistent-type-assertions -- mock Astro hook params cannot satisfy full type */
 /* eslint-disable ts/no-empty-function */
-/* eslint-disable ts/no-unsafe-type-assertion -- mock Astro hook params require type widening */
 
 import { unified } from '@astrojs/markdown-remark'
 import { satteri } from '@astrojs/markdown-satteri'

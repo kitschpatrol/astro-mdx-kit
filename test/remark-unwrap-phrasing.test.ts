@@ -1,6 +1,5 @@
 /* eslint-disable ts/triple-slash-reference */
 /* eslint-disable ts/consistent-type-assertions -- constructing mock MDX AST nodes */
-/* eslint-disable ts/no-unsafe-type-assertion -- constructing mock MDX AST nodes */
 
 /// <reference types="mdast-util-mdx-jsx" />
 

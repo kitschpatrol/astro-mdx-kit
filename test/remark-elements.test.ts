@@ -1,4 +1,3 @@
-/* eslint-disable ts/no-unsafe-type-assertion -- constructing mock MDX AST nodes requires type widening */
 /* eslint-disable ts/triple-slash-reference */
 
 /// <reference types="mdast-util-mdx-jsx" />
@@ -570,7 +569,7 @@ describe('remarkMdxKitElements — caption modes', () => {
 		expect(figure!.children).toHaveLength(2)
 
 		// First child: the image component
-		const imageChild = figure!.children[0]
+		const imageChild = figure!.children.at(0)
 		if (imageChild === undefined) {
 			throw new Error('imageChild is undefined')
 		}
@@ -579,7 +578,7 @@ describe('remarkMdxKitElements — caption modes', () => {
 		expect((imageChild as MdxJsxFlowElement).name).toBe('Picture')
 
 		// Second child: figcaption
-		const figcaptionChild = figure!.children[1]
+		const figcaptionChild = figure!.children.at(1)
 		if (figcaptionChild === undefined) {
 			throw new Error('figcaptionChild is undefined')
 		}

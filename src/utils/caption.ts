@@ -22,7 +22,6 @@ import { createJsxFlowElement, createStringAttribute } from './ast.js'
  *   empty array if no meaningful caption text was found.
  */
 export function extractCaptionNodes(parent: MdastParent, excludeIndex: number): PhrasingContent[] {
-	// eslint-disable-next-line ts/no-unsafe-type-assertion -- paragraph children are PhrasingContent at runtime
 	const caption = parent.children.filter(
 		(_child, index) => index !== excludeIndex,
 	) as PhrasingContent[]
@@ -31,10 +30,10 @@ export function extractCaptionNodes(parent: MdastParent, excludeIndex: number): 
 	const first = caption.at(0)
 	if (first?.type === 'text') {
 		const trimmed = first.value.trimStart()
-		if (trimmed) {
-			caption[0] = { type: 'text', value: trimmed }
-		} else {
+		if (trimmed === '') {
 			caption.shift()
+		} else {
+			caption[0] = { type: 'text', value: trimmed }
 		}
 	}
 
@@ -42,10 +41,10 @@ export function extractCaptionNodes(parent: MdastParent, excludeIndex: number): 
 	const last = caption.at(-1)
 	if (last?.type === 'text') {
 		const trimmed = last.value.trimEnd()
-		if (trimmed) {
-			caption[caption.length - 1] = { type: 'text', value: trimmed }
-		} else {
+		if (trimmed === '') {
 			caption.pop()
+		} else {
+			caption[caption.length - 1] = { type: 'text', value: trimmed }
 		}
 	}
 

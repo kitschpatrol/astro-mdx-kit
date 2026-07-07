@@ -8,3 +8,14 @@
  * `package.json` exports.
  */
 export const SKIP_PARSER_EXTENSIONS = Symbol('skipParserExtensions')
+
+/**
+ * Check whether a `boolean | string` frontmatter injection option (`rawMdx`,
+ * `mdast`) is enabled: `true` or a non-empty custom key. Narrows out `false`,
+ * `undefined`, and the degenerate empty string.
+ */
+export function isFrontmatterKeyEnabled(
+	option: boolean | string | undefined,
+): option is string | true {
+	return option === true || (typeof option === 'string' && option !== '')
+}

@@ -10,6 +10,6 @@ const borderColor = variant === 'warning' ? 'orange' : variant === 'tip' ? 'gree
 ---
 
 <aside style={`border-left: 4px solid ${borderColor}; padding: 0.5em 1em; margin: 1em 0;`}>
-	{title && <strong>{title}</strong>}
+	{title !== undefined && title !== '' && <strong>{title}</strong>}
 	<slot />
 </aside>

@@ -45,19 +45,23 @@ describe('tldrawDarkImport preset', () => {
 	})
 
 	it('returns undefined for non-.tldr paths', () => {
-		if (typeof tldrawDarkImport === 'object' && tldrawDarkImport.transform) {
-			expect(tldrawDarkImport.transform('./photo.png')).toBeUndefined()
-			expect(tldrawDarkImport.transform('./photo.jpg?width=400')).toBeUndefined()
-			expect(tldrawDarkImport.transform('')).toBeUndefined()
+		if (typeof tldrawDarkImport !== 'object' || !tldrawDarkImport.transform) {
+			return
 		}
+
+		expect(tldrawDarkImport.transform('./photo.png')).toBeUndefined()
+		expect(tldrawDarkImport.transform('./photo.jpg?width=400')).toBeUndefined()
+		expect(tldrawDarkImport.transform('')).toBeUndefined()
 	})
 
 	it('only matches the .tldr extension exactly (not substrings)', () => {
-		if (typeof tldrawDarkImport === 'object' && tldrawDarkImport.transform) {
-			// .tldraw should not match
-			expect(tldrawDarkImport.transform('./sketch.tldraw')).toBeUndefined()
-			// Uppercase variants are not matched (extension regex is case-sensitive)
-			expect(tldrawDarkImport.transform('./sketch.TLDR')).toBeUndefined()
+		if (typeof tldrawDarkImport !== 'object' || !tldrawDarkImport.transform) {
+			return
 		}
+
+		// .tldraw should not match
+		expect(tldrawDarkImport.transform('./sketch.tldraw')).toBeUndefined()
+		// Uppercase variants are not matched (extension regex is case-sensitive)
+		expect(tldrawDarkImport.transform('./sketch.TLDR')).toBeUndefined()
 	})
 })

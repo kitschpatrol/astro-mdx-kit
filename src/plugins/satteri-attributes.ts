@@ -105,12 +105,10 @@ export function createSatteriAttributesPlugin(): MdastPluginDefinition {
 
 	function makeApply(context: MdastVisitorContext): ApplyAttributes {
 		return (target, parsed) => {
-			// eslint-disable-next-line ts/no-unsafe-type-assertion -- node data is an open record
 			const existingData = target.data as Record<string, unknown> | undefined
 			const data = pendingData.get(target) ?? { ...existingData }
 
 			const hProperties: Record<string, unknown> = {
-				// eslint-disable-next-line ts/no-unsafe-type-assertion -- hProperties is an open record
 				...(data.hProperties as Record<string, unknown> | undefined),
 			}
 

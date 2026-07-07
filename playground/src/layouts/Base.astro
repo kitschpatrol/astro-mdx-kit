@@ -18,18 +18,18 @@ const { frontmatter } = Astro.props
 	<body>
 		<slot />
 		{
-			(frontmatter?.rawMdx ?? frontmatter?.mdast) && (
+			(frontmatter?.rawMdx !== undefined || frontmatter?.mdast !== undefined) && (
 				<>
 					<hr />
 					<details>
 						<summary>Frontmatter Injection</summary>
-						{frontmatter.rawMdx && (
+						{frontmatter.rawMdx !== undefined && (
 							<>
 								<h3>rawMdx</h3>
 								<pre>{frontmatter.rawMdx}</pre>
 							</>
 						)}
-						{frontmatter.mdast && (
+						{frontmatter.mdast !== undefined && (
 							<>
 								<h3>mdast</h3>
 								<pre>{JSON.stringify(frontmatter.mdast, undefined, 2)}</pre>

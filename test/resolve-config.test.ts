@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest'
 import { log } from '../src/log'
 import { resolveComponentConfig, resolveElementConfig } from '../src/utils/resolve-config'
 
-const CAPTION_IMG_ONLY_REGEX = /caption.*only apply to.*img/
-const EMPTY_AUTO_IMPORT_REGEX = /empty.*autoImport/
-const LABEL_DIRECTIVES_ONLY_REGEX = /label.*only apply to.*directives/
+const CAPTION_IMG_ONLY_REGEX = /caption.*only apply to.*img/v
+const EMPTY_AUTO_IMPORT_REGEX = /empty.*autoImport/v
+const LABEL_DIRECTIVES_ONLY_REGEX = /label.*only apply to.*directives/v
 
 describe('resolveComponentConfig', () => {
 	it('resolves a simple string path', () => {

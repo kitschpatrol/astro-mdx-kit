@@ -265,7 +265,7 @@ describe('resolveAutoImportAttributes', () => {
 describe('isImportablePath', () => {
 	it('rejects URLs with protocol', () => {
 		expect(isImportablePath('https://example.com/img.png')).toBe(false)
-		expect(isImportablePath('http://cdn.example.com/img.png')).toBe(false)
+		expect(isImportablePath('https://cdn.example.com/img.png')).toBe(false)
 	})
 
 	it('rejects data URIs', () => {

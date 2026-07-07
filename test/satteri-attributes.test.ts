@@ -1,13 +1,11 @@
-/* eslint-disable ts/no-unsafe-type-assertion -- tests inspect untyped compile output */
-
 import { markdownToHtml, mdxToJs } from 'satteri'
 import { describe, expect, it } from 'vitest'
 import type { MdxKitOptions } from '../src/types'
 import { escapeMdxAttributeLists, satteriMdxKit } from '../src/satteri-plugin'
 import { parseAttributeList } from '../src/utils/attribute-list'
 
-const ASSET_IMPORT_DARK_REGEX = /import _mdxKitAsset\w+ from "\.\/dark\.jpg"/
-const SRC_DARK_ATTRIBUTE_REGEX = /srcDark: _mdxKitAsset\w+/
+const ASSET_IMPORT_DARK_REGEX = /import _mdxKitAsset\w+ from "\.\/dark\.jpg"/v
+const SRC_DARK_ATTRIBUTE_REGEX = /srcDark: _mdxKitAsset\w+/v
 
 async function compileMd(source: string, options?: MdxKitOptions) {
 	const result = await markdownToHtml(source, {

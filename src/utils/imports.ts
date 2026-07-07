@@ -38,7 +38,7 @@ export class ImportTracker {
 	 */
 	addAssetImport(assetPath: string): string {
 		const existing = this.assetImports.get(assetPath)
-		if (existing) {
+		if (existing !== undefined) {
 			return existing
 		}
 

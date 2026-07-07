@@ -12,7 +12,7 @@ import { directive } from 'micromark-extension-directive'
 import remarkAttributeList from 'remark-attribute-list'
 import type { MdxKitOptions } from './types.js'
 import type { ResolvedComponentConfig } from './utils/resolve-config.js'
-import { SKIP_PARSER_EXTENSIONS } from './internal.js'
+import { isFrontmatterKeyEnabled, SKIP_PARSER_EXTENSIONS } from './internal.js'
 import { log } from './log.js'
 import { captionImagesTransform } from './plugins/remark-caption-images.js'
 import { createDirectiveTransform } from './plugins/remark-directives.js'
@@ -66,6 +66,7 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 	const skipParserExtensions = (options as Record<symbol, unknown>)[SKIP_PARSER_EXTENSIONS] === true
 
 	if (!skipParserExtensions) {
+		// eslint-disable-next-line unicorn/no-this-outside-of-class -- unified plugins receive the processor as `this`
 		const data = this.data()
 
 		if (directives && Object.keys(directives).length > 0) {
@@ -77,6 +78,7 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 		}
 
 		if (attributes) {
+			// eslint-disable-next-line unicorn/no-this-outside-of-class -- unified plugins receive the processor as `this`
 			this.use(remarkAttributeList)
 		}
 	}
@@ -109,7 +111,7 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 
 	const transforms: Array<(tree: Root, file: VFile) => void> = []
 
-	if (rawMdx) {
+	if (isFrontmatterKeyEnabled(rawMdx)) {
 		transforms.push(createFrontmatterInjectTransform({ rawMdx }))
 	}
 
@@ -152,7 +154,7 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 		})
 	}
 
-	if (mdast) {
+	if (isFrontmatterKeyEnabled(mdast)) {
 		transforms.push(createFrontmatterInjectTransform({ mdast }))
 	}
 

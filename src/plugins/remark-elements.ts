@@ -129,7 +129,8 @@ function transformImageNodes(
 	config: ResolvedComponentConfig,
 	imports: ImportTracker,
 ): void {
-	const multiImageParagraphs = config.caption ? findMultiImageParagraphs(tree) : undefined
+	const multiImageParagraphs =
+		config.caption === undefined ? undefined : findMultiImageParagraphs(tree)
 	const paragraphReplacements = new Map<MdastParent, MdxJsxFlowElement>()
 
 	visit(tree, 'image', (node: Image, index, parent) => {
@@ -139,7 +140,7 @@ function transformImageNodes(
 
 		const imageJsx = buildImageJsxElement(node, config, imports)
 
-		if (!config.caption || multiImageParagraphs?.has(parent)) {
+		if (config.caption === undefined || multiImageParagraphs?.has(parent)) {
 			;(parent as Parent).children[index] = imageJsx
 			return SKIP
 		}

@@ -17,7 +17,6 @@ export type RemarkUnwrapImagesOptions = {
 }
 
 function hasChildren(node: unknown): node is Parent {
-	// eslint-disable-next-line ts/no-unsafe-type-assertion -- narrowing unknown to detect a children array
 	return Array.isArray((node as undefined | { children?: unknown })?.children)
 }
 
