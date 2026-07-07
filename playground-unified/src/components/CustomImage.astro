@@ -1,0 +1,16 @@
+---
+import type { ImageMetadata } from 'astro'
+import { Image } from 'astro:assets'
+
+type Props = {
+	caption?: string | undefined
+	src: ImageMetadata
+}
+
+const { caption, src } = Astro.props
+---
+
+<figure>
+	<Image alt="" src={src} />
+	{caption !== undefined && caption !== '' && <figcaption set:html={caption} />}
+</figure>

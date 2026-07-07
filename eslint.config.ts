@@ -7,7 +7,12 @@ export default eslintConfig(
 	},
 	{
 		// Unpublished workspace packages...
-		files: ['playground/package.json', 'playground-starlight/package.json'],
+		files: [
+			'playground-satteri/package.json',
+			'playground-satteri-starlight/package.json',
+			'playground-unified/package.json',
+			'playground-unified-starlight/package.json',
+		],
 		rules: {
 			'json-package/require-keywords': 'off',
 			'json-package/require-version': 'off',

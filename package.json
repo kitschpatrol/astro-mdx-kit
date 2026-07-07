@@ -49,8 +49,11 @@
 	"scripts": {
 		"build": "tsdown && pnpm run -r --include-workspace-root astro build",
 		"clean": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
-		"dev": "pnpm -C playground run dev",
-		"dev-starlight": "pnpm -C playground-starlight run dev",
+		"dev": "pnpm dev-satteri",
+		"dev-satteri": "pnpm -C playground-satteri run dev",
+		"dev-satteri-starlight": "pnpm -C playground-satteri-starlight run dev",
+		"dev-unified": "pnpm -C playground-unified run dev",
+		"dev-unified-starlight": "pnpm -C playground-unified-starlight run dev",
 		"fix": "ksc fix",
 		"lint": "ksc lint && pnpm run -r --include-workspace-root astro check",
 		"release": "bumpp --commit 'Release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') pnpm publish",

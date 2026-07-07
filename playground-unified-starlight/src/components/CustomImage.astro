@@ -1,0 +1,10 @@
+---
+import type { ImageMetadata } from 'astro'
+import { Image } from 'astro:assets'
+
+type Props = {
+	src: ImageMetadata
+}
+---
+
+<Image alt="" src={Astro.props.src} />

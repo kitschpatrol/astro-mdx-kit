@@ -17,8 +17,13 @@
 	"include": [
 		"**/*",
 		"**/**.*",
-		"./playground-starlight/.astro/types.d.ts",
-		"./playground/.astro/types.d.ts"
+		// Starlight first: generated `astro:content` type aliases collide across
+		// playgrounds and the first declaration wins, so the one with the `docs`
+		// collection must come before the collection-less plain playgrounds.
+		"./playground-satteri-starlight/.astro/types.d.ts",
+		"./playground-unified-starlight/.astro/types.d.ts",
+		"./playground-satteri/.astro/types.d.ts",
+		"./playground-unified/.astro/types.d.ts"
 	],
 	"exclude": ["**/dist/", "**/bin/"],
 	"mdx": {

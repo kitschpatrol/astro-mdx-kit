@@ -1,0 +1,14 @@
+---
+type Props = {
+	greeting?: string | undefined
+}
+
+const { greeting = 'empty ' } = Astro.props
+
+const value = Math.random()
+---
+
+<div>
+	<pre>Hi from block: {value}<br />{greeting}</pre>
+	<slot />
+</div>

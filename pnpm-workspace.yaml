@@ -1,7 +1,9 @@
 packages:
   - .
-  - playground
-  - playground-starlight
+  - playground-satteri
+  - playground-satteri-starlight
+  - playground-unified
+  - playground-unified-starlight
 ignoreWorkspaceRootCheck: true
 publicHoistPattern:
   - '@kitschpatrol/repo-config'

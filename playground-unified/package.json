@@ -1,7 +1,7 @@
 {
-	"name": "astro-mdx-kit-playground",
+	"name": "astro-mdx-kit-playground-unified",
 	"private": true,
-	"description": "Astro project playground to evaluate astro-mdx-kit.",
+	"description": "Astro project playground to evaluate astro-mdx-kit on the unified Markdown processor.",
 	"license": "MIT",
 	"author": {
 		"name": "Eric Mika",
@@ -19,6 +19,7 @@
 	},
 	"devDependencies": {
 		"@astrojs/check": "^0.9.9",
+		"@astrojs/markdown-remark": "^7.2.1",
 		"@astrojs/mdx": "^7.0.2",
 		"@types/node": "~24.12.4",
 		"astro": "^7.0.6",

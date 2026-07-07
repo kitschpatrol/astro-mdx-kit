@@ -1,0 +1,56 @@
+---
+title: MDX Kit Features
+description: Exercises all astro-mdx-kit features in a Starlight context.
+---
+
+## Directives
+
+Text directive: :Block
+
+Leaf directive with attributes:
+
+::Block[Also inside]{greeting="Hello"}
+
+:::Block{greeting="Hi"}
+Container directive with body content.
+:::
+
+:::Callout[Important Notice]{type="warning"}
+This callout uses `label` to extract the title and `propMap` to rename `type` to `variant`.
+:::
+
+:::Callout[Helpful Tip]{type="tip"}
+A second callout with a different variant.
+:::
+
+Directive with auto-imported image:
+
+::CustomImage{src="../../../assets/houston.webp"}
+
+## Element Overrides
+
+Custom h2 headings are rendered above via the `elements.h2` override.
+
+Auto-imported custom component (no explicit import needed):
+
+<Excerpt />
+
+Standalone image (unwrapped from paragraph):
+
+![Houston](../../../assets/houston.webp)
+
+Image with caption (wrapped in figure/figcaption):
+
+![Houston](../../../assets/houston.webp)
+Caption **with bold** and _italic_.
+
+## Attributes
+
+A paragraph with a class.
+{:.highlight}
+
+![Attributed image](../../../assets/houston.webp){:data-zoom="true"}
+
+## GFM
+
+~~Strikethrough text~~

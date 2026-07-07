@@ -1,0 +1,41 @@
+{
+	"name": "astro-mdx-kit-playground-satteri-starlight",
+	"private": true,
+	"description": "Astro Starlight project playground to evaluate astro-mdx-kit on the Sätteri Markdown processor.",
+	"license": "MIT",
+	"author": {
+		"name": "Eric Mika",
+		"email": "eric@ericmika.com",
+		"url": "https://ericmika.com"
+	},
+	"sideEffects": false,
+	"type": "module",
+	"scripts": {
+		"astro": "astro",
+		"build": "astro build",
+		"clean": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
+		"dev": "poptab && astro dev --open",
+		"preview": "poptab && astro preview --open"
+	},
+	"devDependencies": {
+		"@astrojs/check": "^0.9.9",
+		"@astrojs/markdown-satteri": "^0.3.3",
+		"@astrojs/mdx": "^7.0.2",
+		"@astrojs/starlight": "^0.41.3",
+		"@types/node": "~24.12.4",
+		"astro": "^7.0.6",
+		"astro-mdx-kit": "link:..",
+		"poptab": "^1.1.1",
+		"sharp": "^0.35.2",
+		"shx": "^0.4.0"
+	},
+	"engines": {
+		"node": ">=20.19.0"
+	},
+	"devEngines": {
+		"runtime": {
+			"name": "node",
+			"version": ">=22.18.0"
+		}
+	}
+}
