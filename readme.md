@@ -63,7 +63,7 @@ In addition to support for mapping directives to components, `astro-mdx-kit` bun
 - **Image captions**\
   Extract caption text adjacent to images and wrap in `<figure>/<figcaption>` or pass to components.
 - **Attribute lists**\
-  Kramdown-style `{:key="value"}` syntax for adding attributes to any Markdown element.
+  Kramdown-style `{:key="value"}` syntax for adding attributes to any Markdown element. (Unified processor only.)
 - **Image unwrapping**\
   Remove `<p>` wrappers from stand-alone images.
 - **Phrasing unwrapping**\
@@ -110,7 +110,6 @@ export default defineConfig({
   integrations: [
     mdxKit({
       // All options are optional — only enable what you need
-      attributes: true,
       captionImages: true,
       directives: {
         // Replace `::Widget` directives
@@ -154,7 +153,7 @@ export default defineConfig({
 })
 ```
 
-The plugins are also available via `astro-mdx-kit/satteri` for use with [Sätteri](https://satteri.bruits.org) outside Astro. Note that with `attributes` enabled, `.mdx` sources must be pre-processed with the exported `escapeMdxAttributeLists` helper before compiling (the Astro integration does this automatically via a Vite transform); plain markdown needs no escaping.
+The plugins are also available via `astro-mdx-kit/satteri` for use with [Sätteri](https://satteri.bruits.org) outside Astro.
 
 ### Alternative: remark plugin
 
@@ -527,6 +526,9 @@ This might seem a bit fussy, but it can be useful for handling the caption conte
 
 ### Attribute lists
 
+> [!NOTE]
+> Attribute lists are only supported on the unified processor (`unified()` from `@astrojs/markdown-remark`). Sätteri's parser has no custom syntax extensions, so on the (default) Sätteri processor the `attributes` option logs a warning and is ignored. Sätteri parses attributes natively on headings and directives; universal attribute handling is requested in [bruits/satteri#139](https://github.com/bruits/satteri/issues/139) (note the proposed syntax is `{...}` without the Kramdown colon).
+
 Enable [Kramdown-style attribute list syntax](https://github.com/utelecon/remark-attribute-list) for adding attributes to Markdown elements:
 
 ```ts
@@ -555,17 +557,6 @@ A paragraph with a class.
 Attribute lists work with element overrides — when a Markdown element is replaced by a custom component via the `elements` option, any attributes set via `{:key="value"}` are forwarded as props to the component. For simple overrides, attributes flow through MDX's component mechanism automatically. For auto-import overrides (like `img`), attributes are forwarded to the final component during AST transformation.
 
 Compatible with directive syntax — both can be used simultaneously in the same file, but using both directive and attribute list syntax on the same element is redundant and not supported.
-
-On the unified processor, attribute lists are parsed by [`remark-attribute-list`](https://github.com/utelecon/remark-attribute-list). On the Sätteri processor, the integration escapes attribute lists in `.mdx` sources (Sätteri's MDX parser would otherwise reject `{:...}` as an invalid expression) and applies them with a Sätteri plugin that mirrors the remark behavior. Kramdown [attribute list definitions](https://kramdown.gettalong.org/syntax.html#attribute-list-definitions) (`{:name: ...}` references) are not supported on the Sätteri processor.
-
-The escape-based Sätteri implementation has some additional limitations relative to the unified processor:
-
-- There is no way to render a literal `{:...}` span: escaping it as `\{:...}` works on the unified processor, but on Sätteri the attribute list is still consumed after markdown unescapes the backslash.
-- An attribute list directly following inline JSX (e.g. `<span>hi</span>{:.x}`) is applied on the unified processor but dropped on Sätteri.
-- The escaper scans line by line, so code fences nested inside blockquotes or lists (and `{:...}` inside JSX attribute strings) may render with stray backslashes.
-- The accepted grammar is slightly stricter than remark's: quoted values have no backslash escapes, and class and key names are limited to word characters and dashes.
-
-Sätteri currently only parses attributes natively on headings and directives; universal attribute handling is requested in [bruits/satteri#139](https://github.com/bruits/satteri/issues/139). If that lands, this escape-based implementation could be retired in favor of the native parser feature (note the proposed syntax is `{...}` without the Kramdown colon, so migration would involve a syntax change).
 
 ### Unwrap images
 
@@ -634,12 +625,12 @@ setLogger(console)
 
 ## Processing order
 
-The plugin processes content in two phases (on Sätteri, the directive parser is the built-in `directive` feature and attribute lists run as the first transform):
+The plugin processes content in two phases (on Sätteri, the directive parser is the built-in `directive` feature and attribute lists are not supported):
 
 **Parse phase** (before transforms):
 
 1. **Directive parser** — registers `:::`/`::`/`:` syntax extensions
-2. **Attribute lists** — applies `{:...}` attributes to nodes
+2. **Attribute lists** — applies `{:...}` attributes to nodes (unified only)
 
 **Transform phase** (in order):
 
@@ -662,6 +653,7 @@ import { defineConfig } from 'astro/config'
 export default defineConfig({
   integrations: [
     mdxKit({
+      // Unified processor only — ignored (with a warning) on Sätteri
       attributes: true,
       captionImages: true,
       directives: {

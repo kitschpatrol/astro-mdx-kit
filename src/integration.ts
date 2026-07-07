@@ -8,9 +8,6 @@ import type { MdxKitOptions } from './types.js'
 import { SKIP_PARSER_EXTENSIONS } from './internal.js'
 import remarkMdxKitPlugin from './remark-plugin.js'
 import { satteriMdxKit } from './satteri-plugin.js'
-import { escapeMdxAttributeLists } from './utils/attribute-list.js'
-
-const MDX_FILE_REGEX = /\.mdx(?:\?|$)/v
 
 /**
  * Astro integration for astro-mdx-kit.
@@ -20,8 +17,8 @@ const MDX_FILE_REGEX = /\.mdx(?:\?|$)/v
  * - On the default Sätteri processor (`satteri()` from
  *   `@astrojs/markdown-satteri`), the Sätteri MDAST plugins from
  *   `satteriMdxKit()` are registered and the `directive` parser feature is
- *   enabled when directives are configured. With `attributes` enabled, a Vite
- *   transform escapes attribute lists in `.mdx` sources before MDX parsing.
+ *   enabled when directives are configured. The `attributes` option is not
+ *   supported on Sätteri — enabling it logs a warning.
  * - On the unified processor (`unified()` from `@astrojs/markdown-remark`), the
  *   `remarkMdxKitPlugin` remark plugin is registered.
  *
@@ -40,7 +37,7 @@ const MDX_FILE_REGEX = /\.mdx(?:\?|$)/v
 export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 	return {
 		hooks: {
-			'astro:config:setup'({ config, logger, updateConfig }) {
+			'astro:config:setup'({ config, logger }) {
 				// Astro always sets `config.markdown.processor` (defaulting to
 				// `satteri()` in Astro 7), and preserves its reference identity
 				// across config merges — pushing onto its options is the supported
@@ -48,32 +45,7 @@ export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 				const { processor } = config.markdown
 
 				if (isSatteriProcessor(processor)) {
-					if (options.attributes) {
-						// Sätteri's MDX parser treats `{:...}` as an (invalid) expression.
-						// Escape valid attribute lists to literal text before the MDX
-						// Vite plugin runs; the Sätteri attributes plugin picks them up
-						// from text nodes. Plain markdown needs no escaping.
-						updateConfig({
-							vite: {
-								plugins: [
-									{
-										enforce: 'pre',
-										name: 'astro-mdx-kit:attribute-escape',
-										transform(code, id) {
-											if (!MDX_FILE_REGEX.test(id)) {
-												return
-											}
-
-											const escaped = escapeMdxAttributeLists(code)
-											// eslint-disable-next-line unicorn/no-null -- Vite's transform API uses null for "no sourcemap"
-											return escaped === code ? undefined : { code: escaped, map: null }
-										},
-									},
-								],
-							},
-						})
-					}
-
+					// `satteriMdxKit` warns if the (unsupported) `attributes` option is set
 					if (options.directives && Object.keys(options.directives).length > 0) {
 						processor.options.features.directive = true
 					}

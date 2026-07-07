@@ -226,6 +226,11 @@ export type MdxKitOptions = {
 	 * `{:key="value"}`, `{:.class}`, `{:#id}` syntax. Uses
 	 * `remark-attribute-list` under the hood.
 	 *
+	 * Only supported on the unified processor (`unified()` from
+	 * `@astrojs/markdown-remark`) — Sätteri's parser has no custom syntax
+	 * extensions, so on the (default) Sätteri processor this option logs a
+	 * warning and is ignored.
+	 *
 	 * Compatible with directive syntax — both can be used simultaneously.
 	 *
 	 * @example

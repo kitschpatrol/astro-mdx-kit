@@ -18,20 +18,11 @@ function resolveKey(option: string | true, defaultKey: string): string {
  *
  * @param rawMdx - `true` to inject as `frontmatter.rawMdx`, or a string to use
  *   a custom property name.
- * @param unescapeAttributeLists - When the `attributes` option is enabled,
- *   `.mdx` sources reach Sätteri with attribute lists escaped (`\{:`); pass
- *   `true` to restore the original syntax in the injected value.
  */
-export function createSatteriRawMdxInjectPlugin(
-	rawMdx: string | true,
-	unescapeAttributeLists = false,
-): MdastPluginDefinition {
+export function createSatteriRawMdxInjectPlugin(rawMdx: string | true): MdastPluginDefinition {
 	const key = resolveKey(rawMdx, DEFAULT_RAW_MDX_KEY)
 	return createFireOncePlugin('astro-mdx-kit:frontmatter-raw-mdx', (_root, context) => {
-		const source = unescapeAttributeLists
-			? context.source.replaceAll(String.raw`\{\:`, '{:')
-			: context.source
-		setSatteriFrontmatter(context, key, source)
+		setSatteriFrontmatter(context, key, context.source)
 	})
 }
 

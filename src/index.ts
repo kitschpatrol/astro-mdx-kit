@@ -28,7 +28,7 @@ export { astroImage, astroPicture, tldrawDarkImport } from './presets.js'
 // Remark plugin factory (typed tuple helper)
 export { remarkMdxKit } from './remark-plugin.js'
 // Sätteri plugin factory (for Astro 7's default Sätteri processor)
-export { escapeMdxAttributeLists, satteriMdxKit } from './satteri-plugin.js'
+export { satteriMdxKit } from './satteri-plugin.js'
 
 // Types
 export type {

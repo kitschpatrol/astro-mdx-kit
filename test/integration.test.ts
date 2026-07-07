@@ -3,8 +3,9 @@
 
 import { unified } from '@astrojs/markdown-remark'
 import { satteri } from '@astrojs/markdown-satteri'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import mdxKit from '../src/integration'
+import { setLogger } from '../src/log'
 
 const noop = () => {}
 
@@ -41,6 +42,11 @@ function createMockHookParams(processor: unknown, onWarn: (message: string) => v
 }
 
 describe('mdxKit integration', () => {
+	afterEach(() => {
+		// Reset the injected logger so cross-test state doesn't leak
+		setLogger()
+	})
+
 	it('returns an AstroIntegration with correct name', () => {
 		const integration = mdxKit({})
 		expect(integration.name).toBe('astro-mdx-kit')
@@ -128,40 +134,32 @@ describe('mdxKit integration', () => {
 		expect(processor.options.mdastPlugins[0]).toBe(existingSatteriPlugin)
 	})
 
-	it('registers the attribute-escape vite plugin and attributes plugin on satteri', () => {
+	it('warns and ignores the attributes option on satteri', () => {
+		const sink = {
+			debug: vi.fn(),
+			error: vi.fn(),
+			info: vi.fn(),
+			trace: vi.fn(),
+			warn: vi.fn(),
+		}
+		setLogger(sink)
+
 		const integration = mdxKit({
 			attributes: true,
 			elements: { h1: 'src/Heading.astro' },
 		})
 
-		const updates: unknown[] = []
 		const processor = satteri()
-		const parameters = createMockHookParams(processor) as {
-			updateConfig: (config: unknown) => void
-		}
-		parameters.updateConfig = (config: unknown) => {
-			updates.push(config)
-		}
+		void integration.hooks['astro:config:setup']!(createMockHookParams(processor))
 
-		void integration.hooks['astro:config:setup']!(parameters as never)
+		expect(sink.warn).toHaveBeenCalledOnce()
+		expect(sink.warn.mock.calls[0]?.[0]).toContain('`attributes`')
 
-		// Attributes plugin + components-export merge and inject passes
-		expect(processor.options.mdastPlugins.length).toBe(3)
-		expect(processor.options.mdastPlugins[0]?.name).toBe('astro-mdx-kit:attributes')
-
-		const viteUpdate = updates[0] as {
-			vite?: { plugins?: Array<{ name: string; transform: (code: string, id: string) => unknown }> }
-		}
-		const plugin = viteUpdate.vite?.plugins?.[0]
-		expect(plugin?.name).toBe('astro-mdx-kit:attribute-escape')
-
-		// The transform escapes .mdx sources and leaves other files alone
-		expect(plugin?.transform('![a](x){:.zoom}', '/page.mdx')).toEqual({
-			code: String.raw`![a](x)\{\:.zoom}`,
-			// eslint-disable-next-line unicorn/no-null -- Vite's transform API uses null for "no sourcemap"
-			map: null,
-		})
-		expect(plugin?.transform('![a](x){:.zoom}', '/page.md')).toBeUndefined()
+		// Only the components-export merge and inject passes — no attributes plugin
+		expect(processor.options.mdastPlugins.length).toBe(2)
+		expect(
+			processor.options.mdastPlugins.some((plugin) => plugin.name.includes('attributes')),
+		).toBe(false)
 	})
 
 	it('warns and registers nothing on an unknown processor', () => {

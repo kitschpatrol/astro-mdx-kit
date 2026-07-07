@@ -3,7 +3,6 @@ import type { MdxKitOptions } from './types.js'
 import type { ResolvedComponentConfig } from './utils/resolve-config.js'
 import { isFrontmatterKeyEnabled } from './internal.js'
 import { log } from './log.js'
-import { createSatteriAttributesPlugin } from './plugins/satteri-attributes.js'
 import { createSatteriCaptionImagesPlugin } from './plugins/satteri-caption-images.js'
 import { createSatteriDirectivesPlugin } from './plugins/satteri-directives.js'
 import { createSatteriElementsPlugins } from './plugins/satteri-elements.js'
@@ -14,8 +13,6 @@ import {
 import { createSatteriUnwrapImagesPlugin } from './plugins/satteri-unwrap-images.js'
 import { createSatteriUnwrapPhrasingPlugin } from './plugins/satteri-unwrap-phrasing.js'
 import { resolveComponentConfig, resolveElementConfig } from './utils/resolve-config.js'
-
-export { escapeMdxAttributeLists } from './utils/attribute-list.js'
 
 /**
  * Build the ordered list of Sätteri MDAST plugins for astro-mdx-kit.
@@ -41,10 +38,9 @@ export { escapeMdxAttributeLists } from './utils/attribute-list.js'
  * 	},
  * 	})
  *
- * 	Note: with `attributes` enabled, `.mdx` sources must have their attribute
- * 	lists escaped (`{:` → `\{:`) before MDX parsing — the Astro integration does
- * 	this via a Vite transform; standalone users can call
- * 	`escapeMdxAttributeLists`. Plain markdown needs no escaping.
+ * 	Note: the `attributes` option is not supported on Sätteri (its parser has no
+ * 	custom syntax extensions) — enabling it logs a warning and is otherwise
+ * 	ignored. Use the unified processor for attribute lists.
  */
 export function satteriMdxKit(options: MdxKitOptions = {}): MdastPluginDefinition[] {
 	const {
@@ -57,6 +53,12 @@ export function satteriMdxKit(options: MdxKitOptions = {}): MdastPluginDefinitio
 		unwrapImages,
 		unwrapPhrasingContent,
 	} = options
+
+	if (attributes) {
+		log.warn(
+			'The `attributes` option is not supported on the Sätteri processor and will be ignored. Attribute lists (`{:...}`) require the `unified()` processor from `@astrojs/markdown-remark`. Native Sätteri attribute support is tracked in https://github.com/bruits/satteri/issues/139',
+		)
+	}
 
 	// ---------------------------------------------------------------------------
 	// Pre-resolve configs
@@ -86,14 +88,8 @@ export function satteriMdxKit(options: MdxKitOptions = {}): MdastPluginDefinitio
 
 	const plugins: MdastPluginDefinition[] = []
 
-	// Attributes run first, matching the unified pipeline where
-	// remark-attribute-list applies at parse time before all transforms.
-	if (attributes) {
-		plugins.push(createSatteriAttributesPlugin())
-	}
-
 	if (isFrontmatterKeyEnabled(rawMdx)) {
-		plugins.push(createSatteriRawMdxInjectPlugin(rawMdx, attributes ?? false))
+		plugins.push(createSatteriRawMdxInjectPlugin(rawMdx))
 	}
 
 	if (Object.keys(resolvedDirectives).length > 0) {

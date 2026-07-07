@@ -8,6 +8,7 @@ import { defineConfig } from 'astro/config'
 export default defineConfig({
 	integrations: [
 		mdxKit({
+			// Not supported on Sätteri — exercises the warning
 			attributes: true,
 			captionImages: true,
 			directives: {
