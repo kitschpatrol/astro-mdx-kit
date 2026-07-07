@@ -192,7 +192,7 @@ describe('remarkMdxKitElements — autoImport (direct AST transform)', () => {
 		expect(findEsm(tree.children)).toHaveLength(1)
 	})
 
-	it('forwards data.hProperties from remark-attribute-list as JSX attributes', () => {
+	it('forwards data.hProperties from remark-attributes as JSX attributes', () => {
 		const image: Image = {
 			alt: 'Photo',
 			data: { hProperties: { loading: 'eager', zoom: 'true' } },

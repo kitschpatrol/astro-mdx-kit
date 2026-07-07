@@ -46,4 +46,4 @@ export type {
 } from './types.js'
 
 // Individual sub-plugins for standalone use in any remark pipeline
-export { default as remarkMdxKitAttributes } from 'remark-attribute-list'
+export { default as remarkMdxKitAttributes } from 'remark-attributes'

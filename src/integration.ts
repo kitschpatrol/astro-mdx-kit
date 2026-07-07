@@ -2,7 +2,7 @@ import type { RemarkPlugins } from '@astrojs/markdown-remark'
 import type { AstroIntegration } from 'astro'
 import { isUnifiedProcessor } from '@astrojs/markdown-remark'
 import { isSatteriProcessor } from '@astrojs/markdown-satteri'
-import remarkAttributeList from 'remark-attribute-list'
+import remarkAttributes from 'remark-attributes'
 import remarkDirective from 'remark-directive'
 import type { MdxKitOptions } from './types.js'
 import { SKIP_PARSER_EXTENSIONS } from './internal.js'
@@ -62,7 +62,10 @@ export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 					const remarkPlugins: RemarkPlugins = []
 
 					if (options.attributes) {
-						remarkPlugins.push(remarkAttributeList)
+						// `mdx: true` uses the escaped `\{...\}` syntax, which is required in
+						// MDX (unescaped braces are MDX expressions) and also works in plain
+						// Markdown — one uniform syntax for both pipelines.
+						remarkPlugins.push([remarkAttributes, { mdx: true }])
 					}
 
 					if (options.directives && Object.keys(options.directives).length > 0) {

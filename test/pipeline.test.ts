@@ -40,25 +40,26 @@ function findEsm(tree: Root): MdxjsEsm[] {
 }
 
 describe('attributes option (T3 — end-to-end)', () => {
-	it('does not parse {:key="value"} when attributes is false', () => {
-		const tree = parse('A paragraph.\n{:.highlight}\n', {})
-		// Without attribute-list parsing the `{:.highlight}` survives as plain text
+	it(String.raw`does not parse \{key="value"\} when attributes is false`, () => {
+		const tree = parse('A paragraph.\n\\{.highlight\\}\n', {})
+		// Without attribute parsing the escaped braces survive as plain text
+		// (the backslashes are consumed as markdown character escapes)
 		const text = JSON.stringify(tree)
-		expect(text).toContain('{:.highlight}')
+		expect(text).toContain('{.highlight}')
 	})
 
-	it('attaches kramdown attributes to the preceding paragraph when attributes is true', () => {
-		const tree = transform('A paragraph.\n{:.highlight}\n', { attributes: true })
+	it('attaches attributes to the preceding paragraph when attributes is true', () => {
+		const tree = transform('A paragraph.\n\\{.highlight\\}\n', { attributes: true })
 
 		const paragraph = tree.children.find((c) => c.type === 'paragraph')
 		expect(paragraph).toBeDefined()
-		// Remark-attribute-list normalizes `{:.highlight}` into hProperties.className
+		// Remark-attributes normalizes `\{.highlight\}` into hProperties.class
 		const hProperties = paragraph?.data?.hProperties
-		expect(hProperties?.className).toBeDefined()
+		expect(hProperties?.class).toEqual(['highlight'])
 	})
 
-	it('attaches kramdown attributes inline to images', () => {
-		const tree = transform('![alt](./photo.jpg){:data-lightbox="true"}\n', {
+	it('attaches attributes inline to images', () => {
+		const tree = transform('![alt](./photo.jpg)\\{data-lightbox="true"\\}\n', {
 			attributes: true,
 		})
 

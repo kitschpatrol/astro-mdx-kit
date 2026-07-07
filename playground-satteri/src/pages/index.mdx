@@ -45,13 +45,13 @@ Caption **with bold** and _italic_.
 
 ## Attributes
 
-**Note:** Attribute lists are not yet supported on the Sätteri processor ([bruits/satteri#139](https://github.com/bruits/satteri/issues/139)) — the `attributes` option logs a warning, and raw `{:...}` syntax fails Sätteri's MDX expression parsing, so the example is shown as a code block:
+**Note:** Attributes are not yet supported on the Sätteri processor ([bruits/satteri#139](https://github.com/bruits/satteri/issues/139)) — the `attributes` option logs a warning and the `\{...\}` syntax is not parsed, so the example is shown as a code block:
 
 ```md
 A paragraph with a class.
-{:.highlight}
+\{.highlight\}
 
-![Attributed image](../assets/test.jpeg){:data-zoom="true"}
+![Attributed image](../assets/test.jpeg)\{data-zoom="true"\}
 ```
 
 ## GFM

@@ -1,5 +1,5 @@
 import { cspellConfig } from '@kitschpatrol/cspell-config'
 
 export default cspellConfig({
-	words: ['satteri', 'sätteri', 'tomixy'],
+	words: ['manuelmeister', 'satteri', 'sätteri', 'tomixy'],
 })

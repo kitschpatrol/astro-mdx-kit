@@ -52,7 +52,7 @@ export function isStandaloneImage(paragraph: Parent, names: ReadonlySet<string>)
 /**
  * Build a JSX flow element replacing an MDAST `image` node, applying the
  * element override config's `autoImport` resolution and forwarding
- * `hProperties` attributes (e.g. from attribute-list syntax).
+ * `hProperties` attributes (e.g. from attribute syntax).
  *
  * @param node - The MDAST image node to convert.
  * @param config - The resolved `img` element override configuration.
@@ -69,7 +69,7 @@ export function buildImageJsxElement(
 	if (config.autoImports) {
 		// Build propValues: 'src' from node.url, plus string-valued hProperties.
 		// This lets each auto-import entry look up its own fromProp in the map
-		// (e.g. 'src' reads node.url, 'srcDark' reads {:srcDark="..."}).
+		// (e.g. 'src' reads node.url, 'srcDark' reads \{srcDark="..."\}).
 		const propValues: Record<string, string> = { src: node.url }
 		for (const [key, value] of Object.entries(hProperties)) {
 			if (typeof value === 'string') {
@@ -101,7 +101,7 @@ export function buildImageJsxElement(
 
 	// Add alt and title from the mdast node, but only when hProperties
 	// didn't already provide them (avoids duplicate attributes while
-	// letting explicit attribute syntax like {:alt="..."} take precedence).
+	// letting explicit attribute syntax like \{alt="..."\} take precedence).
 	if (typeof node.alt === 'string' && node.alt !== '' && !('alt' in hProperties)) {
 		attributes.push(createStringAttribute('alt', node.alt))
 	}

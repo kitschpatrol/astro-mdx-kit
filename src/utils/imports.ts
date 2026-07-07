@@ -163,7 +163,7 @@ type AutoImportResult = {
  * 2. **Derived entries** (with `transform`) run second, skipping any whose
  *    `toProp` was already resolved by a direct entry. Before applying the
  *    transform, checks whether `propValues` has an explicit value for `toProp`
- *    (e.g. from `{:srcDark="./explicit.png"}`), which takes priority over the
+ *    (e.g. from `\{srcDark="./explicit.png"\}`), which takes priority over the
  *    derived value.
  *
  * Priority: **direct entry > explicit propValues override > derived
@@ -230,7 +230,7 @@ export function resolveAutoImportAttributes(
 
 		// If propValues has an explicit value for the target prop (even though
 		// no direct entry claimed it), prefer it over the derived value. This
-		// lets e.g. {:srcDark="./explicit.png"} override a transform that
+		// lets e.g. \{srcDark="./explicit.png"\} override a transform that
 		// would derive srcDark from src.
 		if (entry.fromProp !== entry.toProp) {
 			const explicitValue = propValues[entry.toProp]
