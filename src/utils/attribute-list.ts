@@ -12,9 +12,11 @@
  * 2. Parses the literal `{:...}` text out of MDAST text nodes and applies the
  *    attributes with a Sätteri plugin (see `createSatteriAttributesPlugin`).
  *
- * The grammar matches what `remark-attribute-list` accepts: `.class`, `#id`,
- * and `key="value"` / `key='value'` tokens. Unquoted values are not valid —
- * such spans are left untouched, mirroring the remark behavior.
+ * The grammar is a conservative subset of what `remark-attribute-list` accepts:
+ * `.class`, `#id`, and `key="value"` / `key='value'` tokens. Unquoted values
+ * are not valid — such spans are left untouched, mirroring the remark behavior.
+ * Stricter than remark: names are limited to word characters and dashes (plus
+ * `:` in keys), and quoted values have no backslash escapes.
  */
 
 /**
@@ -150,6 +152,10 @@ export function parseAttributeList(source: string, start: number): ParsedAttribu
 
 const FENCE_OPEN_REGEX = /^ {0,3}(`{3,}|~{3,})/v
 
+// Sätteri accepts frontmatter fences with trailing whitespace, and CRLF
+// sources leave a trailing CR on every line after splitting on '\n'.
+const FRONTMATTER_FENCE_REGEX = /^---[ \t]*\r?$/v
+
 /**
  * Escape valid inline attribute lists in MDX source (`{:` → `\{\:`) so the MDX
  * parser treats them as literal text instead of failing to parse them as
@@ -170,17 +176,16 @@ export function escapeMdxAttributeLists(code: string): string {
 
 	let lineIndex = 0
 
-	// Skip a leading frontmatter block
-	if (lines[0] === '---') {
-		output.push(lines[0])
-		lineIndex = 1
-		while (lineIndex < lines.length) {
-			const line = lines[lineIndex]!
-			output.push(line)
-			lineIndex++
-			if (line === '---') {
-				break
-			}
+	// Skip a leading frontmatter block. An unclosed opening fence is not
+	// frontmatter (Sätteri parses it as a thematic break), so the content
+	// after it still needs escaping.
+	if (lines[0] !== undefined && FRONTMATTER_FENCE_REGEX.test(lines[0])) {
+		const closeIndex = lines.findIndex(
+			(line, index) => index > 0 && FRONTMATTER_FENCE_REGEX.test(line),
+		)
+		if (closeIndex !== -1) {
+			output.push(...lines.slice(0, closeIndex + 1))
+			lineIndex = closeIndex + 1
 		}
 	}
 

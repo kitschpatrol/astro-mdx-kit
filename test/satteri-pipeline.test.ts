@@ -129,6 +129,39 @@ describe('satteri elements', () => {
 		expect(exportCount).toBe(1)
 	})
 
+	it('merges into a multi-declarator components export', async () => {
+		const source = [
+			"import Quote from './Quote.astro'",
+			'',
+			'export const level = 2, components = { blockquote: Quote }',
+			'',
+			'# Title',
+			'',
+		].join('\n')
+		const result = await compileMdx(source, {
+			elements: { h1: 'src/components/Heading.astro' },
+		})
+
+		// Merged into the existing declarator — no separate injected export
+		expect(result.code).toContain('export const level = 2, components =')
+		expect(result.code).toContain('h1: _MdxKit_H1')
+		expect(result.code).toContain('blockquote: Quote')
+		expect(result.code).not.toContain('export const components')
+	})
+
+	it('does not inject a duplicate export when components is re-exported via a specifier', async () => {
+		const source = ["export { components } from './components-map.js'", '', '# Title', ''].join(
+			'\n',
+		)
+		const result = await compileMdx(source, {
+			elements: { h1: 'src/components/Heading.astro' },
+		})
+
+		// This form can't be merged into — the override is skipped (with a
+		// warning) rather than emitting a second, conflicting export
+		expect(result.code).not.toContain('export const components')
+	})
+
 	it('replaces markdown images with the component when autoImport is set', async () => {
 		const result = await compileMdx('![Alt text](./photo.jpg)\n', {
 			elements: {

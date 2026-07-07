@@ -77,6 +77,22 @@ describe('escapeMdxAttributeLists', () => {
 	it('does not double-escape already escaped lists', () => {
 		expect(escapeMdxAttributeLists(String.raw`\{:.x}`)).toBe(String.raw`\{:.x}`)
 	})
+
+	it('recognizes frontmatter fences with trailing whitespace', () => {
+		const escaped = escapeMdxAttributeLists('---\ntitle: x\n--- \n\nBody {:.y}\n')
+		expect(escaped).toContain('title: x')
+		expect(escaped).toContain(String.raw`Body \{\:.y}`)
+	})
+
+	it('recognizes frontmatter fences in CRLF sources', () => {
+		const escaped = escapeMdxAttributeLists('---\r\ntitle: "{:.x}"\r\n---\r\n\r\nBody {:.y}\r\n')
+		expect(escaped).toContain('title: "{:.x}"')
+		expect(escaped).toContain(String.raw`Body \{\:.y}`)
+	})
+
+	it('treats an unclosed opening fence as content, not frontmatter', () => {
+		expect(escapeMdxAttributeLists('---\nBody {:.y}\n')).toContain(String.raw`Body \{\:.y}`)
+	})
 })
 
 describe('satteri attributes in markdown', () => {
@@ -110,6 +126,41 @@ describe('satteri attributes in markdown', () => {
 		const html = await compileMd('Some *em*{:.e} and **strong**{:.s} text.\n')
 		expect(html).toContain('<em class="e">')
 		expect(html).toContain('<strong class="s">')
+	})
+
+	it('applies stacked standalone IALs to the previous block', async () => {
+		const html = await compileMd('# Title\n{:.a}\n{:.b}\n')
+		expect(html).toContain('<h1 class="a b">')
+		expect(html).not.toContain('<p')
+		expect(html).not.toContain('{:')
+	})
+
+	it('applies stacked trailing own-line IALs to the paragraph', async () => {
+		const html = await compileMd('A paragraph.\n{:.a}\n{:.b}\n')
+		expect(html).toContain('<p class="a b">A paragraph.</p>')
+	})
+
+	it('applies stacked leading own-line IALs to the paragraph', async () => {
+		const html = await compileMd('{:.a}\n{:.b}\nA paragraph.\n')
+		expect(html).toContain('<p class="a b">A paragraph.</p>')
+	})
+
+	it('applies chained IALs after an inline element', async () => {
+		const html = await compileMd('Some *em*{:.a}{:.b} text.\n')
+		expect(html).toContain('<em class="a b">em</em>')
+	})
+
+	it('consumes same-line extras after an own-line IAL without applying them', async () => {
+		const html = await compileMd('A paragraph.\n{:.a} {:.b}\n')
+		expect(html).toContain('<p class="a">A paragraph.</p>')
+		expect(html).not.toContain('{:')
+	})
+
+	it('leaves no residue when consuming orphan stacked IALs', async () => {
+		const html = await compileMd('A paragraph.\n\n{:.a}\n{:.b}\n')
+		expect(html).toContain('<p>A paragraph.</p>')
+		expect(html).not.toContain('class=')
+		expect(html).not.toContain('{:')
 	})
 
 	it('consumes same-line and mid-text IALs without applying them', async () => {

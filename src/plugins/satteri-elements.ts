@@ -22,8 +22,18 @@ const TRANSFORM_PLUGIN = 'astro-mdx-kit:elements'
 const EXPORT_MERGE_PLUGIN = 'astro-mdx-kit:elements-components-merge'
 const EXPORT_INJECT_PLUGIN = 'astro-mdx-kit:elements-components-inject'
 
-const COMPONENTS_EXPORT_OPEN_REGEX = /export\s+(?:const|let|var)\s+components\s*=\s*\{/v
-const COMPONENTS_EXPORT_REGEX = /export\s+(?:const|let|var)\s+components\b/v
+// Mergeable form: a `components` declarator (possibly not the first in a
+// multi-declarator export) initialized with an object literal.
+const COMPONENTS_EXPORT_OPEN_REGEX =
+	/export\s+(?:const|let|var)\s+(?:[^\s;][^;]*?,\s*)?components\s*=\s*\{/v
+
+// Any exported `components` binding: a declaration (including multi-declarator
+// forms) or an export specifier (`export { components }`). Detection must err
+// broad — a missed binding means the inject pass emits a duplicate export,
+// which is invalid JS.
+const COMPONENTS_EXPORT_DECLARATION_REGEX =
+	/export\s+(?:const|let|var)\s+(?:[^\s;][^;]*?,\s*)?components\s*[,=]/v
+const COMPONENTS_EXPORT_SPECIFIER_REGEX = /export\s*\{[^\}]*\bcomponents\b[^\}]*\}/v
 
 /**
  * Create Sätteri MDAST plugins that map HTML elements to custom components.
@@ -227,7 +237,10 @@ function createExportMergePlugin(
 				return
 			}
 
-			if (!COMPONENTS_EXPORT_REGEX.test(node.value)) {
+			if (
+				!COMPONENTS_EXPORT_DECLARATION_REGEX.test(node.value) &&
+				!COMPONENTS_EXPORT_SPECIFIER_REGEX.test(node.value)
+			) {
 				return
 			}
 
@@ -235,7 +248,7 @@ function createExportMergePlugin(
 
 			if (!COMPONENTS_EXPORT_OPEN_REGEX.test(node.value)) {
 				log.warn(
-					'Found an existing `components` export whose value is not an object literal — ' +
+					'Found an existing `components` export that is not an object-literal declaration — ' +
 						'element overrides configured via astro-mdx-kit will not be merged into it. ' +
 						'Use an object literal (`export const components = { ... }`) to combine both.',
 				)

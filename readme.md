@@ -52,7 +52,7 @@ mdxKit({
 
 It's not necessarily pretty, but it _is_ comparatively decoupled and portable.
 
-In addition to support for mapping directives to, `astro-mdx-kit` bundles some additional tools I end up needing most of the time:
+In addition to support for mapping directives to components, `astro-mdx-kit` bundles some additional tools I end up needing most of the time:
 
 - **Directives**\
   Map Markdown directive syntax (`:name`, `::name`, `:::name`) to Astro components.
@@ -73,7 +73,7 @@ In addition to support for mapping directives to, `astro-mdx-kit` bundles some a
 
 Available as an Astro integration, a standalone remark plugin, or as individual sub-plugins for use in any unified pipeline.
 
-Astro's architecture (currently) means that this syntax still must live in a `.mdx` file instead of `.md`, but it can still help the long term portability your Markdown content to use platform-agnostic syntax like directives instead of importing and marking up concrete components.
+Astro's architecture (currently) means that this syntax still must live in a `.mdx` file instead of `.md`, but it can still help the long term portability of your Markdown content to use platform-agnostic syntax like directives instead of importing and marking up concrete components.
 
 ## Getting started
 
@@ -557,6 +557,13 @@ Attribute lists work with element overrides — when a Markdown element is repla
 Compatible with directive syntax — both can be used simultaneously in the same file, but using both directive and attribute list syntax on the same element is redundant and not supported.
 
 On the unified processor, attribute lists are parsed by [`remark-attribute-list`](https://github.com/utelecon/remark-attribute-list). On the Sätteri processor, the integration escapes attribute lists in `.mdx` sources (Sätteri's MDX parser would otherwise reject `{:...}` as an invalid expression) and applies them with a Sätteri plugin that mirrors the remark behavior. Kramdown [attribute list definitions](https://kramdown.gettalong.org/syntax.html#attribute-list-definitions) (`{:name: ...}` references) are not supported on the Sätteri processor.
+
+The escape-based Sätteri implementation has some additional limitations relative to the unified processor:
+
+- There is no way to render a literal `{:...}` span: escaping it as `\{:...}` works on the unified processor, but on Sätteri the attribute list is still consumed after markdown unescapes the backslash.
+- An attribute list directly following inline JSX (e.g. `<span>hi</span>{:.x}`) is applied on the unified processor but dropped on Sätteri.
+- The escaper scans line by line, so code fences nested inside blockquotes or lists (and `{:...}` inside JSX attribute strings) may render with stray backslashes.
+- The accepted grammar is slightly stricter than remark's: quoted values have no backslash escapes, and class and key names are limited to word characters and dashes.
 
 Sätteri currently only parses attributes natively on headings and directives; universal attribute handling is requested in [bruits/satteri#139](https://github.com/bruits/satteri/issues/139). If that lands, this escape-based implementation could be retired in favor of the native parser feature (note the proposed syntax is `{...}` without the Kramdown colon, so migration would involve a syntax change).
 
