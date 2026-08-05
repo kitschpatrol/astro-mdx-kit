@@ -156,11 +156,12 @@ describe('remarkMdxKitUnwrapImages', () => {
 		unwrap(tree)
 
 		const blockquote = tree.children.at(0)
-		expect(blockquote?.type).toBe('blockquote')
-		if (blockquote?.type === 'blockquote') {
-			expect(blockquote.children).toHaveLength(1)
-			expect(blockquote.children.at(0)?.type).toBe('image')
+		if (blockquote?.type !== 'blockquote') {
+			throw new Error('Expected blockquote')
 		}
+
+		expect(blockquote.children).toHaveLength(1)
+		expect(blockquote.children.at(0)?.type).toBe('image')
 	})
 
 	it('unwraps stand-alone images nested inside a list item', () => {
@@ -184,13 +185,17 @@ describe('remarkMdxKitUnwrapImages', () => {
 		unwrap(tree)
 
 		const list = tree.children.at(0)
-		if (list?.type === 'list') {
-			const item = list.children.at(0)
-			if (item?.type === 'listItem') {
-				expect(item.children).toHaveLength(1)
-				expect(item.children.at(0)?.type).toBe('image')
-			}
+		if (list?.type !== 'list') {
+			throw new Error('Expected list')
 		}
+
+		const item = list.children.at(0)
+		if (item?.type !== 'listItem') {
+			throw new Error('Expected listItem')
+		}
+
+		expect(item.children).toHaveLength(1)
+		expect(item.children.at(0)?.type).toBe('image')
 	})
 
 	it('handles multiple stand-alone images', () => {

@@ -19,6 +19,7 @@ publicHoistPattern:
 allowBuilds:
   esbuild: true
   sharp: true
+  oxc-resolver: true
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - '@astrojs/*'

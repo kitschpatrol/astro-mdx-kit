@@ -73,11 +73,12 @@ describe('remarkMdxKitDirectives', () => {
 		runPlugin(tree, Object.fromEntries([['Highlight', 'src/components/Highlight.astro']]))
 
 		const paragraph = tree.children.find((c) => c.type === 'paragraph')
-		expect(paragraph).toBeDefined()
-		if (paragraph?.type === 'paragraph') {
-			const textJsx = paragraph.children.find((c) => c.type === 'mdxJsxTextElement')
-			expect(textJsx).toBeDefined()
+		if (paragraph?.type !== 'paragraph') {
+			throw new Error('Expected paragraph')
 		}
+
+		const textJsx = paragraph.children.find((c) => c.type === 'mdxJsxTextElement')
+		expect(textJsx).toBeDefined()
 	})
 
 	it('transforms a container directive preserving children', () => {

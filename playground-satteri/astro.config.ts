@@ -3,8 +3,6 @@ import mdx from '@astrojs/mdx'
 import mdxKit from 'astro-mdx-kit'
 import { defineConfig } from 'astro/config'
 
-process.env.BROWSER = 'chromium'
-
 export default defineConfig({
 	integrations: [
 		mdxKit({

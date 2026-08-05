@@ -28,20 +28,21 @@ describe('tldrawDarkImport preset', () => {
 	})
 
 	it('appends ?dark=true&tldr to a bare .tldr path', () => {
-		expect(typeof tldrawDarkImport === 'object' && tldrawDarkImport.transform).toBeTypeOf(
-			'function',
-		)
-		if (typeof tldrawDarkImport === 'object' && tldrawDarkImport.transform) {
-			expect(tldrawDarkImport.transform('./sketch.tldr')).toBe('./sketch.tldr?dark=true&tldr')
+		if (typeof tldrawDarkImport !== 'object' || !tldrawDarkImport.transform) {
+			throw new Error('Expected tldrawDarkImport to have a transform function')
 		}
+
+		expect(tldrawDarkImport.transform('./sketch.tldr')).toBe('./sketch.tldr?dark=true&tldr')
 	})
 
 	it('appends with & when the path already has a query string', () => {
-		if (typeof tldrawDarkImport === 'object' && tldrawDarkImport.transform) {
-			expect(tldrawDarkImport.transform('./sketch.tldr?foo=1')).toBe(
-				'./sketch.tldr?foo=1&dark=true&tldr',
-			)
+		if (typeof tldrawDarkImport !== 'object' || !tldrawDarkImport.transform) {
+			throw new Error('Expected tldrawDarkImport to have a transform function')
 		}
+
+		expect(tldrawDarkImport.transform('./sketch.tldr?foo=1')).toBe(
+			'./sketch.tldr?foo=1&dark=true&tldr',
+		)
 	})
 
 	it('returns undefined for non-.tldr paths', () => {

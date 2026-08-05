@@ -85,7 +85,6 @@ describe('resolveComponentConfig', () => {
 	})
 
 	it('resolves autoImport array with transform entry', () => {
-		// eslint-disable-next-line unicorn/consistent-function-scoping
 		const transform = (path: string) => (path.endsWith('.tldr') ? `${path}?dark=true` : undefined)
 		const result = resolveComponentConfig('Picture', {
 			autoImport: ['src', { from: 'src', to: 'srcDark', transform }],

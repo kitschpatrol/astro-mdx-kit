@@ -25,7 +25,7 @@
 		"./playground-satteri/.astro/types.d.ts",
 		"./playground-unified/.astro/types.d.ts"
 	],
-	"exclude": ["**/dist/", "**/bin/"],
+	"exclude": ["**/dist/"],
 	"mdx": {
 		"plugins": ["remark-directive", "remark-attribute-list"]
 	}

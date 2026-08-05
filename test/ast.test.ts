@@ -94,10 +94,11 @@ describe('mergeIntoComponentsExport', () => {
 
 		const someDeclaration = declaration.declarations.at(0)
 
-		expect(someDeclaration?.init?.type).toBe('ObjectExpression')
-		if (someDeclaration?.init?.type === 'ObjectExpression') {
-			expect(someDeclaration.init.properties).toHaveLength(2)
+		if (someDeclaration?.init?.type !== 'ObjectExpression') {
+			throw new Error('Expected ObjectExpression')
 		}
+
+		expect(someDeclaration.init.properties).toHaveLength(2)
 	})
 
 	it('returns false if no components export found', () => {

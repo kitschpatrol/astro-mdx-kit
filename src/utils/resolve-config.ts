@@ -219,7 +219,7 @@ export function resolveComponentConfig(
  * @returns A resolved config ready for use by the element transform.
  */
 export function resolveElementConfig(name: string, config: ElementConfig): ResolvedComponentConfig {
-	if (typeof config !== 'string' && config.caption !== undefined && name !== 'img') {
+	if (name !== 'img' && typeof config !== 'string' && config.caption !== undefined) {
 		log.warn(
 			`Element override "${name}" has a \`caption\` config, but captions only apply to \`img\` elements. The \`caption\` option will be ignored.`,
 		)
