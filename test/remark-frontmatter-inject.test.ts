@@ -18,9 +18,7 @@ function makeFile(content: string): VFile {
 }
 
 function getFrontmatter(file: VFile): Record<string, unknown> {
-	const astro = file.data.astro as Record<string, unknown> | undefined
-	const frontmatter = astro?.frontmatter as Record<string, unknown> | undefined
-	return frontmatter ?? {}
+	return file.data.astro?.frontmatter ?? {}
 }
 
 describe('createFrontmatterInjectTransform', () => {
