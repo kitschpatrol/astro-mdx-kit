@@ -1,17 +1,10 @@
 {
-	"extends": "@kitschpatrol/typescript-config",
+	"extends": "@kitschpatrol/typescript-config/astro",
 	"compilerOptions": {
-		// Additions and changes from Astro's strictest tsconfig
-		// vs. the extended @kitschpatrol/typescript-config
-		"target": "ESNext",
-		"jsx": "preserve",
-		"allowUnusedLabels": false,
-		"exactOptionalPropertyTypes": true,
-		"noImplicitOverride": true,
-		"noImplicitReturns": true,
-		"noUncheckedIndexedAccess": true,
-		"esModuleInterop": true,
-		"verbatimModuleSyntax": true
+		// Additions from Astro's strictest tsconfig
+		// vs. the extended @kitschpatrol/typescript-config/astro
+		"types": ["node", "unist", "estree", "mdast"],
+		"allowUnusedLabels": false
 	},
 	// Includes project dot-files files for typescript-eslint integration
 	"include": [
