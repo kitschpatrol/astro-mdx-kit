@@ -11,6 +11,7 @@ const SRC_ATTRIBUTE_REGEX = /src: _mdxKitAsset\w+/v
 const H1_MAPPING_REGEX = /h1: _MdxKit_H1/v
 const PICTURE_IN_PARAGRAPH_REGEX = /_components\.p, \{\s*children: _jsx\(Picture/v
 const PARAGRAPH_IN_SPAN_REGEX = /span[\s\S]*?_components\.p/v
+const SECTION_IN_BLOCK_REGEX = /_MdxKit_Block[\s\S]*?section[\s\S]*?Inside/v
 
 async function compileMdx(source: string, options: MdxKitOptions, data: Data = {}) {
 	return mdxToJs(source, {
@@ -342,5 +343,66 @@ describe('satteriMdxKit plugin list', () => {
 			'astro-mdx-kit:unwrap-images',
 			'astro-mdx-kit:frontmatter-mdast',
 		])
+	})
+})
+
+describe('satteri sectionize', () => {
+	it('wraps headings and content in nested <section> elements', async () => {
+		const source = 'Intro.\n\n# One\n\nAlpha\n\n## Two\n\nBeta\n\n# Three\n\nGamma\n'
+		const result = await markdownToHtml(source, {
+			mdastPlugins: satteriMdxKit({ sectionize: true }),
+		})
+
+		const html = result.html.replaceAll(/\s+/gv, '')
+		expect(html).toBe(
+			'<p>Intro.</p>' +
+				'<section><h1>One</h1><p>Alpha</p><section><h2>Two</h2><p>Beta</p></section></section>' +
+				'<section><h1>Three</h1><p>Gamma</p></section>',
+		)
+	})
+
+	it('sectionizes headings nested inside containers', async () => {
+		const source = '# One\n\nAlpha\n\n> ## Quoted\n>\n> Deep\n'
+		const result = await markdownToHtml(source, {
+			mdastPlugins: satteriMdxKit({ sectionize: true }),
+		})
+
+		const html = result.html.replaceAll(/\s+/gv, '')
+		expect(html).toBe(
+			'<section><h1>One</h1><p>Alpha</p>' +
+				'<blockquote><section><h2>Quoted</h2><p>Deep</p></section></blockquote>' +
+				'</section>',
+		)
+	})
+
+	it('sectionizes headings inside container directives in MDX', async () => {
+		const source = ':::Block\n## Inside\n\nContent\n:::\n'
+		const result = await compileMdx(source, {
+			directives: { Block: 'src/components/Block.astro' },
+			sectionize: true,
+		})
+
+		// The directive still becomes the mapped component, with a <section>
+		// wrapping the heading inside its children
+		expect(result.code).toContain('_MdxKit_Block')
+		expect(result.code).toMatch(SECTION_IN_BLOCK_REGEX)
+	})
+
+	it('leaves documents without headings unchanged', async () => {
+		const result = await markdownToHtml('Just a paragraph.\n', {
+			mdastPlugins: satteriMdxKit({ sectionize: true }),
+		})
+
+		expect(result.html).not.toContain('<section>')
+	})
+
+	it('composes with element overrides in MDX', async () => {
+		const result = await compileMdx('# Title\n\nBody\n', {
+			elements: { h1: 'src/components/Heading.astro' },
+			sectionize: true,
+		})
+
+		expect(result.code).toContain('_components.section')
+		expect(result.code).toMatch(H1_MAPPING_REGEX)
 	})
 })

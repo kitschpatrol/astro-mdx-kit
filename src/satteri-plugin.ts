@@ -10,6 +10,7 @@ import {
 	createSatteriMdastInjectPlugin,
 	createSatteriRawMdxInjectPlugin,
 } from './plugins/satteri-frontmatter-inject.js'
+import { createSatteriSectionizePlugin } from './plugins/satteri-sectionize.js'
 import { createSatteriUnwrapImagesPlugin } from './plugins/satteri-unwrap-images.js'
 import { createSatteriUnwrapPhrasingPlugin } from './plugins/satteri-unwrap-phrasing.js'
 import { resolveComponentConfig, resolveElementConfig } from './utils/resolve-config.js'
@@ -50,6 +51,7 @@ export function satteriMdxKit(options: MdxKitOptions = {}): MdastPluginDefinitio
 		elements,
 		mdast,
 		rawMdx,
+		sectionize,
 		unwrapImages,
 		unwrapPhrasingContent,
 	} = options
@@ -90,6 +92,10 @@ export function satteriMdxKit(options: MdxKitOptions = {}): MdastPluginDefinitio
 
 	if (isFrontmatterKeyEnabled(rawMdx)) {
 		plugins.push(createSatteriRawMdxInjectPlugin(rawMdx))
+	}
+
+	if (sectionize) {
+		plugins.push(createSatteriSectionizePlugin())
 	}
 
 	if (Object.keys(resolvedDirectives).length > 0) {

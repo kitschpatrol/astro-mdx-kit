@@ -309,6 +309,24 @@ export type MdxKitOptions = {
 	 */
 	rawMdx?: boolean | string
 	/**
+	 * Wrap each heading and its following content in a `<section>` element.
+	 *
+	 * Sections nest by heading depth: content under an `h2` becomes a `<section>`
+	 * inside the `h1`'s `<section>`, and so on. Sections end at the next heading
+	 * of equal or shallower depth.
+	 *
+	 * Uses [remark-sectionize](https://github.com/jake-low/remark-sectionize) on
+	 * the unified processor and an equivalent reimplementation on Sätteri.
+	 * Headings nested inside containers (block quotes, container directives) are
+	 * sectionized within their parent.
+	 *
+	 * Runs **before** directive and element transforms, so heading element
+	 * overrides still apply inside the generated sections.
+	 *
+	 * @default false
+	 */
+	sectionize?: boolean
+	/**
 	 * Remove the wrapping `<p>` element from stand-alone images.
 	 *
 	 * In standard markdown, `![alt](src)` on its own line produces `<p><img

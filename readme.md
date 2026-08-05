@@ -68,6 +68,8 @@ In addition to support for mapping directives to components, `astro-mdx-kit` bun
   Remove `<p>` wrappers from stand-alone images.
 - **Phrasing unwrapping**\
   Remove invalid `<p>` elements nested inside phrasing-only HTML elements like `<span>`, `<button>`, and `<label>`.
+- **Sectionizing**\
+  Wrap each heading and its content in nested `<section>` elements.
 - **Frontmatter injection**\
   Expose raw MDX source or the parsed AST tree in frontmatter.
 
@@ -202,6 +204,7 @@ import {
   remarkMdxKitDirectives, // MDX + Astro
   remarkMdxKitElements, // MDX + Astro
   remarkMdxKitFrontmatterInject, // Markdown or MDX + Astro
+  remarkMdxKitSectionize, // Markdown or MDX
   remarkMdxKitUnwrapImages, // Markdown or MDX
   remarkMdxKitUnwrapPhrasingContent, // MDX
 } from 'astro-mdx-kit'
@@ -592,6 +595,45 @@ With `unwrapPhrasingContent: true`, the `<p>` is replaced with its children, pro
 
 This targets all elements that cannot contain `<p>` per the HTML spec: `span`, `em`, `strong`, `small`, `s`, `cite`, `q`, `dfn`, `abbr`, `code`, `var`, `samp`, `kbd`, `sub`, `sup`, `i`, `b`, `u`, `mark`, `bdi`, `bdo`, `data`, `time`, `ruby`, `button`, `label`, and `output`. Elements with flow content models like `<div>` and `<a>` (transparent) are not affected.
 
+### Sectionize
+
+Wrap each heading and its following content in a `<section>` element:
+
+```ts
+mdxKit({
+  sectionize: true,
+})
+```
+
+**Markdown:**
+
+```md
+# One
+
+Alpha
+
+## Two
+
+Beta
+```
+
+**Output:**
+
+```html
+<section>
+  <h1>One</h1>
+  <p>Alpha</p>
+  <section>
+    <h2>Two</h2>
+    <p>Beta</p>
+  </section>
+</section>
+```
+
+Sections nest by heading depth and end at the next heading of equal or shallower depth. Sectionizing runs before directive and element transforms, so heading overrides configured via `elements` still apply inside the generated sections. On the Sätteri MDX pipeline, sections are emitted as `section` elements that participate in MDX's component mechanism — so a `section` element override also applies to them.
+
+Uses [remark-sectionize](https://github.com/jake-low/remark-sectionize) on the unified processor and an equivalent reimplementation on Sätteri. Headings nested inside containers — block quotes, container directives, JSX elements — are sectionized within their parent.
+
 ### Frontmatter injection
 
 Expose the raw MDX source or the parsed AST tree in frontmatter. Useful for debugging or in layouts and components:
@@ -635,12 +677,13 @@ The plugin processes content in two phases (on Sätteri, the directive parser is
 **Transform phase** (in order):
 
 1. **Raw MDX injection** — captures original source
-2. **Directive transforms** — converts directives to JSX components
-3. **Element overrides** — replaces HTML elements with components (per-element captions handled here)
-4. **Global image captions** — wraps remaining captioned images in `<figure>`
-5. **Unwrap phrasing** — removes `<p>` from inside phrasing-only elements
-6. **Unwrap images** — removes `<p>` from stand-alone images
-7. **MDAST injection** — captures the transformed tree
+2. **Sectionize** — wraps headings and their content in `<section>` elements
+3. **Directive transforms** — converts directives to JSX components
+4. **Element overrides** — replaces HTML elements with components (per-element captions handled here)
+5. **Global image captions** — wraps remaining captioned images in `<figure>`
+6. **Unwrap phrasing** — removes `<p>` from inside phrasing-only elements
+7. **Unwrap images** — removes `<p>` from stand-alone images
+8. **MDAST injection** — captures the transformed tree
 
 ## Full configuration example
 
@@ -679,6 +722,7 @@ export default defineConfig({
       },
       mdast: true,
       rawMdx: true,
+      sectionize: true,
       unwrapImages: true,
       unwrapPhrasingContent: true,
     }),

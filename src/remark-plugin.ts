@@ -10,6 +10,7 @@ import type { VFile } from 'vfile'
 import { directiveFromMarkdown } from 'mdast-util-directive'
 import { directive } from 'micromark-extension-directive'
 import remarkAttributeList from 'remark-attribute-list'
+import remarkSectionize from 'remark-sectionize'
 import type { MdxKitOptions } from './types.js'
 import type { ResolvedComponentConfig } from './utils/resolve-config.js'
 import { isFrontmatterKeyEnabled, SKIP_PARSER_EXTENSIONS } from './internal.js'
@@ -53,6 +54,7 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 		elements,
 		mdast,
 		rawMdx,
+		sectionize,
 		unwrapImages,
 		unwrapPhrasingContent,
 	} = options
@@ -113,6 +115,23 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 
 	if (isFrontmatterKeyEnabled(rawMdx)) {
 		transforms.push(createFrontmatterInjectTransform({ rawMdx }))
+	}
+
+	if (sectionize) {
+		// Runs before directive and element transforms so headings are still
+		// `heading` nodes when sections are computed. remark-sectionize's factory
+		// takes no options and ignores the processor, so its transformer can be
+		// pulled into the ordered transform list instead of registered via
+		// `use()` (which would append it after all astro-mdx-kit transforms).
+		// eslint-disable-next-line unicorn/no-this-outside-of-class -- unified plugins receive the processor as `this`
+		const sectionizeTransform = remarkSectionize.call(this)
+		if (typeof sectionizeTransform === 'function') {
+			transforms.push((tree, file) => {
+				void sectionizeTransform(tree, file, () => {
+					// Synchronous transform — the `next` callback is never called
+				})
+			})
+		}
 	}
 
 	if (Object.keys(resolvedDirectives).length > 0) {

@@ -47,3 +47,4 @@ export type {
 
 // Individual sub-plugins for standalone use in any remark pipeline
 export { default as remarkMdxKitAttributes } from 'remark-attribute-list'
+export { default as remarkMdxKitSectionize } from 'remark-sectionize'

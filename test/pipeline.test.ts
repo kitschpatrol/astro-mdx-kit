@@ -123,3 +123,37 @@ describe('transform composition (T4 — end-to-end)', () => {
 		expect(text).toContain('export const components')
 	})
 })
+
+describe('sectionize option', () => {
+	it('wraps each heading and its content in nested sections', () => {
+		const tree = transform('Intro.\n\n# One\n\nAlpha\n\n## Two\n\nBeta\n\n# Three\n\nGamma\n', {
+			sectionize: true,
+		})
+
+		expect(tree.children.map((c) => c.type)).toEqual(['paragraph', 'section', 'section'])
+
+		const sections = tree.children as unknown as Array<{
+			children: Array<{ type: string }>
+			data?: { hName?: string }
+			type: string
+		}>
+		const first = sections[1]
+		expect(first?.data?.hName).toBe('section')
+		expect(first?.children.map((c) => c.type)).toEqual(['heading', 'paragraph', 'section'])
+	})
+
+	it('composes with element overrides on headings', () => {
+		const tree = transform('# Title\n\nBody\n', {
+			elements: { h1: 'src/components/Heading.astro' },
+			sectionize: true,
+		})
+
+		const esm = findEsm(tree)
+		expect(esm.map((n) => n.value).join('\n')).toContain('_MdxKit_H1')
+	})
+
+	it('leaves the tree unchanged when disabled', () => {
+		const tree = transform('# One\n\nAlpha\n', {})
+		expect(tree.children.map((c) => c.type)).toEqual(['heading', 'paragraph'])
+	})
+})

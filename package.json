@@ -72,6 +72,7 @@
 		"mdast-util-to-markdown": "^2.1.2",
 		"mdast-util-to-string": "^4.0.0",
 		"micromark-extension-directive": "^4.0.0",
+		"remark-sectionize": "^2.1.0",
 		"satteri": "^0.9.5",
 		"unified": "^11.0.5",
 		"unist-util-visit": "^5.1.0",
