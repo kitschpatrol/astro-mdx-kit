@@ -56,12 +56,12 @@
 		"dev-unified-starlight": "pnpm -C playground-unified-starlight run dev",
 		"fix": "ksc fix",
 		"lint": "ksc lint && pnpm run -r --include-workspace-root astro check",
-		"release": "bumpp --commit 'Release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') pnpm publish",
+		"release": "bumpp --commit 'Release: %s' && pnpm build && pnpm publish --otp $(op item get npm --otp)",
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@astrojs/markdown-remark": "^7.2.2",
-		"@astrojs/markdown-satteri": "^0.3.5",
+		"@astrojs/markdown-remark": "^7.2.4",
+		"@astrojs/markdown-satteri": "^0.3.8",
 		"@types/mdast": "^4.0.4",
 		"hast-util-to-html": "^9.0.5",
 		"lognow": "^0.8.0",
@@ -73,7 +73,7 @@
 		"mdast-util-to-string": "^4.0.0",
 		"micromark-extension-directive": "^4.0.0",
 		"remark-sectionize": "^2.1.0",
-		"satteri": "^0.9.5",
+		"satteri": "^0.10.5",
 		"unified": "^11.0.5",
 		"unist-util-visit": "^5.1.0",
 		"vfile": "^6.0.3"
@@ -81,22 +81,22 @@
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.5",
 		"@astrojs/check": "^0.9.10",
-		"@kitschpatrol/shared-config": "^8.6.0",
+		"@kitschpatrol/shared-config": "^8.7.0",
 		"@types/estree": "^1.0.9",
 		"@types/node": "~24.13.3",
 		"@types/unist": "^3.0.3",
-		"astro": "^7.1.6",
-		"bumpp": "^12.1.1",
-		"node-addon-api": "^8.9.0",
+		"astro": "^7.2.7",
+		"bumpp": "^12.2.1",
+		"node-addon-api": "^8.9.2",
 		"node-gyp": "^13.0.1",
-		"publint": "^0.3.22",
+		"publint": "^0.3.24",
 		"remark-attribute-list": "^0.4.0",
 		"remark-directive": "^4.0.0",
 		"remark-parse": "^11.0.0",
 		"shx": "^0.4.0",
 		"tsdown": "^0.22.14",
 		"typescript": "~6.0.3",
-		"vitest": "^4.1.10"
+		"vitest": "^4.1.11"
 	},
 	"peerDependencies": {
 		"astro": "^7.0.6",

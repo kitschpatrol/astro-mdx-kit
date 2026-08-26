@@ -68,7 +68,6 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 	const skipParserExtensions = (options as Record<symbol, unknown>)[SKIP_PARSER_EXTENSIONS] === true
 
 	if (!skipParserExtensions) {
-		// eslint-disable-next-line unicorn/no-this-outside-of-class -- unified plugins receive the processor as `this`
 		const data = this.data()
 
 		if (directives && Object.keys(directives).length > 0) {
@@ -80,7 +79,6 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 		}
 
 		if (attributes) {
-			// eslint-disable-next-line unicorn/no-this-outside-of-class -- unified plugins receive the processor as `this`
 			this.use(remarkAttributeList)
 		}
 	}
@@ -123,7 +121,7 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 		// takes no options and ignores the processor, so its transformer can be
 		// pulled into the ordered transform list instead of registered via
 		// `use()` (which would append it after all astro-mdx-kit transforms).
-		// eslint-disable-next-line unicorn/no-this-outside-of-class -- unified plugins receive the processor as `this`
+
 		const sectionizeTransform = remarkSectionize.call(this)
 		if (typeof sectionizeTransform === 'function') {
 			transforms.push((tree, file) => {

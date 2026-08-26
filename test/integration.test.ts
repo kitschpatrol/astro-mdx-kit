@@ -158,7 +158,13 @@ describe('mdxKit integration', () => {
 		// Only the components-export merge and inject passes — no attributes plugin
 		expect(processor.options.mdastPlugins.length).toBe(2)
 		expect(
-			processor.options.mdastPlugins.some((plugin) => plugin.name.includes('attributes')),
+			processor.options.mdastPlugins.some(
+				(plugin) =>
+					typeof plugin === 'object' &&
+					plugin !== null &&
+					'name' in plugin &&
+					plugin.name.includes('attributes'),
+			),
 		).toBe(false)
 	})
 

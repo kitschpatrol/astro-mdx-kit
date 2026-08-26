@@ -23,5 +23,15 @@ allowBuilds:
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - '@astrojs/*'
+  - '@cspell/*'
   - '@kitschpatrol/*'
   - astro
+  - cspell
+  - cspell-config-lib
+  - cspell-dictionary
+  - cspell-gitignore
+  - cspell-glob
+  - cspell-grammar
+  - cspell-io
+  - cspell-lib
+  - cspell-trie-lib
