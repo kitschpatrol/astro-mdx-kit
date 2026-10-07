@@ -22,15 +22,12 @@ export function isImageLike(
 	node: { name?: unknown; type: string },
 	names: ReadonlySet<string>,
 ): boolean {
-	if (node.type === 'image') {
-		return true
-	}
-
-	if (node.type !== 'mdxJsxFlowElement' && node.type !== 'mdxJsxTextElement') {
-		return false
-	}
-
-	return typeof node.name === 'string' && names.has(node.name)
+	return (
+		node.type === 'image' ||
+		((node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement') &&
+			typeof node.name === 'string' &&
+			names.has(node.name))
+	)
 }
 
 /**
@@ -42,11 +39,9 @@ export function isStandaloneImage(paragraph: Parent, names: ReadonlySet<string>)
 		(child) => !isWhitespaceText(child as { type: string; value?: string }),
 	)
 
-	if (meaningful.length !== 1) {
-		return false
-	}
-
-	return isImageLike(meaningful[0] as { name?: string; type: string }, names)
+	return (
+		meaningful.length === 1 && isImageLike(meaningful[0] as { name?: string; type: string }, names)
+	)
 }
 
 /**

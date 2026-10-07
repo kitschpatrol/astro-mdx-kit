@@ -101,19 +101,7 @@ export class ImportTracker {
  * @returns `true` if the value should be treated as an importable path.
  */
 export function isImportablePath(value: string): boolean {
-	if (value.includes('://')) {
-		return false
-	}
-
-	if (value.startsWith('data:')) {
-		return false
-	}
-
-	if (value.startsWith('#')) {
-		return false
-	}
-
-	return true
+	return !value.includes('://') && !value.startsWith('data:') && !value.startsWith('#')
 }
 
 /**

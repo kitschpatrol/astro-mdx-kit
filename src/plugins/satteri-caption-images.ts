@@ -19,11 +19,10 @@ export function createSatteriCaptionImagesPlugin(): MdastPluginDefinition {
 	return {
 		image(node: Readonly<Image>, context: MdastVisitorContext) {
 			const parent = context.parent(node)
-			if (parent.type !== 'paragraph') {
-				return
-			}
-
-			if (parent.children.filter((child) => child.type === 'image').length > 1) {
+			if (
+				parent.type !== 'paragraph' ||
+				parent.children.filter((child) => child.type === 'image').length > 1
+			) {
 				return
 			}
 

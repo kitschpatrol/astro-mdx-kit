@@ -81,7 +81,7 @@ Astro's architecture (currently) means that this syntax still must live in a `.m
 
 ### Prerequisites
 
-We'll assume you have an [Astro](https://astro.build/) 7+ project set up.
+We'll assume you have an [Astro](https://astro.build/) 7.2.10+ project set up.
 
 You will also need [`@astrojs/mdx`](https://docs.astro.build/en/guides/integrations-guide/mdx/) 7+ (or a framework that includes it, like [Starlight](https://starlight.astro.build/)) for MDX file processing.
 
@@ -91,6 +91,8 @@ You will also need [`@astrojs/mdx`](https://docs.astro.build/en/guides/integrati
 - **`unified()`** from `@astrojs/markdown-remark` — transforms run as remark plugins
 
 Astro 7 configures Sätteri by default, so unless you set `markdown.processor` yourself, that's the pipeline `astro-mdx-kit` uses — no extra configuration needed. The unified pipeline is only used if you explicitly set `markdown.processor` to `unified()`.
+
+The transforms reach `.mdx` files through `markdown.processor`, so they don't apply to MDX if you pass `mdx({ extendMarkdownConfig: false })` or give `mdx()` its own `processor`.
 
 ### Installation
 

@@ -11,9 +11,8 @@ import {
 
 function asImportDeclaration(
 	program: NonNullable<ReturnType<typeof createEsmImportNode>['data']>['estree'],
-	index = 0,
 ): ImportDeclaration {
-	const statement = program!.body[index]
+	const statement = program!.body[0]
 	if (statement === undefined) {
 		throw new Error(`Expected ImportDeclaration, got ${statement}`)
 	}
@@ -27,9 +26,8 @@ function asImportDeclaration(
 
 function asExportNamedDeclaration(
 	program: NonNullable<ReturnType<typeof createEsmImportNode>['data']>['estree'],
-	index = 0,
 ): ExportNamedDeclaration {
-	const statement = program!.body[index]
+	const statement = program!.body[0]
 	if (statement === undefined) {
 		throw new Error(`Expected ImportDeclaration, got ${statement}`)
 	}
@@ -86,8 +84,7 @@ describe('mergeIntoComponentsExport', () => {
 		const result = mergeIntoComponentsExport(existing, { h1: '_Kit_H1' })
 		expect(result).toBe(true)
 
-		const statement = asExportNamedDeclaration(existing.data!.estree)
-		const { declaration } = statement
+		const { declaration } = asExportNamedDeclaration(existing.data!.estree)
 		if (declaration?.type !== 'VariableDeclaration') {
 			throw new Error('Expected VariableDeclaration')
 		}

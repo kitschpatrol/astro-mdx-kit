@@ -6,21 +6,6 @@ export default eslintConfig(
 		type: 'lib',
 	},
 	{
-		// Unpublished workspace packages...
-		files: [
-			'playground-satteri/package.json',
-			'playground-satteri-starlight/package.json',
-			'playground-unified/package.json',
-			'playground-unified-starlight/package.json',
-		],
-		rules: {
-			'json-package/require-keywords': 'off',
-			'json-package/require-version': 'off',
-			'json-package/valid-devDependencies': 'off',
-			'json-package/valid-package-definition': 'off',
-		},
-	},
-	{
 		files: ['readme.md/*'],
 		rules: {
 			'import/no-unresolved': 'off',

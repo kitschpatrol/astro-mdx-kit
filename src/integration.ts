@@ -56,9 +56,9 @@ export default function mdxKit(options: MdxKitOptions = {}): AstroIntegration {
 
 				if (isUnifiedProcessor(processor)) {
 					// Parser extension plugins must be registered separately because
-					// Astro's MDX integration uses its own unified processor — extensions
-					// registered via this.data() in the remark plugin only apply to the
-					// markdown processor, not the MDX one.
+					// `unified()` compiles MDX with its own separate unified processor —
+					// extensions registered via this.data() in the remark plugin only apply
+					// to the Markdown pipeline, not the MDX one.
 					const remarkPlugins: RemarkPlugins = []
 
 					if (options.attributes) {

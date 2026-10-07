@@ -38,11 +38,7 @@ export function toFlowChildren(
 	}
 
 	const children = lazyChildren(node.children)
-	if (children.length === 0) {
-		return []
-	}
-
-	return [{ children: [...children], type: 'paragraph' }]
+	return children.length === 0 ? [] : [{ children: [...children], type: 'paragraph' }]
 }
 
 /**

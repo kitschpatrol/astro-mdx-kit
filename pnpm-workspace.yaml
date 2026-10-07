@@ -22,16 +22,12 @@ allowBuilds:
   oxc-resolver: true
   unrs-resolver: true
 minimumReleaseAgeExclude:
-  - '@astrojs/*'
-  - '@cspell/*'
-  - '@kitschpatrol/*'
-  - astro
-  - cspell
-  - cspell-config-lib
-  - cspell-dictionary
-  - cspell-gitignore
-  - cspell-glob
-  - cspell-grammar
-  - cspell-io
-  - cspell-lib
-  - cspell-trie-lib
+  - lognow@0.8.5
+  - poptab@1.2.2
+  - '@kitschpatrol/safe-stable-stringify@2.5.0-fork.2'
+peerDependencyRules:
+  allowedVersions:
+    # Remove once the installed version declares ESLint 10 support.
+    # https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/issues/1075
+    # https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/pull/1081
+    eslint-plugin-jsx-a11y@6>eslint: ^10.0.0

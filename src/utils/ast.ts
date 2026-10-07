@@ -71,20 +71,18 @@ export const PHRASING_ONLY_ELEMENTS: ReadonlySet<string> = new Set([
 // ---------------------------------------------------------------------------
 
 function createImportEstree(localName: string, importPath: string, isNamed: boolean): Program {
-	const specifiers: ImportDeclaration['specifiers'] = isNamed
-		? [
-				{
+	const specifiers: ImportDeclaration['specifiers'] = [
+		isNamed
+			? {
 					imported: { name: localName, type: 'Identifier' },
 					local: { name: localName, type: 'Identifier' },
 					type: 'ImportSpecifier',
-				},
-			]
-		: [
-				{
+				}
+			: {
 					local: { name: localName, type: 'Identifier' },
 					type: 'ImportDefaultSpecifier',
 				},
-			]
+	]
 
 	return {
 		body: [

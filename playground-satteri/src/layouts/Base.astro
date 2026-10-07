@@ -17,27 +17,25 @@ const { frontmatter } = Astro.props
 	</head>
 	<body>
 		<slot />
-		{
-			(frontmatter?.rawMdx !== undefined || frontmatter?.mdast !== undefined) && (
-				<>
-					<hr />
-					<details>
-						<summary>Frontmatter Injection</summary>
-						{frontmatter.rawMdx !== undefined && (
-							<>
-								<h3>rawMdx</h3>
-								<pre>{frontmatter.rawMdx}</pre>
-							</>
-						)}
-						{frontmatter.mdast !== undefined && (
-							<>
-								<h3>mdast</h3>
-								<pre>{JSON.stringify(frontmatter.mdast, undefined, 2)}</pre>
-							</>
-						)}
-					</details>
-				</>
-			)
-		}
+		{(frontmatter?.rawMdx !== undefined || frontmatter?.mdast !== undefined) && (
+			<>
+				<hr />
+				<details>
+					<summary>Frontmatter Injection</summary>
+					{frontmatter.rawMdx !== undefined && (
+						<>
+							<h3>rawMdx</h3>
+							<pre>{frontmatter.rawMdx}</pre>
+						</>
+					)}
+					{frontmatter.mdast !== undefined && (
+						<>
+							<h3>mdast</h3>
+							<pre>{JSON.stringify(frontmatter.mdast, undefined, 2)}</pre>
+						</>
+					)}
+				</details>
+			</>
+		)}
 	</body>
 </html>

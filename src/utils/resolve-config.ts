@@ -92,17 +92,13 @@ function toPascalCase(string_: string): string {
  *   them from the project root.
  */
 function resolveImportPath(path: string): string {
-	if (
-		path.includes(':') ||
+	return path.includes(':') ||
 		path.startsWith('/') ||
 		path.startsWith('.') ||
 		path.startsWith('@') ||
 		path.startsWith('~')
-	) {
-		return path
-	}
-
-	return `/${path}`
+		? path
+		: `/${path}`
 }
 
 function resolveAutoImportEntry(entry: AutoImportEntry): ResolvedAutoImportEntry {
@@ -129,11 +125,9 @@ function resolveAutoImports(name: string, config: AutoImportConfig): ResolvedAut
 }
 
 function resolveLabelConfig(config: LabelConfig): ResolvedLabelConfig {
-	if (typeof config === 'string') {
-		return { format: 'plain', prop: config }
-	}
-
-	return { format: config.format ?? 'plain', prop: config.prop }
+	return typeof config === 'string'
+		? { format: 'plain', prop: config }
+		: { format: config.format ?? 'plain', prop: config.prop }
 }
 
 function resolveDetailed(

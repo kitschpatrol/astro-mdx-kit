@@ -1,9 +1,7 @@
 import { defineConfig } from 'tsdown'
 
 export default defineConfig({
-	attw: {
-		profile: 'esm-only',
-	},
+	attw: true,
 	deps: {
 		neverBundle: ['astro'],
 	},

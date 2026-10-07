@@ -32,11 +32,7 @@ function resolveKey(option: boolean | string | undefined, defaultKey: string): s
 		return defaultKey
 	}
 
-	if (typeof option === 'string' && option !== '') {
-		return option
-	}
-
-	return undefined
+	return typeof option === 'string' && option !== '' ? option : undefined
 }
 
 // Astro's frontmatter lives at `file.data.astro.frontmatter` as an untyped

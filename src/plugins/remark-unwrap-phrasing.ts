@@ -23,11 +23,7 @@ export function unwrapPhrasingContentTransform(tree: Root): void {
 			return
 		}
 
-		if (node.name === null) {
-			return
-		}
-
-		if (!PHRASING_ONLY_ELEMENTS.has(node.name)) {
+		if (node.name === null || !PHRASING_ONLY_ELEMENTS.has(node.name)) {
 			return
 		}
 
