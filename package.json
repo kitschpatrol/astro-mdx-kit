@@ -56,7 +56,7 @@
 		"dev-unified-starlight": "pnpm -C playground-unified-starlight run dev",
 		"fix": "ksc fix",
 		"lint": "ksc lint && pnpm run -r --include-workspace-root astro check",
-		"prepare": "skills experimental_sync -y -f",
+		"prepare": "astro sync && tsdown && pnpm run -r --workspace-concurrency=1 astro sync && skills experimental_sync -y -f",
 		"release": "bumpp --commit 'Release: %s' && pnpm build && pnpm publish --otp $(op item get npm --otp)",
 		"test": "vitest run"
 	},
@@ -82,7 +82,7 @@
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.5",
 		"@astrojs/check": "^0.9.10",
-		"@kitschpatrol/shared-config": "^8.12.1",
+		"@kitschpatrol/shared-config": "^8.13.1",
 		"@types/estree": "^1.0.9",
 		"@types/node": "~24.13.3",
 		"@types/unist": "^3.0.3",
