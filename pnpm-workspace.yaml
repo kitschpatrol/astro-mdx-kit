@@ -1,14 +1,23 @@
+allowBuilds:
+  oxc-resolver: true
+  sharp: true
+  unrs-resolver: true
+ignoreWorkspaceRootCheck: true
 packages:
   - .
   - playground-satteri
   - playground-satteri-starlight
   - playground-unified
   - playground-unified-starlight
-ignoreWorkspaceRootCheck: true
+peerDependencyRules:
+  allowedVersions:
+    # Remove once the installed version declares ESLint 10 support.
+    # https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/issues/1075
+    # https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/pull/1081
+    eslint-plugin-jsx-a11y@6>eslint: ^10.0.0
 publicHoistPattern:
   - '@kitschpatrol/repo-config'
   - '@kitschpatrol/typescript-config'
-  - 'case-police'
   - '*cspell*'
   - '*eslint*'
   - '*knip*'
@@ -16,18 +25,4 @@ publicHoistPattern:
   - '*prettier*'
   - '*remark*'
   - '*stylelint*'
-allowBuilds:
-  esbuild: true
-  sharp: true
-  oxc-resolver: true
-  unrs-resolver: true
-minimumReleaseAgeExclude:
-  - lognow@0.8.5
-  - poptab@1.2.2
-  - '@kitschpatrol/safe-stable-stringify@2.5.0-fork.2'
-peerDependencyRules:
-  allowedVersions:
-    # Remove once the installed version declares ESLint 10 support.
-    # https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/issues/1075
-    # https://github.com/jsx-eslint/eslint-plugin-jsx-a11y/pull/1081
-    eslint-plugin-jsx-a11y@6>eslint: ^10.0.0
+  - 'case-police'

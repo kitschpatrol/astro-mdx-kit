@@ -1,13 +1,11 @@
 {
 	"extends": "@kitschpatrol/typescript-config/astro",
 	"compilerOptions": {
-		// TypeScript 6.0 no longer includes @types packages automatically
 		"types": ["node"],
 		// Addition from Astro's strictest tsconfig
 		// vs. the extended @kitschpatrol/typescript-config/astro
 		"allowUnusedLabels": false
 	},
-	// Includes project dot-files files for typescript-eslint integration
 	"include": [
 		"**/*",
 		"**/**.*",
