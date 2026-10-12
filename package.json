@@ -84,9 +84,9 @@
 		"@astrojs/check": "^0.9.10",
 		"@kitschpatrol/shared-config": "^8.13.1",
 		"@types/estree": "^1.0.9",
-		"@types/node": "~24.13.3",
+		"@types/node": "~24.13.6",
 		"@types/unist": "^3.0.3",
-		"astro": "^7.3.6",
+		"astro": "^7.3.8",
 		"bumpp": "^12.3.0",
 		"node-addon-api": "^8.9.2",
 		"node-gyp": "^13.1.0",
@@ -95,8 +95,8 @@
 		"remark-directive": "^4.0.0",
 		"remark-parse": "^11.0.0",
 		"shx": "^0.4.0",
-		"skills": "^1.7.0",
-		"tsdown": "^0.23.0",
+		"skills": "^1.7.2",
+		"tsdown": "^0.23.1",
 		"typescript": "~6.0.3",
 		"vitest": "^5.0.3"
 	},
@@ -110,7 +110,7 @@
 			"optional": true
 		}
 	},
-	"packageManager": "pnpm@12.9.1",
+	"packageManager": "pnpm@12.11.2",
 	"engines": {
 		"node": "^24.16.0 || >=26.3.0"
 	}
