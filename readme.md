@@ -70,6 +70,8 @@ In addition to support for mapping directives to components, `astro-mdx-kit` bun
   Remove invalid `<p>` elements nested inside phrasing-only HTML elements like `<span>`, `<button>`, and `<label>`.
 - **Sectionizing**\
   Wrap each heading and its content in nested `<section>` elements.
+- **Mermaid diagrams**\
+  Render fenced Mermaid diagrams to SVG at build time with [Pele](https://pele.run/).
 - **Frontmatter injection**\
   Expose raw MDX source or the parsed AST tree in frontmatter.
 
@@ -206,6 +208,7 @@ import {
   remarkMdxKitDirectives, // MDX + Astro
   remarkMdxKitElements, // MDX + Astro
   remarkMdxKitFrontmatterInject, // Markdown or MDX + Astro
+  remarkMdxKitMermaid, // Markdown or MDX
   remarkMdxKitSectionize, // Markdown or MDX
   remarkMdxKitUnwrapImages, // Markdown or MDX
   remarkMdxKitUnwrapPhrasingContent, // MDX
@@ -636,6 +639,60 @@ Sections nest by heading depth and end at the next heading of equal or shallower
 
 Uses [remark-sectionize](https://github.com/jake-low/remark-sectionize) on the unified processor and an equivalent reimplementation on Sätteri. Headings nested inside containers — block quotes, container directives, JSX elements — are sectionized within their parent.
 
+### Mermaid diagrams
+
+Enable `mermaid` to render fenced `mermaid` code blocks with [Pele](https://github.com/obsidianmd/pele):
+
+```ts
+mdxKit({
+  mermaid: true,
+})
+```
+
+Write diagrams using standard Mermaid syntax in Markdown or MDX:
+
+````md
+```mermaid
+flowchart LR
+  A[Write Markdown] --> B[Build with Pele] --> C[SVG]
+```
+````
+
+Diagrams render to inline SVG inside `<div class="mermaid">` during the build, with no client-side JavaScript. This works on both the unified and Sätteri processors, including nested fences in block quotes and lists. Other code blocks and inline code are preserved. The option is disabled by default; invalid diagrams fail the build with their source location.
+
+Pass an object instead of `true` to customize [Pele's render options](https://pele.run/api#renderoptions):
+
+```ts
+mdxKit({
+  mermaid: {
+    fontFamily: 'sans-serif',
+    fontSize: 16,
+    padding: 16,
+  },
+})
+```
+
+The `MermaidOptions` type accepts Pele's render options except `idPrefix`, which is generated automatically for each diagram to prevent duplicate SVG IDs. Since rendering happens at build time, `maxWidth` sets a fixed layout constraint; diagrams scale to fit by default but do not rearrange their layout when the browser resizes.
+
+Use [Pele's CSS variables](https://pele.run/theming) to theme diagrams, including light and dark modes, without rendering them again:
+
+```css
+.mermaid {
+  --pele-bg: #fff;
+  --pele-fg: #1f1f1f;
+  --pele-line: #1f1f1f;
+  --pele-surface: #f3f3f3;
+  --pele-surface-alt: #e6e6e6;
+  --pele-border: #8a8a8a;
+  --pele-muted: #6e6e6e;
+  --pele-accent: #5b7bd5;
+}
+```
+
+Pele uses its own layouts and styling. Mermaid themes and `themeVariables` colors do not apply; see [Pele's compatibility notes](https://pele.run/compatibility). Set `fontFamily` to match your site's font when overriding `--pele-font`, so labels are measured with the font used to display them.
+
+For standalone remark pipelines, use `remarkMdxKitMermaid` with the same render options, or set `mermaid` on `remarkMdxKit` / `satteriMdxKit`.
+
 ### Frontmatter injection
 
 Expose the raw MDX source or the parsed AST tree in frontmatter. Useful for debugging or in layouts and components:
@@ -685,7 +742,8 @@ The plugin processes content in two phases (on Sätteri, the directive parser is
 5. **Global image captions** — wraps remaining captioned images in `<figure>`
 6. **Unwrap phrasing** — removes `<p>` from inside phrasing-only elements
 7. **Unwrap images** — removes `<p>` from stand-alone images
-8. **MDAST injection** — captures the transformed tree
+8. **Mermaid diagrams** — renders fenced Mermaid code blocks to SVG with Pele
+9. **MDAST injection** — captures the transformed tree
 
 ## Full configuration example
 
@@ -723,6 +781,7 @@ export default defineConfig({
         },
       },
       mdast: true,
+      mermaid: true,
       rawMdx: true,
       sectionize: true,
       unwrapImages: true,

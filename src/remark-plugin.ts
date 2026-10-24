@@ -19,6 +19,7 @@ import { captionImagesTransform } from './plugins/remark-caption-images.js'
 import { createDirectiveTransform } from './plugins/remark-directives.js'
 import { createElementTransform } from './plugins/remark-elements.js'
 import { createFrontmatterInjectTransform } from './plugins/remark-frontmatter-inject.js'
+import { createMermaidTransform } from './plugins/remark-mermaid.js'
 import { unwrapImagesTransform } from './plugins/remark-unwrap-images.js'
 import { unwrapPhrasingContentTransform } from './plugins/remark-unwrap-phrasing.js'
 import { resolveComponentConfig, resolveElementConfig } from './utils/resolve-config.js'
@@ -53,6 +54,7 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 		directives,
 		elements,
 		mdast,
+		mermaid,
 		rawMdx,
 		sectionize,
 		unwrapImages,
@@ -169,6 +171,10 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 				imageComponentNames.size > 0 ? { imageComponentNames } : undefined,
 			)
 		})
+	}
+
+	if (mermaid !== undefined && mermaid !== false) {
+		transforms.push(createMermaidTransform(mermaid === true ? {} : mermaid))
 	}
 
 	if (isFrontmatterKeyEnabled(mdast)) {

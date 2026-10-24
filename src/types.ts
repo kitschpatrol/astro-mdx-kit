@@ -1,3 +1,11 @@
+import type { RenderOptions } from 'pele'
+
+/**
+ * Options passed to Pele when rendering Mermaid diagrams at build time. SVG ID
+ * prefixes are generated automatically for each diagram.
+ */
+export type MermaidOptions = Omit<RenderOptions, 'idPrefix'>
+
 /**
  * HTML element names that standard Markdown syntax (CommonMark + GFM)
  * generates.
@@ -298,6 +306,19 @@ export type MdxKitOptions = {
 	 * - `string` — inject using the given property name
 	 */
 	mdast?: boolean | string
+	/**
+	 * Render fenced `mermaid` code blocks to SVG with Pele at build time.
+	 *
+	 * - `false` / `undefined` — disabled (default)
+	 * - `true` — use Pele's default render options
+	 * - Object — pass render options to Pele (e.g. `fontSize`, `padding`)
+	 *
+	 * Works in Markdown and MDX on both processors. No client script is added.
+	 * Theme diagrams with Pele's CSS variables. Invalid diagrams fail the build.
+	 *
+	 * @default false
+	 */
+	mermaid?: boolean | MermaidOptions
 	/**
 	 * Inject the raw MDX source string into frontmatter.
 	 *

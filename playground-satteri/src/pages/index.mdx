@@ -57,3 +57,21 @@ A paragraph with a class.
 ## GFM
 
 ~~Strikethrough text~~
+
+## Mermaid Diagrams
+
+Rendered at build time with Pele:
+
+```mermaid
+flowchart LR
+  accTitle: Markdown to SVG
+  A[Write Markdown] --> B[Build with Pele] --> C[SVG]
+```
+
+A sequence diagram with literal braces and an ampersand in its label:
+
+```mermaid
+sequenceDiagram
+  Alice->>Bob: Hello {world} & friends
+  Bob-->>Alice: SVG, without client JavaScript
+```

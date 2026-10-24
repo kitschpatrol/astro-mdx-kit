@@ -31,6 +31,7 @@ export default defineConfig({
 				},
 			},
 			mdast: true,
+			mermaid: true,
 			rawMdx: true,
 			unwrapImages: true,
 		}),

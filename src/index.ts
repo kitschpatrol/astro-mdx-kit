@@ -17,6 +17,7 @@ export {
 	remarkMdxKitFrontmatterInject,
 } from './plugins/remark-frontmatter-inject.js'
 export type { RemarkFrontmatterInjectOptions } from './plugins/remark-frontmatter-inject.js'
+export { createMermaidTransform, remarkMdxKitMermaid } from './plugins/remark-mermaid.js'
 export { remarkMdxKitUnwrapImages, unwrapImagesTransform } from './plugins/remark-unwrap-images.js'
 export type { RemarkUnwrapImagesOptions } from './plugins/remark-unwrap-images.js'
 export {
@@ -43,7 +44,9 @@ export type {
 	LabelConfig,
 	MarkdownElementName,
 	MdxKitOptions,
+	MermaidOptions,
 } from './types.js'
+export type { MermaidNode } from './utils/mermaid.js'
 
 // Individual sub-plugins for standalone use in any remark pipeline
 export { default as remarkMdxKitAttributes } from 'remark-attribute-list'

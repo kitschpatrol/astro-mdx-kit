@@ -10,6 +10,7 @@ import {
 	createSatteriMdastInjectPlugin,
 	createSatteriRawMdxInjectPlugin,
 } from './plugins/satteri-frontmatter-inject.js'
+import { createSatteriMermaidPlugin } from './plugins/satteri-mermaid.js'
 import { createSatteriSectionizePlugin } from './plugins/satteri-sectionize.js'
 import { createSatteriUnwrapImagesPlugin } from './plugins/satteri-unwrap-images.js'
 import { createSatteriUnwrapPhrasingPlugin } from './plugins/satteri-unwrap-phrasing.js'
@@ -50,6 +51,7 @@ export function satteriMdxKit(options: MdxKitOptions = {}): MdastPluginDefinitio
 		directives,
 		elements,
 		mdast,
+		mermaid,
 		rawMdx,
 		sectionize,
 		unwrapImages,
@@ -127,6 +129,10 @@ export function satteriMdxKit(options: MdxKitOptions = {}): MdastPluginDefinitio
 		plugins.push(
 			createSatteriUnwrapImagesPlugin(imgConfig ? new Set([imgConfig.componentName]) : undefined),
 		)
+	}
+
+	if (mermaid !== undefined && mermaid !== false) {
+		plugins.push(createSatteriMermaidPlugin(mermaid === true ? {} : mermaid))
 	}
 
 	if (isFrontmatterKeyEnabled(mdast)) {

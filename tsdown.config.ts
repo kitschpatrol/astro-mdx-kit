@@ -3,7 +3,7 @@ import { defineConfig } from 'tsdown'
 export default defineConfig({
 	attw: true,
 	deps: {
-		neverBundle: ['astro'],
+		neverBundle: ['astro', 'node:crypto'],
 	},
 	dts: true,
 	entry: ['src/index.ts', 'src/remark-plugin.ts', 'src/satteri-plugin.ts'],

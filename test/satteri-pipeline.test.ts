@@ -327,6 +327,7 @@ describe('satteriMdxKit plugin list', () => {
 			directives: { Block: 'src/components/Block.astro' },
 			elements: { h1: 'src/components/Heading.astro' },
 			mdast: true,
+			mermaid: true,
 			rawMdx: true,
 			unwrapImages: true,
 			unwrapPhrasingContent: true,
@@ -341,6 +342,7 @@ describe('satteriMdxKit plugin list', () => {
 			'astro-mdx-kit:caption-images',
 			'astro-mdx-kit:unwrap-phrasing',
 			'astro-mdx-kit:unwrap-images',
+			'astro-mdx-kit:mermaid',
 			'astro-mdx-kit:frontmatter-mdast',
 		])
 	})

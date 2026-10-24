@@ -175,6 +175,9 @@ importers:
       '@types/mdast':
         specifier: ^4.0.4
         version: 4.0.4
+      hast-util-from-html:
+        specifier: ^2.0.3
+        version: 2.0.3
       hast-util-to-html:
         specifier: ^9.0.5
         version: 9.0.5
@@ -202,6 +205,9 @@ importers:
       micromark-extension-directive:
         specifier: ^4.0.0
         version: 4.0.0
+      pele:
+        specifier: ^1.9.0
+        version: 1.9.0
       remark-sectionize:
         specifier: ^2.1.0
         version: 2.1.0
@@ -5460,6 +5466,10 @@ packages:
 
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
+
+  pele@1.9.0:
+    resolution: {integrity: sha512-KUmBt7P5JduVKQaP6FKfXiRgH3LBVIKsmdgPJZU7jD3ye6F+Z8fbms+OjivE7rWY09Qx+5X65VKe/9ywKFJ9Sw==}
+    engines: {node: '>=20'}
 
   php-parser@3.7.0:
     resolution: {integrity: sha512-JRc1t78GZAEa+MuzVC5A5RJS1NDFTS4UnprUEu/NnsN9cyHbGZLUqghO9IQZUSCay62HYQiWd3PxyWAEF45zmA==}
@@ -13421,6 +13431,8 @@ snapshots:
   path-type@6.0.0: {}
 
   pathe@2.0.3: {}
+
+  pele@1.9.0: {}
 
   php-parser@3.7.0: {}
 
