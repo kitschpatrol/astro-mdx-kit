@@ -674,7 +674,9 @@ mdxKit({
 
 The `MermaidOptions` type accepts Pele's render options except `idPrefix`, which is generated automatically for each diagram to prevent duplicate SVG IDs. Since rendering happens at build time, `maxWidth` sets a fixed layout constraint; diagrams scale to fit by default but do not rearrange their layout when the browser resizes.
 
-Use [Pele's CSS variables](https://pele.run/theming) to theme diagrams, including light and dark modes, without rendering them again:
+In Starlight, diagram colors automatically follow the active light or dark theme, including custom Starlight palettes and theme changes in the browser. No additional configuration or client-side JavaScript is needed. Outside Starlight, Pele's default colors apply.
+
+Explicit [Pele CSS variables](https://pele.run/theming) take precedence over the automatic colors, including when inherited from a parent element. Use them to customize diagrams without rendering them again:
 
 ```css
 .mermaid {

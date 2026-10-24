@@ -21,6 +21,33 @@ declare module 'mdast' {
 	}
 }
 
+const STARLIGHT_COLORS: Record<string, string> = {
+	'--pele-accent': '--sl-color-text-accent',
+	'--pele-bg': '--sl-color-bg',
+	'--pele-border': '--sl-color-gray-4',
+	'--pele-critical': '--sl-color-red-high',
+	'--pele-error': '--sl-color-red-high',
+	'--pele-fg': '--sl-color-text',
+	'--pele-line': '--sl-color-gray-1',
+	'--pele-muted': '--sl-color-gray-3',
+	'--pele-surface': '--sl-color-gray-6',
+	'--pele-surface-alt': '--sl-color-bg-inline-code',
+}
+
+function withStarlightColors(style: string): string {
+	// Extend Pele's fallbacks instead of defining --pele-* properties, so
+	// explicit themes inherited from any ancestor keep taking precedence.
+	return style.replaceAll(
+		/var\((--pele-[\w\-]+),([^\(\)]*)\)/gv,
+		(match: string, property: string, fallback: string) => {
+			const starlightProperty = STARLIGHT_COLORS[property]
+			return starlightProperty === undefined
+				? match
+				: `var(${property},var(${starlightProperty},${fallback}))`
+		},
+	)
+}
+
 /**
  * Create a document-scoped renderer with deterministic, distinct SVG IDs.
  * Parsed HAST children preserve SVG namespaces, styles, and text in both
@@ -43,15 +70,21 @@ export function createMermaidRenderer(
 				...options,
 				idPrefix: `mdx-kit-mermaid-${documentId}-${index++}`,
 			})
+			const children = fromHtml(svg, { fragment: true }).children.filter(
+				(child) => child.type === 'element',
+			)
+			for (const child of children) {
+				if (child.tagName === 'svg' && typeof child.properties.style === 'string') {
+					child.properties.style = withStarlightColors(child.properties.style)
+				}
+			}
 
 			// A custom block with HAST overrides works in Markdown and MDX.
 			// Using a paragraph here would lose the SVG in Sätteri's tight lists.
 			return {
 				children: [],
 				data: {
-					hChildren: fromHtml(svg, { fragment: true }).children.filter(
-						(child) => child.type === 'element',
-					),
+					hChildren: children,
 					hName: 'div',
 					hProperties: { className: ['mermaid'] },
 				},

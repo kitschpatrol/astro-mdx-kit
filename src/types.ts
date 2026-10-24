@@ -314,7 +314,8 @@ export type MdxKitOptions = {
 	 * - Object — pass render options to Pele (e.g. `fontSize`, `padding`)
 	 *
 	 * Works in Markdown and MDX on both processors. No client script is added.
-	 * Theme diagrams with Pele's CSS variables. Invalid diagrams fail the build.
+	 * Colors follow Starlight's active theme automatically; Pele's CSS variables
+	 * take precedence when set. Invalid diagrams fail the build.
 	 *
 	 * @default false
 	 */

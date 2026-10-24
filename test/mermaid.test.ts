@@ -53,6 +53,14 @@ for (const [name, render] of Object.entries(renderers)) {
 			expect(html).not.toContain('max-width:100%')
 		})
 
+		it('adapts Starlight colors without rewriting CSS-like diagram labels', async () => {
+			const source = '```mermaid\nflowchart LR\n A["var(--pele-fg,#123456)"] --> B\n```'
+			const html = await render(source, { mermaid: true })
+			expect(html).toContain('var(--pele-fg,var(--sl-color-text,#1f1f1f))')
+			expect(html).toContain('var(--pele-line,var(--sl-color-gray-1,#1f1f1f))')
+			expect(html).toContain('var(--pele-fg,#123456)</text>')
+		})
+
 		it('renders nested diagrams and preserves other code', async () => {
 			const source = [
 				'> ```mermaid title="A sequence"',
@@ -117,7 +125,7 @@ describe('Mermaid pipeline compatibility', () => {
 		})
 		expect(result.code).toContain('pele pele-flowchart')
 		expect(result.code).toContain('"{value} & text"')
-		expect(result.code).toContain('"--_fg": "var(--pele-fg,#1f1f1f)"')
+		expect(result.code).toContain('"--_fg": "var(--pele-fg,var(--sl-color-text,#1f1f1f))"')
 		expect(result.code).not.toContain('language-mermaid')
 	})
 
