@@ -33,11 +33,7 @@ export function captionImagesTransform(tree: Root): void {
 	const paragraphReplacements = new Map<MdastParent, MdxJsxFlowElement>()
 
 	visit(tree, 'image', (node: Image, index, parent) => {
-		if (index === undefined || !parent) {
-			return SKIP
-		}
-
-		if (multiImageParagraphs.has(parent)) {
+		if (index === undefined || !parent || multiImageParagraphs.has(parent)) {
 			return SKIP
 		}
 
