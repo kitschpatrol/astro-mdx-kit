@@ -691,7 +691,7 @@ Explicit [Pele CSS variables](https://pele.run/theming) take precedence over the
 }
 ```
 
-Pele uses its own layouts and styling. Mermaid themes and `themeVariables` colors do not apply; see [Pele's compatibility notes](https://pele.run/compatibility). Set `fontFamily` to match your site's font when overriding `--pele-font`, so labels are measured with the font used to display them.
+Pele uses its own layouts and styling. Mermaid themes do not apply, and `themeVariables` colors apply only as [series palettes](https://pele.run/theming#series-palettes); see [Pele's compatibility notes](https://pele.run/compatibility). Set `fontFamily` to match your site's font when overriding `--pele-font`, so labels are measured with the font used to display them.
 
 For standalone remark pipelines, use `remarkMdxKitMermaid` with the same render options, or set `mermaid` on `remarkMdxKit` / `satteriMdxKit`.
 
