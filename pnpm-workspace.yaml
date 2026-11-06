@@ -3,6 +3,8 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
 ignoreWorkspaceRootCheck: true
+minimumReleaseAgeExclude:
+  - '@kitschpatrol/chagent@0.4.0'
 packages:
   - .
   - playground-satteri
