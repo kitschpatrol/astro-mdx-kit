@@ -91,17 +91,26 @@ export class ImportTracker {
 
 /**
  * Check whether a string value looks like a local file path that should be
- * turned into an ESM import, as opposed to a URL, data URI, or fragment.
+ * turned into an ESM import, as opposed to a URL, data URI, fragment, or
+ * root-absolute path.
  *
  * Returns `false` for values containing `://` (URLs), starting with `data:`
- * (data URIs), or starting with `#` (fragment references).
+ * (data URIs), starting with `#` (fragment references), or starting with `/`.
+ * Astro serves root-absolute paths from `public/`, which Vite refuses to
+ * import, so they pass through unchanged just as Astro's own Markdown image
+ * handling leaves them alone. This also covers protocol-relative URLs.
  *
  * @param value - The string to check.
  *
  * @returns `true` if the value should be treated as an importable path.
  */
 export function isImportablePath(value: string): boolean {
-	return !value.includes('://') && !value.startsWith('data:') && !value.startsWith('#')
+	return (
+		!value.includes('://') &&
+		!value.startsWith('data:') &&
+		!value.startsWith('#') &&
+		!value.startsWith('/')
+	)
 }
 
 /**

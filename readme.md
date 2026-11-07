@@ -255,6 +255,7 @@ Content inside the directive.
 - `::Widget{icon="star"}` becomes `<Widget icon="star" />`
 - The component is automatically imported — no manual `import` needed
 - With `autoImport: 'src'`, the `src` prop value is converted to an ESM import so Vite can process the asset
+- Only relative paths and aliases are imported. URLs, `data:` URIs, and root-absolute paths like `/images/photo.png` (which Astro serves from `public/`) pass through as plain strings
 
 #### Prop remapping
 

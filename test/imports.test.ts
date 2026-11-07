@@ -281,8 +281,10 @@ describe('isImportablePath', () => {
 		expect(isImportablePath('../assets/hero.jpg')).toBe(true)
 	})
 
-	it('accepts root-relative paths', () => {
-		expect(isImportablePath('/src/assets/image.png')).toBe(true)
+	it('rejects root-absolute paths, which Astro serves from public/', () => {
+		expect(isImportablePath('/images/photo.png')).toBe(false)
+		expect(isImportablePath('/src/assets/image.png')).toBe(false)
+		expect(isImportablePath('//cdn.example.com/img.png')).toBe(false)
 	})
 
 	it('accepts alias paths', () => {
