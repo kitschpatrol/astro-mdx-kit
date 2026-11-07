@@ -189,6 +189,40 @@ export function createFireOncePlugin(
 }
 
 /**
+ * Wrap a plugin so its visitors run only when compiling MDX.
+ *
+ * Astro runs the same processor on `.md` files, whose compiler drops JSX and
+ * ESM nodes. A plugin that replaces Markdown with components would erase that
+ * content from plain Markdown output, so it leaves those documents untouched.
+ *
+ * @param plugin - A plugin whose visitors emit JSX or ESM nodes.
+ *
+ * @returns An equivalent plugin that is inert for plain Markdown sources.
+ */
+export function mdxOnly(plugin: MdastPluginDefinition): MdastPluginDefinition {
+	const wrapped: Record<string, unknown> = {}
+	for (const [key, value] of Object.entries(plugin)) {
+		type Visitor = (node: never, context: MdastVisitorContext) => unknown
+		if (typeof value !== 'function') {
+			wrapped[key] = value
+			continue
+		}
+
+		const visitor = value as Visitor
+		wrapped[key] = (node: never, context: MdastVisitorContext): unknown => {
+			if (context.sourceFormat === 'markdown') {
+				return
+			}
+
+			return visitor(node, context)
+		}
+	}
+
+	// Every key was copied from a valid definition, so the shape still holds.
+	return wrapped as unknown as MdastPluginDefinition
+}
+
+/**
  * Set a key on the document frontmatter exposed at `ctx.data.astro.frontmatter`
  * (the shape Astro's Sätteri pipelines seed and read back), creating the
  * structure when running outside Astro. Existing keys are not overwritten.

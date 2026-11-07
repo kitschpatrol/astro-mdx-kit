@@ -24,12 +24,41 @@ import { unwrapImagesTransform } from './plugins/remark-unwrap-images.js'
 import { unwrapPhrasingContentTransform } from './plugins/remark-unwrap-phrasing.js'
 import { resolveComponentConfig, resolveElementConfig } from './utils/resolve-config.js'
 
+type Transform = (tree: Root, file: VFile) => void
+
+const PLAIN_MARKDOWN_EXTENSIONS = new Set(['.markdown', '.md'])
+
+/**
+ * Whether a file is plain Markdown rather than MDX. Astro runs the shared
+ * processor on `.md` files too, where remark-rehype renders JSX nodes as
+ * `<div>`s and ESM nodes as literal text. Files without a path (standalone
+ * pipelines) are treated as MDX.
+ */
+function isPlainMarkdownFile(file: VFile): boolean {
+	return file.extname !== undefined && PLAIN_MARKDOWN_EXTENSIONS.has(file.extname.toLowerCase())
+}
+
+/**
+ * Wrap a transform that emits JSX or ESM nodes so it leaves plain Markdown
+ * files untouched.
+ */
+function mdxOnly(transform: Transform): Transform {
+	return (tree, file) => {
+		if (!isPlainMarkdownFile(file)) {
+			transform(tree, file)
+		}
+	}
+}
+
 /**
  * All-in-one remark plugin for astro-mdx-kit.
  *
  * Registers parser extensions (for directives) and runs all configured
  * transforms in a single plugin. Can be used directly in any unified/remark
  * pipeline or via the Astro integration wrapper.
+ *
+ * Directives, element overrides, and image captions compile to components, so
+ * those transforms only run on MDX files (`.md` files pass through unchanged).
  *
  * @example
  * 	import remarkMdxKitPlugin from 'astro-mdx-kit/remark'
@@ -111,7 +140,7 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 	// Build the transform pipeline
 	// ---------------------------------------------------------------------------
 
-	const transforms: Array<(tree: Root, file: VFile) => void> = []
+	const transforms: Transform[] = []
 
 	if (isFrontmatterKeyEnabled(rawMdx)) {
 		transforms.push(createFrontmatterInjectTransform({ rawMdx }))
@@ -138,18 +167,18 @@ const remarkMdxKitPlugin: Plugin<[MdxKitOptions?], Root> = function (
 		log.debug(
 			`Registering ${Object.keys(resolvedDirectives).length} directive(s): ${Object.keys(resolvedDirectives).join(', ')}`,
 		)
-		transforms.push(createDirectiveTransform({ configs: resolvedDirectives }))
+		transforms.push(mdxOnly(createDirectiveTransform({ configs: resolvedDirectives })))
 	}
 
 	if (Object.keys(resolvedElements).length > 0) {
 		log.debug(
 			`Registering ${Object.keys(resolvedElements).length} element override(s): ${Object.keys(resolvedElements).join(', ')}`,
 		)
-		transforms.push(createElementTransform({ configs: resolvedElements }))
+		transforms.push(mdxOnly(createElementTransform({ configs: resolvedElements })))
 	}
 
 	if (captionImages) {
-		transforms.push(captionImagesTransform)
+		transforms.push(mdxOnly(captionImagesTransform))
 	}
 
 	if (unwrapPhrasingContent) {

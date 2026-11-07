@@ -7,22 +7,25 @@
 import type { Root } from 'mdast'
 import type { MdxJsxFlowElement, MdxJsxTextElement } from 'mdast-util-mdx-jsx'
 import type { MdxjsEsm } from 'mdast-util-mdxjs-esm'
+import { createMarkdownProcessor } from '@astrojs/markdown-remark'
 import remarkParse from 'remark-parse'
 import { unified } from 'unified'
 import { visit } from 'unist-util-visit'
+import { VFile } from 'vfile'
 import { describe, expect, it } from 'vitest'
 import type { MdxKitOptions } from '../src/types'
+import { astroPicture } from '../src/presets'
 import remarkMdxKitPlugin from '../src/remark-plugin'
 
 function parse(source: string, options: MdxKitOptions): Root {
 	return unified().use(remarkParse).use(remarkMdxKitPlugin, options).parse(source)
 }
 
-function transform(source: string, options: MdxKitOptions): Root {
+function transform(source: string, options: MdxKitOptions, path?: string): Root {
 	const processor = unified().use(remarkParse).use(remarkMdxKitPlugin, options)
-	const tree = processor.parse(source)
+	const file = new VFile({ path, value: source })
 
-	return processor.runSync(tree)
+	return processor.runSync(processor.parse(file), file)
 }
 
 function findJsxFlow(tree: Root, name: string): MdxJsxFlowElement | undefined {
@@ -166,6 +169,63 @@ describe('nested directives', () => {
 		const outer = findJsxText(tree, '_MdxKit_Outer')
 		expect(outer?.children.map((c) => c.type)).toEqual(['text', 'mdxJsxTextElement'])
 		expect(JSON.stringify(tree)).not.toContain('Directive')
+	})
+})
+
+describe('plain Markdown files', () => {
+	const options: MdxKitOptions = {
+		captionImages: true,
+		directives: { Block: 'src/components/Block.astro' },
+		elements: { h1: 'src/components/Heading.astro', img: astroPicture },
+		sectionize: true,
+		unwrapImages: true,
+	}
+	const source =
+		'# Title\n\n![Alt](./photo.jpg)\nA caption.\n\n![Solo](./solo.jpg)\n\n:::Block\nBody\n:::\n'
+
+	it('skips component-emitting transforms for .md files', () => {
+		const tree = transform(source, options, '/docs/page.md')
+
+		expect(findEsm(tree)).toHaveLength(0)
+		expect(JSON.stringify(tree)).not.toContain('mdxJsx')
+		expect(JSON.stringify(tree)).toContain('containerDirective')
+	})
+
+	it('still applies markdown-safe transforms to .md files', () => {
+		const tree = transform(source, options, '/docs/page.md')
+
+		const section = tree.children.at(0)
+		expect(section?.type).toBe('section')
+		expect((section as { children: Array<{ type: string }> }).children.map((c) => c.type)).toEqual([
+			'heading',
+			'paragraph',
+			'image',
+			'containerDirective',
+		])
+	})
+
+	it('applies every transform to .mdx files', () => {
+		const tree = transform(source, options, '/docs/page.mdx')
+
+		expect(findEsm(tree).length).toBeGreaterThan(0)
+		expect(findJsxFlow(tree, 'Picture')).toBeDefined()
+		expect(findJsxFlow(tree, '_MdxKit_Block')).toBeDefined()
+		expect(JSON.stringify(tree)).not.toContain('containerDirective')
+	})
+
+	it('renders .md files cleanly through the Astro markdown processor', async () => {
+		const processor = await createMarkdownProcessor({
+			remarkPlugins: [[remarkMdxKitPlugin, options]],
+		})
+		const result = await processor.render('# Title\n\n![Alt](./photo.jpg)\nA caption.\n', {
+			fileURL: new URL('file:///docs/page.md'),
+		})
+
+		expect(result.code).toContain('Title</h1>')
+		expect(result.code).toContain('<img')
+		expect(result.code).toContain('A caption.')
+		expect(result.code).not.toContain('import ')
+		expect(result.code).not.toContain('export ')
 	})
 })
 

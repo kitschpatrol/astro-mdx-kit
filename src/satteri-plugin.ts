@@ -15,6 +15,7 @@ import { createSatteriSectionizePlugin } from './plugins/satteri-sectionize.js'
 import { createSatteriUnwrapImagesPlugin } from './plugins/satteri-unwrap-images.js'
 import { createSatteriUnwrapPhrasingPlugin } from './plugins/satteri-unwrap-phrasing.js'
 import { resolveComponentConfig, resolveElementConfig } from './utils/resolve-config.js'
+import { mdxOnly } from './utils/satteri.js'
 
 /**
  * Build the ordered list of Sätteri MDAST plugins for astro-mdx-kit.
@@ -23,6 +24,9 @@ import { resolveComponentConfig, resolveElementConfig } from './utils/resolve-co
  * default Markdown processor. The Astro integration registers these plugins
  * automatically; use this directly when configuring a Sätteri processor by hand
  * or running Sätteri outside Astro.
+ *
+ * Directives, element overrides, and image captions compile to components, so
+ * their plugins only act on MDX sources and leave plain Markdown untouched.
  *
  * Requires the `directive` parser feature when directives are configured (the
  * Astro integration enables it automatically):
@@ -104,18 +108,18 @@ export function satteriMdxKit(options: MdxKitOptions = {}): MdastPluginDefinitio
 		log.debug(
 			`Registering ${Object.keys(resolvedDirectives).length} directive(s): ${Object.keys(resolvedDirectives).join(', ')}`,
 		)
-		plugins.push(createSatteriDirectivesPlugin(resolvedDirectives))
+		plugins.push(mdxOnly(createSatteriDirectivesPlugin(resolvedDirectives)))
 	}
 
 	if (Object.keys(resolvedElements).length > 0) {
 		log.debug(
 			`Registering ${Object.keys(resolvedElements).length} element override(s): ${Object.keys(resolvedElements).join(', ')}`,
 		)
-		plugins.push(...createSatteriElementsPlugins(resolvedElements))
+		plugins.push(...createSatteriElementsPlugins(resolvedElements).map((plugin) => mdxOnly(plugin)))
 	}
 
 	if (captionImages) {
-		plugins.push(createSatteriCaptionImagesPlugin())
+		plugins.push(mdxOnly(createSatteriCaptionImagesPlugin()))
 	}
 
 	if (unwrapPhrasingContent) {

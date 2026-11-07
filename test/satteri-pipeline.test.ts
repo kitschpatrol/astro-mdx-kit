@@ -302,17 +302,43 @@ describe('satteri frontmatter injection', () => {
 })
 
 describe('satteri plain markdown compatibility', () => {
-	it('does not crash when running on plain markdown', async () => {
-		const result = await markdownToHtml('# Hello\n\n![Alt](./photo.jpg)\n', {
+	const options: MdxKitOptions = {
+		captionImages: true,
+		directives: { Block: 'src/components/Block.astro' },
+		elements: {
+			h1: 'src/components/Heading.astro',
+			img: { autoImport: 'src', component: 'Picture', componentModule: 'astro:assets' },
+		},
+		unwrapImages: true,
+	}
+
+	it('leaves component-emitting transforms out of plain markdown', async () => {
+		const result = await markdownToHtml('# Hello\n\n![Alt](./photo.jpg)\nA caption.\n', {
 			features: { directive: true },
-			mdastPlugins: satteriMdxKit({
-				captionImages: true,
-				directives: { Block: 'src/components/Block.astro' },
-				unwrapImages: true,
-			}),
+			mdastPlugins: satteriMdxKit(options),
 		})
 
-		expect(result.html).toContain('Hello')
+		expect(result.html).toContain('<h1>Hello</h1>')
+		expect(result.html).toContain('<img src="./photo.jpg" alt="Alt">')
+		expect(result.html).toContain('A caption.')
+		expect(result.html).not.toContain('figure')
+		expect(result.html).not.toContain('import')
+	})
+
+	it('still applies markdown-safe transforms to plain markdown', async () => {
+		const result = await markdownToHtml('![Alt](./photo.jpg)\n', {
+			mdastPlugins: satteriMdxKit(options),
+		})
+
+		expect(result.html.trim()).toBe('<img src="./photo.jpg" alt="Alt">')
+	})
+
+	it('applies every transform to the same options in MDX', async () => {
+		const result = await compileMdx('# Hello\n\n![Alt](./photo.jpg)\nA caption.\n', options)
+
+		expect(result.code).toContain('h1: _MdxKit_H1')
+		expect(result.code).toContain('import { Picture } from "astro:assets"')
+		expect(result.code).toMatch(ASSET_IMPORT_REGEX)
 	})
 })
 

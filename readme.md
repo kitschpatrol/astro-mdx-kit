@@ -96,6 +96,8 @@ Astro 7 configures Sätteri by default, so unless you set `markdown.processor` y
 
 The transforms reach `.mdx` files through `markdown.processor`, so they don't apply to MDX if you pass `mdx({ extendMarkdownConfig: false })` or give `mdx()` its own `processor`.
 
+The same processor also handles `.md` files. Directives, element overrides, and image captions compile to components, which only exist in MDX, so those transforms leave `.md` files untouched. Image unwrapping, phrasing unwrapping, sectionizing, Mermaid rendering, and frontmatter injection apply to both.
+
 ### Installation
 
 ```bash
