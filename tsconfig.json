@@ -7,7 +7,6 @@
 		"allowUnusedLabels": false
 	},
 	"include": [
-		"**/*",
 		"**/**.*",
 		// Starlight first: generated `astro:content` type aliases collide across
 		// playgrounds and the first declaration wins, so the one with the `docs`

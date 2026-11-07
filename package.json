@@ -64,14 +64,14 @@
 		"@astrojs/markdown-remark": "^7.3.6",
 		"@astrojs/markdown-satteri": "^0.4.7",
 		"@types/mdast": "^4.0.4",
-		"hast-util-from-html": "^2.0.3",
+		"hast-util-from-html": "^2.1.0",
 		"hast-util-to-html": "^9.0.6",
-		"lognow": "^0.8.7",
+		"lognow": "^0.8.8",
 		"mdast-util-directive": "^3.2.0",
-		"mdast-util-mdx-jsx": "^3.2.0",
+		"mdast-util-mdx-jsx": "^3.2.1",
 		"mdast-util-mdxjs-esm": "^2.0.1",
 		"mdast-util-to-hast": "^13.2.1",
-		"mdast-util-to-markdown": "^2.2.1",
+		"mdast-util-to-markdown": "^2.2.3",
 		"mdast-util-to-string": "^4.0.0",
 		"micromark-extension-directive": "^4.0.0",
 		"pele": "^1.13.0",
@@ -86,8 +86,8 @@
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.5",
 		"@astrojs/check": "^0.9.12",
-		"@kitschpatrol/chagent": "0.4.0",
-		"@kitschpatrol/shared-config": "^8.14.0",
+		"@kitschpatrol/chagent": "0.5.0",
+		"@kitschpatrol/shared-config": "^8.14.1",
 		"@types/estree": "^1.0.10",
 		"@types/node": "~24.13.6",
 		"@types/unist": "^3.0.3",
@@ -98,9 +98,9 @@
 		"publint": "^0.3.25",
 		"remark-parse": "^11.0.0",
 		"shx": "^0.4.0",
-		"tsdown": "^0.23.4",
+		"tsdown": "^0.23.7",
 		"typescript": "~6.0.3",
-		"vitest": "^5.0.5"
+		"vitest": "^5.1.0"
 	},
 	"peerDependencies": {
 		"astro": "^7.4.7"
@@ -110,7 +110,7 @@
 			"optional": true
 		}
 	},
-	"packageManager": "pnpm@12.16.1",
+	"packageManager": "pnpm@12.18.0",
 	"engines": {
 		"node": "^24.16.0 || >=26.3.0"
 	}
