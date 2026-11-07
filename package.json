@@ -103,7 +103,7 @@
 		"vitest": "^5.0.5"
 	},
 	"peerDependencies": {
-		"astro": "^7.2.10",
+		"astro": "^7.4.4",
 		"remark-attribute-list": "^0.4.0",
 		"remark-directive": "^4.0.0"
 	},
