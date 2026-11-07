@@ -8,10 +8,8 @@ import { DEFAULT_IMAGE_NAMES, isStandaloneImage } from '../utils/images.js'
 export type RemarkUnwrapImagesOptions = {
 	/**
 	 * Additional JSX element names to treat as images when deciding whether a
-	 * paragraph contains a stand-alone image. Native `image` nodes are always
-	 * recognized.
-	 *
-	 * When omitted, falls back to a built-in set: `img`, `Image`, `Picture`.
+	 * paragraph contains a stand-alone image, on top of the built-in set (`img`,
+	 * `Image`, `Picture`). Native `image` nodes are always recognized.
 	 */
 	imageComponentNames?: Set<string>
 }
@@ -51,7 +49,7 @@ function unwrapInParent(parent: Parent, names: ReadonlySet<string>): void {
  * @param options - Optional configuration for image component names.
  */
 export function unwrapImagesTransform(tree: Root, options?: RemarkUnwrapImagesOptions): void {
-	const names = options?.imageComponentNames ?? DEFAULT_IMAGE_NAMES
+	const names = new Set([...DEFAULT_IMAGE_NAMES, ...(options?.imageComponentNames ?? [])])
 	unwrapInParent(tree, names)
 }
 

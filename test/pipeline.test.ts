@@ -38,6 +38,16 @@ function findJsxFlow(tree: Root, name: string): MdxJsxFlowElement | undefined {
 	return found
 }
 
+function findJsxText(tree: Root, name: string): MdxJsxTextElement | undefined {
+	let found: MdxJsxTextElement | undefined
+	visit(tree, 'mdxJsxTextElement', (node) => {
+		if (node.name === name) {
+			found = node
+		}
+	})
+	return found
+}
+
 function findEsm(tree: Root): MdxjsEsm[] {
 	return tree.children.filter((c): c is MdxjsEsm => c.type === 'mdxjsEsm')
 }
@@ -133,16 +143,6 @@ describe('nested directives', () => {
 		Outer: 'src/components/Outer.astro',
 	}
 
-	function findJsxText(tree: Root, name: string): MdxJsxTextElement | undefined {
-		let found: MdxJsxTextElement | undefined
-		visit(tree, 'mdxJsxTextElement', (node) => {
-			if (node.name === name) {
-				found = node
-			}
-		})
-		return found
-	}
-
 	it('transforms a leaf directive nested in a container directive', () => {
 		const tree = transform(':::Outer\n::Inner\n:::\n', { directives })
 
@@ -226,6 +226,21 @@ describe('plain Markdown files', () => {
 		expect(result.code).toContain('A caption.')
 		expect(result.code).not.toContain('import ')
 		expect(result.code).not.toContain('export ')
+	})
+})
+
+describe('unwrapImages option', () => {
+	it('keeps recognizing built-in image components when img is overridden', () => {
+		const tree = transform(':Picture{src="./photo.jpg"}\n', {
+			directives: {
+				Picture: { autoImport: 'src', component: 'Picture', componentModule: 'astro:assets' },
+			},
+			elements: { img: 'src/components/Image.astro' },
+			unwrapImages: true,
+		})
+
+		expect(tree.children.some((c) => c.type === 'paragraph')).toBe(false)
+		expect(tree.children).toContain(findJsxText(tree, 'Picture'))
 	})
 })
 

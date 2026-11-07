@@ -255,6 +255,19 @@ describe('satteri captionImages', () => {
 })
 
 describe('satteri unwrapImages', () => {
+	it('keeps recognizing built-in image components when img is overridden', async () => {
+		const result = await compileMdx(':Picture{src="./photo.jpg"}\n', {
+			directives: {
+				Picture: { autoImport: 'src', component: 'Picture', componentModule: 'astro:assets' },
+			},
+			elements: { img: 'src/components/Image.astro' },
+			unwrapImages: true,
+		})
+
+		expect(result.code).toContain('_jsx(Picture')
+		expect(result.code).not.toMatch(PICTURE_IN_PARAGRAPH_REGEX)
+	})
+
 	it('unwraps stand-alone images from their paragraph', async () => {
 		const result = await compileMdx('![Alt](./photo.jpg)\n', {
 			elements: {

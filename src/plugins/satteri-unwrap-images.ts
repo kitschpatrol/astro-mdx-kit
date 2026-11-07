@@ -13,13 +13,13 @@ const PLUGIN_NAME = 'astro-mdx-kit:unwrap-images'
  * after element overrides so it also unwraps images that have been replaced by
  * custom components.
  *
- * @param imageComponentNames - Additional JSX element names to treat as images.
- *   Falls back to a built-in set: `img`, `Image`, `Picture`.
+ * @param imageComponentNames - Additional JSX element names to treat as images,
+ *   on top of the built-in set (`img`, `Image`, `Picture`).
  */
 export function createSatteriUnwrapImagesPlugin(
 	imageComponentNames?: ReadonlySet<string>,
 ): MdastPluginDefinition {
-	const names = imageComponentNames ?? DEFAULT_IMAGE_NAMES
+	const names = new Set([...DEFAULT_IMAGE_NAMES, ...(imageComponentNames ?? [])])
 
 	return {
 		name: PLUGIN_NAME,

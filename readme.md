@@ -578,7 +578,7 @@ mdxKit({
 })
 ```
 
-By default, `![alt](src)` on its own line produces `<p><img ...></p>`. With `unwrapImages: true`, the paragraph is removed so the image is a direct child of the document flow. Works with both native images and component overrides (`img`, `Image`, and `Picture` are recognized by default). When using `remarkMdxKitUnwrapImages` as a standalone plugin, pass `imageComponentNames` to customize which JSX element names are treated as images.
+By default, `![alt](src)` on its own line produces `<p><img ...></p>`. With `unwrapImages: true`, the paragraph is removed so the image is a direct child of the document flow. Works with both native images and component overrides (`img`, `Image`, and `Picture` are recognized by default). When using `remarkMdxKitUnwrapImages` as a standalone plugin, pass `imageComponentNames` to add JSX element names that should be treated as images.
 
 ### Unwrap phrasing
 

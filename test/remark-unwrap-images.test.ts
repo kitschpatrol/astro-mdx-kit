@@ -129,6 +129,22 @@ describe('remarkMdxKitUnwrapImages', () => {
 		expect(tree.children.at(0)?.type).toBe('mdxJsxFlowElement')
 	})
 
+	it('keeps recognizing built-in image names alongside custom ones', () => {
+		const picture = { attributes: [], children: [], name: 'Picture', type: 'mdxJsxFlowElement' }
+		const fancy = { attributes: [], children: [], name: 'FancyImage', type: 'mdxJsxFlowElement' }
+		const tree: Root = {
+			children: [
+				{ children: [picture as never], type: 'paragraph' },
+				{ children: [fancy as never], type: 'paragraph' },
+			],
+			type: 'root',
+		}
+
+		unwrapImagesTransform(tree, { imageComponentNames: new Set(['FancyImage']) })
+
+		expect(tree.children.map((c) => c.type)).toEqual(['mdxJsxFlowElement', 'mdxJsxFlowElement'])
+	})
+
 	it('preserves non-image paragraphs', () => {
 		const tree: Root = {
 			children: [{ children: [{ type: 'text', value: 'Just text' }], type: 'paragraph' }],
