@@ -143,6 +143,25 @@ describe('remarkMdxKitElements — autoImport (direct AST transform)', () => {
 		expect(titleAttribute!.value).toBe('Hero')
 	})
 
+	it('keeps an empty alt so decorative images satisfy Astro image components', () => {
+		const image: Image = { alt: '', type: 'image', url: './decorative.png' }
+		const tree: Root = {
+			children: [{ children: [image], type: 'paragraph' }],
+			type: 'root',
+		}
+
+		runPlugin(tree, {
+			img: {
+				autoImport: 'src',
+				component: 'Image',
+				componentModule: 'astro:assets',
+			},
+		})
+
+		const jsx = findJsxFlowAnywhere(tree)
+		expect(findAttribute(jsx!, 'alt')!.value).toBe('')
+	})
+
 	it('deduplicates image imports for same src', () => {
 		const image1: Image = { alt: 'First', type: 'image', url: './same.png' }
 		const image2: Image = { alt: 'Second', type: 'image', url: './same.png' }

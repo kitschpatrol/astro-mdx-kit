@@ -97,8 +97,10 @@ export function buildImageJsxElement(
 	// Add alt and title from the mdast node, but only when hProperties
 	// didn't already provide them (avoids duplicate attributes while
 	// letting explicit attribute syntax like {:alt="..."} take precedence).
-	if (typeof node.alt === 'string' && node.alt !== '' && !('alt' in hProperties)) {
-		attributes.push(createStringAttribute('alt', node.alt))
+	// An empty alt is kept: it marks decorative images, and Astro's image
+	// components fail the build when alt is missing.
+	if (!('alt' in hProperties)) {
+		attributes.push(createStringAttribute('alt', node.alt ?? ''))
 	}
 
 	if (typeof node.title === 'string' && node.title !== '' && !('title' in hProperties)) {

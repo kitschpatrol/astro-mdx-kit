@@ -176,6 +176,16 @@ describe('satteri elements', () => {
 		expect(result.code).toContain('alt: "Alt text"')
 	})
 
+	it('keeps an empty alt on markdown images replaced by the component', async () => {
+		const result = await compileMdx('![](./photo.jpg)\n', {
+			elements: {
+				img: { autoImport: 'src', component: 'Image', componentModule: 'astro:assets' },
+			},
+		})
+
+		expect(result.code).toContain('alt: ""')
+	})
+
 	it('renames raw JSX elements and rewrites their attributes', async () => {
 		const result = await compileMdx('<img src="./raw.jpg" alt="raw" data-x="1" />\n', {
 			elements: {
