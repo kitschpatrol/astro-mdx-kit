@@ -218,7 +218,7 @@ describe('plain Markdown files', () => {
 			remarkPlugins: [[remarkMdxKitPlugin, options]],
 		})
 		const result = await processor.render('# Title\n\n![Alt](./photo.jpg)\nA caption.\n', {
-			fileURL: new URL('file:///docs/page.md'),
+			fileURL: new URL('docs/page.md', import.meta.url),
 		})
 
 		expect(result.code).toContain('Title</h1>')
