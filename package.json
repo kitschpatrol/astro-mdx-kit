@@ -75,6 +75,8 @@
 		"mdast-util-to-string": "^4.0.0",
 		"micromark-extension-directive": "^4.0.0",
 		"pele": "^1.13.0",
+		"remark-attribute-list": "^0.4.0",
+		"remark-directive": "^4.0.0",
 		"remark-sectionize": "^2.1.0",
 		"satteri": "^0.10.5",
 		"unified": "^11.0.5",
@@ -94,8 +96,6 @@
 		"node-addon-api": "^8.9.2",
 		"node-gyp": "^13.1.0",
 		"publint": "^0.3.25",
-		"remark-attribute-list": "^0.4.0",
-		"remark-directive": "^4.0.0",
 		"remark-parse": "^11.0.0",
 		"shx": "^0.4.0",
 		"tsdown": "^0.23.4",
@@ -103,9 +103,7 @@
 		"vitest": "^5.0.5"
 	},
 	"peerDependencies": {
-		"astro": "^7.4.4",
-		"remark-attribute-list": "^0.4.0",
-		"remark-directive": "^4.0.0"
+		"astro": "^7.4.4"
 	},
 	"peerDependenciesMeta": {
 		"astro": {

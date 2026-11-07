@@ -221,7 +221,7 @@ import {
 
 ### Directives
 
-Map [remark-directive](https://github.com/remarkjs/remark-directive) syntax to Astro components. All three directive forms (container, leaf, text) are supported — the type is determined automatically by how you write it in Markdown. `remark-directive` is wired up automatically — you don't need to add it to your `remarkPlugins` array manually. (It's still a peer dependency, so install it alongside `astro-mdx-kit` or rely on your package manager's hoisting.)
+Map [remark-directive](https://github.com/remarkjs/remark-directive) syntax to Astro components. All three directive forms (container, leaf, text) are supported — the type is determined automatically by how you write it in Markdown. `remark-directive` is wired up automatically — you don't need to add it to your `remarkPlugins` array manually.
 
 ```ts
 mdxKit({
