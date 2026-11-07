@@ -162,7 +162,11 @@ export type LabelConfig = CaptionPropConfig | string
 export type DetailedComponentConfig = {
 	/** Auto-import a prop's value as a module (e.g., for image paths). */
 	autoImport?: AutoImportConfig
-	/** Component name (for named exports) or file path (for default exports). */
+	/**
+	 * Component name (for named exports) or file path (for default exports). Each
+	 * file imports a name once, so directive and element configs that share a
+	 * component name must import it from the same module.
+	 */
 	component: string
 	/**
 	 * Module to import the component from (e.g., `'astro:assets'`). When set,

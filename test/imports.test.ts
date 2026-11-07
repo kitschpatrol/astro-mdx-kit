@@ -1,8 +1,14 @@
 import type { Root } from 'mdast'
 import type { MdxJsxAttribute } from 'mdast-util-mdx-jsx'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { ResolvedAutoImportEntry } from '../src/utils/resolve-config'
-import { ImportTracker, isImportablePath, resolveAutoImportAttributes } from '../src/utils/imports'
+import { log } from '../src/log'
+import {
+	getImportTracker,
+	ImportTracker,
+	isImportablePath,
+	resolveAutoImportAttributes,
+} from '../src/utils/imports'
 
 function makeTree(): Root {
 	return { children: [], type: 'root' }
@@ -30,11 +36,42 @@ describe('ImportTracker', () => {
 		expect(tree.children).toHaveLength(1)
 	})
 
-	it('generates unique identifiers for different assets', () => {
+	it('numbers asset identifiers in registration order', () => {
 		const tracker = new ImportTracker()
-		const id1 = tracker.addAssetImport('./a.png')
-		const id2 = tracker.addAssetImport('./b.png')
-		expect(id1).not.toBe(id2)
+		expect(tracker.addAssetImport('./a.png')).toBe('_mdxKitAsset0')
+		expect(tracker.addAssetImport('./b.png')).toBe('_mdxKitAsset1')
+		expect(tracker.addAssetImport('./a.png')).toBe('_mdxKitAsset0')
+	})
+
+	it('warns and skips a second import of the same name from another module', () => {
+		const spy = vi.spyOn(log, 'warn')
+		const tracker = new ImportTracker()
+		tracker.addComponentImport('Picture', 'astro:assets', true)
+		tracker.addComponentImport('Picture', 'astro-media-kit/components', true)
+
+		const tree = makeTree()
+		tracker.injectIntoTree(tree)
+		expect(tree.children).toHaveLength(1)
+		expect(spy).toHaveBeenCalledOnce()
+		expect(spy.mock.calls[0]![0]).toContain('"Picture"')
+		spy.mockRestore()
+	})
+
+	it('injects only the imports registered since the last injection', () => {
+		const tracker = new ImportTracker()
+		const tree = makeTree()
+		tracker.addComponentImport('Foo', '/src/Foo.astro', false)
+		tracker.injectIntoTree(tree)
+		tracker.addAssetImport('./a.png')
+		tracker.injectIntoTree(tree)
+		tracker.injectIntoTree(tree)
+		expect(tree.children).toHaveLength(2)
+	})
+
+	it('shares one tracker per tree', () => {
+		const tree = makeTree()
+		expect(getImportTracker(tree)).toBe(getImportTracker(tree))
+		expect(getImportTracker(tree)).not.toBe(getImportTracker(makeTree()))
 	})
 
 	it('does not inject if no imports were added', () => {

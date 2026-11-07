@@ -100,7 +100,7 @@ function createTransformPlugin(
 		}
 
 		const root = findRootNode(node, context)
-		const imports = getImportTracker(context, TRANSFORM_PLUGIN, root)
+		const imports = getImportTracker(context, root)
 		imports.addComponentImport(config.componentName, config.importPath, config.isNamedImport)
 
 		const imageJsx = buildImageJsxElement(node, config, imports)
@@ -145,7 +145,7 @@ function createTransformPlugin(
 		}
 
 		const root = findRootNode(node, context)
-		const imports = getImportTracker(context, TRANSFORM_PLUGIN, root)
+		const imports = getImportTracker(context, root)
 		imports.addComponentImport(config.componentName, config.importPath, config.isNamedImport)
 
 		const attributes = [...node.attributes]
@@ -212,10 +212,9 @@ function buildMappingEntries(overrides: Record<string, ResolvedComponentConfig>)
 function registerComponentImports(
 	overrides: Record<string, ResolvedComponentConfig>,
 	context: MdastVisitorContext,
-	trackerName: string,
 	root: ReturnType<typeof findRootNode>,
 ): void {
-	const imports = getImportTracker(context, trackerName, root)
+	const imports = getImportTracker(context, root)
 	for (const [element, config] of Object.entries(overrides)) {
 		imports.addComponentImport(config.componentName, config.importPath, config.isNamedImport)
 		log.debug(`Overriding <${element}> → <${config.componentName}> (via export const components)`)
@@ -256,7 +255,7 @@ function createExportMergePlugin(
 			}
 
 			const root = findRootNode(node, context)
-			registerComponentImports(overrides, context, EXPORT_MERGE_PLUGIN, root)
+			registerComponentImports(overrides, context, root)
 			context.setProperty(
 				node,
 				'value',
@@ -283,7 +282,7 @@ function createExportInjectPlugin(
 			return
 		}
 
-		registerComponentImports(overrides, context, EXPORT_INJECT_PLUGIN, root)
+		registerComponentImports(overrides, context, root)
 		context.appendChild(root, {
 			type: 'mdxjsEsm',
 			value: `export const components = { ${buildMappingEntries(overrides)} }`,

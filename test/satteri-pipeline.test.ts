@@ -4,10 +4,11 @@ import type { Data } from 'satteri'
 import { markdownToHtml, mdxToJs } from 'satteri'
 import { describe, expect, it } from 'vitest'
 import type { MdxKitOptions } from '../src/types'
+import { astroPicture } from '../src/presets'
 import { satteriMdxKit } from '../src/satteri-plugin'
 
-const ASSET_IMPORT_REGEX = /import _mdxKitAsset\w+ from "\.\/photo\.jpg"/v
-const SRC_ATTRIBUTE_REGEX = /src: _mdxKitAsset\w+/v
+const ASSET_IMPORT_REGEX = /import _mdxKitAsset\d+ from "\.\/photo\.jpg"/v
+const SRC_ATTRIBUTE_REGEX = /src: _mdxKitAsset\d+/v
 const H1_MAPPING_REGEX = /h1: _MdxKit_H1/v
 const PICTURE_IN_PARAGRAPH_REGEX = /_components\.p, \{\s*children: _jsx\(Picture/v
 const PARAGRAPH_IN_SPAN_REGEX = /span[\s\S]*?_components\.p/v
@@ -87,6 +88,18 @@ describe('satteri directives', () => {
 
 		expect(result.code).toContain('_MdxKit_Block')
 		expect(result.code).not.toContain('_MdxKit_Other')
+	})
+
+	it('shares component imports and asset numbering across directives and elements', async () => {
+		const source = '::Picture{src="./a.png" alt="a"}\n\n![b](./b.png)\n'
+		const result = await compileMdx(source, {
+			directives: { Picture: astroPicture },
+			elements: { img: astroPicture },
+		})
+
+		expect(result.code.split('import { Picture }').length - 1).toBe(1)
+		expect(result.code).toContain('import _mdxKitAsset0 from "./a.png"')
+		expect(result.code).toContain('import _mdxKitAsset1 from "./b.png"')
 	})
 
 	it('deduplicates component imports across multiple directives', async () => {

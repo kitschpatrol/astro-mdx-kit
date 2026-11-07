@@ -45,7 +45,7 @@ export function createSatteriDirectivesPlugin(
 
 		log.debug(`Transforming :${node.name} directive → <${config.componentName}>`)
 		const root = findRootNode(node, context)
-		const imports = getImportTracker(context, PLUGIN_NAME, root)
+		const imports = getImportTracker(context, root)
 		imports.addComponentImport(config.componentName, config.importPath, config.isNamedImport)
 
 		const attributes = buildDirectiveAttributes(node.attributes ?? {}, config, imports)
@@ -85,7 +85,7 @@ export function createSatteriDirectivesPlugin(
 
 		log.debug(`Transforming :${node.name} directive → <${config.componentName}>`)
 		const root = findRootNode(node, context)
-		const imports = getImportTracker(context, PLUGIN_NAME, root)
+		const imports = getImportTracker(context, root)
 		imports.addComponentImport(config.componentName, config.importPath, config.isNamedImport)
 
 		const attributes = buildDirectiveAttributes(node.attributes ?? {}, config, imports)

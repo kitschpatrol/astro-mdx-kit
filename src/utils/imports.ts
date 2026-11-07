@@ -10,47 +10,118 @@ type TrackedImport = {
 	localName: string
 }
 
+type ComponentImport = {
+	importPath: string
+	isNamed: boolean
+}
+
 /**
- * Tracks component and asset imports accumulated during a single MDX file's
- * transform pass, deduplicating identical imports.
+ * Deduplication state shared by the remark and Sätteri import trackers for one
+ * document: asset imports are keyed by path and get sequential identifiers,
+ * component imports are keyed by local name.
+ */
+export class ImportRegistry {
+	private readonly assets = new Map<string, string>()
+	private readonly components = new Map<string, ComponentImport>()
+
+	/**
+	 * Resolve the local identifier for an asset path, creating a new sequential
+	 * one (`_mdxKitAsset0`, `_mdxKitAsset1`, ...) the first time a path is seen.
+	 *
+	 * @returns The identifier and whether it was newly created.
+	 */
+	registerAsset(assetPath: string): { isNew: boolean; name: string } {
+		const existing = this.assets.get(assetPath)
+		if (existing !== undefined) {
+			return { isNew: false, name: existing }
+		}
+
+		const name = `_mdxKitAsset${this.assets.size}`
+		this.assets.set(assetPath, name)
+		return { isNew: true, name }
+	}
+
+	/**
+	 * Record a component import under its local name.
+	 *
+	 * A second registration of the same name and module is a no-op. A second
+	 * registration of the same name from a different module is skipped with a
+	 * warning, since both cannot be declared in one file.
+	 *
+	 * @returns `true` if the import is new and should be emitted.
+	 */
+	registerComponent(localName: string, importPath: string, isNamed: boolean): boolean {
+		const existing = this.components.get(localName)
+		if (existing === undefined) {
+			this.components.set(localName, { importPath, isNamed })
+			return true
+		}
+
+		if (existing.importPath !== importPath || existing.isNamed !== isNamed) {
+			log.warn(
+				`Component "${localName}" is already imported from "${existing.importPath}", so the import from "${importPath}" is skipped. Give directive and element configs that use different modules distinct component names.`,
+			)
+		}
+
+		return false
+	}
+}
+
+const trackers = new WeakMap<Root, ImportTracker>()
+
+/**
+ * Get (or lazily create) the import tracker for a document. Directive and
+ * element transforms that run on the same tree share one tracker, so imports
+ * are deduplicated across them and asset identifiers form a single sequence.
+ *
+ * @param tree - The root MDAST node being transformed.
+ */
+export function getImportTracker(tree: Root): ImportTracker {
+	let tracker = trackers.get(tree)
+	if (!tracker) {
+		tracker = new ImportTracker()
+		trackers.set(tree, tracker)
+	}
+
+	return tracker
+}
+
+/**
+ * Tracks component and asset imports accumulated while transforming a single
+ * MDX document, deduplicating identical imports.
  *
  * Use {@link addComponentImport} and {@link addAssetImport} to register imports
- * during tree traversal, then call {@link injectIntoTree} once at the end to
- * prepend all collected import statements to the AST.
+ * during tree traversal, then call {@link injectIntoTree} to prepend the import
+ * statements registered since the last injection to the AST.
  */
 export class ImportTracker {
-	private readonly assetImports = new Map<string, string>()
-	private readonly importKeys = new Set<string>()
-	private readonly imports: TrackedImport[] = []
+	private readonly pending: TrackedImport[] = []
+	private readonly registry = new ImportRegistry()
 
 	/**
 	 * Register an asset import (e.g. an image path like `'./photo.jpg'`).
 	 *
 	 * Returns the local identifier name that will reference the imported module.
 	 * If the same `assetPath` was already registered, the existing identifier is
-	 * returned (deduplication). Identifiers are generated with a random suffix to
-	 * avoid collisions if multiple processors share state across files.
+	 * returned (deduplication). Identifiers are numbered in registration order,
+	 * so output is deterministic.
 	 *
 	 * @param assetPath - The path to import (e.g. `'./hero.png'`).
 	 *
-	 * @returns The generated local identifier (e.g.
-	 *   `'_mdxKitAssetV1StGXR8aZ5j'`).
+	 * @returns The local identifier (e.g. `'_mdxKitAsset0'`).
 	 */
 	addAssetImport(assetPath: string): string {
-		const existing = this.assetImports.get(assetPath)
-		if (existing !== undefined) {
-			return existing
+		const { isNew, name } = this.registry.registerAsset(assetPath)
+		if (isNew) {
+			this.pending.push({ importPath: assetPath, isNamed: false, localName: name })
 		}
 
-		const name = `_mdxKitAsset${Math.random().toString(36).slice(2, 14)}`
-		this.assetImports.set(assetPath, name)
-		this.imports.push({ importPath: assetPath, isNamed: false, localName: name })
 		return name
 	}
 
 	/**
-	 * Register a component import. Duplicate registrations (same localName +
-	 * importPath + kind) are silently ignored.
+	 * Register a component import. Duplicate registrations of the same local name
+	 * are ignored; see {@link ImportRegistry.registerComponent}.
 	 *
 	 * @param localName - The local identifier for the component (e.g.
 	 *   `'Picture'`).
@@ -59,33 +130,27 @@ export class ImportTracker {
 	 * @param isNamed - `true` for named imports, `false` for default imports.
 	 */
 	addComponentImport(localName: string, importPath: string, isNamed: boolean): void {
-		const key = `${isNamed ? 'named' : 'default'}|${localName}|${importPath}`
-		if (this.importKeys.has(key)) {
-			return
+		if (this.registry.registerComponent(localName, importPath, isNamed)) {
+			this.pending.push({ importPath, isNamed, localName })
 		}
-
-		this.importKeys.add(key)
-		this.imports.push({ importPath, isNamed, localName })
 	}
 
 	/**
-	 * Prepend all tracked import statements to the MDAST tree's children as
-	 * `mdxjsEsm` nodes. Call this once after all imports have been registered.
+	 * Prepend the import statements registered since the last call to the MDAST
+	 * tree's children as `mdxjsEsm` nodes.
 	 *
 	 * @param tree - The root MDAST node to prepend imports into.
 	 */
 	injectIntoTree(tree: Root): void {
-		if (this.imports.length === 0) {
-			return
-		}
-
 		// MdxjsEsm nodes are valid RootContent via type augmentation from
 		// mdast-util-mdxjs-esm, but the inference doesn't always pick it up.
 		// We push into the untyped children array directly.
 		const { children } = tree
-		for (const { importPath, isNamed, localName } of this.imports.toReversed()) {
+		for (const { importPath, isNamed, localName } of this.pending.toReversed()) {
 			children.unshift(createEsmImportNode(localName, importPath, isNamed))
 		}
+
+		this.pending.length = 0
 	}
 }
 

@@ -244,6 +244,21 @@ describe('unwrapImages option', () => {
 	})
 })
 
+describe('import tracking', () => {
+	it('shares component imports and asset numbering across directives and elements', () => {
+		const tree = transform('::Picture{src="./a.png" alt="a"}\n\n![b](./b.png)\n', {
+			directives: { Picture: astroPicture },
+			elements: { img: astroPicture },
+		})
+
+		expect(findEsm(tree).map((n) => n.value)).toEqual([
+			'import _mdxKitAsset1 from "./b.png"',
+			'import { Picture } from "astro:assets"',
+			'import _mdxKitAsset0 from "./a.png"',
+		])
+	})
+})
+
 describe('sectionize option', () => {
 	it('wraps each heading and its content in nested sections', () => {
 		const tree = transform('Intro.\n\n# One\n\nAlpha\n\n## Two\n\nBeta\n\n# Three\n\nGamma\n', {

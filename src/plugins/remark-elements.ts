@@ -9,6 +9,7 @@ import type { MdxJsxFlowElement } from 'mdast-util-mdx-jsx'
 import type { Plugin } from 'unified'
 import type { Parent } from 'unist'
 import { SKIP, visit } from 'unist-util-visit'
+import type { ImportTracker } from '../utils/imports.js'
 import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
 import { log } from '../log.js'
 import { createComponentsExportNode, mergeIntoComponentsExport } from '../utils/ast.js'
@@ -19,7 +20,7 @@ import {
 	findMultiImageParagraphs,
 } from '../utils/caption.js'
 import { buildImageJsxElement } from '../utils/images.js'
-import { ImportTracker, resolveAutoImportAttributes } from '../utils/imports.js'
+import { getImportTracker, resolveAutoImportAttributes } from '../utils/imports.js'
 
 /**
  * Options for the element-to-component remark plugin.
@@ -69,7 +70,7 @@ export function createElementTransform(options: RemarkElementsOptions): (tree: R
 	}
 
 	return (tree: Root) => {
-		const imports = new ImportTracker()
+		const imports = getImportTracker(tree)
 
 		// -----------------------------------------------------------------
 		// 1. Handle elements with autoImports via direct AST transformation

@@ -1,6 +1,7 @@
 import type { MdastNode, MdastPluginDefinition, MdastVisitorContext } from 'satteri'
 import type { AssetImporter } from './imports.js'
 import { buildEsmImportValue } from './ast.js'
+import { ImportRegistry } from './imports.js'
 
 /**
  * Per-compile state shared across all astro-mdx-kit Sätteri plugin passes.
@@ -17,8 +18,8 @@ type SatteriCompileState = {
 	componentsExportHandled: boolean
 	/** Names of fire-once plugins that have already run for this document. */
 	fired: Set<string>
-	/** Per-plugin import trackers, keyed by plugin name. */
-	trackers: Map<string, SatteriImportTracker>
+	/** Import tracker shared by every plugin pass on this document. */
+	tracker?: SatteriImportTracker
 }
 
 const STATE_KEY = Symbol('astro-mdx-kit')
@@ -32,7 +33,6 @@ export function getCompileState(context: MdastVisitorContext): SatteriCompileSta
 	data[STATE_KEY] ??= {
 		componentsExportHandled: false,
 		fired: new Set<string>(),
-		trackers: new Map<string, SatteriImportTracker>(),
 	} satisfies SatteriCompileState
 
 	return data[STATE_KEY] as SatteriCompileState
@@ -57,23 +57,24 @@ export function findRootNode(
 }
 
 /**
- * Tracks component and asset imports during a single Sätteri plugin pass,
- * inserting deduplicated `mdxjsEsm` import nodes at the top of the document as
- * they are registered.
+ * Tracks component and asset imports across the Sätteri plugin passes on one
+ * document, inserting deduplicated `mdxjsEsm` import nodes at the top of the
+ * document as they are registered.
  *
  * Unlike the remark {@link ImportTracker}, injection is incremental: Sätteri
  * mutations are recorded as commands and applied after the pass, so each new
- * import can be inserted immediately without an end-of-pass hook.
+ * import can be inserted immediately without an end-of-pass hook. Each pass
+ * gets its own context and root handle, so the tracker is re-attached to the
+ * current pair before use.
  */
 export class SatteriImportTracker implements AssetImporter {
-	private readonly assetImports = new Map<string, string>()
-	private readonly ctx: MdastVisitorContext
-	private readonly importKeys = new Set<string>()
-	private readonly root: Readonly<MdastNode>
+	private context: MdastVisitorContext
+	private readonly registry = new ImportRegistry()
+	private root: Readonly<MdastNode>
 
 	constructor(root: Readonly<MdastNode>, context: MdastVisitorContext) {
 		this.root = root
-		this.ctx = context
+		this.context = context
 	}
 
 	/**
@@ -82,53 +83,53 @@ export class SatteriImportTracker implements AssetImporter {
 	 * registrations of the same path return the existing identifier.
 	 */
 	addAssetImport(assetPath: string): string {
-		const existing = this.assetImports.get(assetPath)
-		if (existing !== undefined) {
-			return existing
+		const { isNew, name } = this.registry.registerAsset(assetPath)
+		if (isNew) {
+			this.insertImport(buildEsmImportValue(name, assetPath, false))
 		}
 
-		const name = `_mdxKitAsset${Math.random().toString(36).slice(2, 14)}`
-		this.assetImports.set(assetPath, name)
-		this.insertImport(buildEsmImportValue(name, assetPath, false))
 		return name
 	}
 
 	/**
-	 * Register a component import. Duplicate registrations (same localName +
-	 * importPath + kind) are silently ignored.
+	 * Register a component import. Duplicate registrations of the same local name
+	 * are ignored; see {@link ImportRegistry.registerComponent}.
 	 */
 	addComponentImport(localName: string, importPath: string, isNamed: boolean): void {
-		const key = `${isNamed ? 'named' : 'default'}|${localName}|${importPath}`
-		if (this.importKeys.has(key)) {
-			return
+		if (this.registry.registerComponent(localName, importPath, isNamed)) {
+			this.insertImport(buildEsmImportValue(localName, importPath, isNamed))
 		}
+	}
 
-		this.importKeys.add(key)
-		this.insertImport(buildEsmImportValue(localName, importPath, isNamed))
+	/**
+	 * Point the tracker at the current pass's root node and visitor context.
+	 */
+	attach(root: Readonly<MdastNode>, context: MdastVisitorContext): void {
+		this.root = root
+		this.context = context
 	}
 
 	private insertImport(value: string): void {
-		this.ctx.insertChildAt(this.root, 0, { type: 'mdxjsEsm', value })
+		this.context.insertChildAt(this.root, 0, { type: 'mdxjsEsm', value })
 	}
 }
 
 /**
- * Get (or lazily create) the import tracker for a plugin pass. Trackers are
- * scoped per document and per plugin name.
+ * Get (or lazily create) the import tracker for the current document, attached
+ * to the current pass's root node and context.
  */
 export function getImportTracker(
 	context: MdastVisitorContext,
-	pluginName: string,
 	root: Readonly<MdastNode>,
 ): SatteriImportTracker {
 	const state = getCompileState(context)
-	let tracker = state.trackers.get(pluginName)
-	if (!tracker) {
-		tracker = new SatteriImportTracker(root, context)
-		state.trackers.set(pluginName, tracker)
+	if (state.tracker) {
+		state.tracker.attach(root, context)
+	} else {
+		state.tracker = new SatteriImportTracker(root, context)
 	}
 
-	return tracker
+	return state.tracker
 }
 
 /**

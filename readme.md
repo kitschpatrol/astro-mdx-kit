@@ -256,6 +256,7 @@ Content inside the directive.
 - The component is automatically imported — no manual `import` needed
 - With `autoImport: 'src'`, the `src` prop value is converted to an ESM import so Vite can process the asset
 - Only relative paths and aliases are imported. URLs, `data:` URIs, and root-absolute paths like `/images/photo.png` (which Astro serves from `public/`) pass through as plain strings
+- Imports are shared across directives and element overrides, so configs that use the same component name must import it from the same module
 
 #### Prop remapping
 
@@ -774,9 +775,9 @@ export default defineConfig({
           propMap: { type: 'variant' },
         },
         Picture: {
-          autoImport: 'src',
+          autoImport: ['src', tldrawDarkImport],
           component: 'Picture',
-          componentModule: 'astro:assets',
+          componentModule: 'astro-media-kit/components',
         },
       },
       elements: {

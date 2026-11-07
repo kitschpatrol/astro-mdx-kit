@@ -18,7 +18,7 @@ import {
 	isDirectiveNode,
 	toFlowChildren,
 } from '../utils/directives.js'
-import { ImportTracker } from '../utils/imports.js'
+import { getImportTracker } from '../utils/imports.js'
 
 /**
  * Options for the directive-to-component remark plugin.
@@ -53,7 +53,7 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 	const { configs } = options
 
 	return (tree: Root) => {
-		const imports = new ImportTracker()
+		const imports = getImportTracker(tree)
 
 		visit(tree, (node, index, parent) => {
 			if (!parent || index === undefined || !isDirectiveNode(node)) {
