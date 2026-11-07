@@ -5,7 +5,7 @@
 /// <reference types="mdast-util-mdxjs-esm" />
 
 import type { Root } from 'mdast'
-import type { MdxJsxFlowElement } from 'mdast-util-mdx-jsx'
+import type { MdxJsxFlowElement, MdxJsxTextElement } from 'mdast-util-mdx-jsx'
 import type { MdxjsEsm } from 'mdast-util-mdxjs-esm'
 import remarkParse from 'remark-parse'
 import { unified } from 'unified'
@@ -121,6 +121,51 @@ describe('transform composition (T4 — end-to-end)', () => {
 		expect(text).toContain('_MdxKit_Img')
 		expect(text).toContain('_MdxKit_Callout')
 		expect(text).toContain('export const components')
+	})
+})
+
+describe('nested directives', () => {
+	const directives = {
+		Inner: 'src/components/Inner.astro',
+		Outer: 'src/components/Outer.astro',
+	}
+
+	function findJsxText(tree: Root, name: string): MdxJsxTextElement | undefined {
+		let found: MdxJsxTextElement | undefined
+		visit(tree, 'mdxJsxTextElement', (node) => {
+			if (node.name === name) {
+				found = node
+			}
+		})
+		return found
+	}
+
+	it('transforms a leaf directive nested in a container directive', () => {
+		const tree = transform(':::Outer\n::Inner\n:::\n', { directives })
+
+		const outer = findJsxFlow(tree, '_MdxKit_Outer')
+		expect(outer?.children.map((c) => c.type)).toEqual(['mdxJsxFlowElement'])
+		expect(findJsxFlow(tree, '_MdxKit_Inner')).toBe(outer?.children[0])
+		expect(JSON.stringify(tree)).not.toContain('Directive')
+		expect(findEsm(tree)).toHaveLength(2)
+	})
+
+	it('transforms a text directive nested in a leaf directive label', () => {
+		const tree = transform('::Outer[hello :Inner[x]]\n', { directives })
+
+		const outer = findJsxFlow(tree, '_MdxKit_Outer')
+		const paragraph = outer?.children[0]
+		expect(paragraph?.type).toBe('paragraph')
+		expect(findJsxText(tree, '_MdxKit_Inner')).toBeDefined()
+		expect(JSON.stringify(tree)).not.toContain('Directive')
+	})
+
+	it('transforms a text directive nested in a text directive', () => {
+		const tree = transform('Para :Outer[a :Inner[b]] end\n', { directives })
+
+		const outer = findJsxText(tree, '_MdxKit_Outer')
+		expect(outer?.children.map((c) => c.type)).toEqual(['text', 'mdxJsxTextElement'])
+		expect(JSON.stringify(tree)).not.toContain('Directive')
 	})
 })
 

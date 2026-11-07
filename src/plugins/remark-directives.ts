@@ -7,7 +7,7 @@
 import type { PhrasingContent, Root } from 'mdast'
 import type { MdxJsxFlowElement, MdxJsxTextElement } from 'mdast-util-mdx-jsx'
 import type { Plugin } from 'unified'
-import { visit } from 'unist-util-visit'
+import { SKIP, visit } from 'unist-util-visit'
 import type { ResolvedComponentConfig } from '../utils/resolve-config.js'
 import { log } from '../log.js'
 import { createJsxFlowElement, createJsxTextElement } from '../utils/ast.js'
@@ -106,6 +106,11 @@ export function createDirectiveTransform(options: RemarkDirectivesOptions): (tre
 			}
 
 			parent.children[index] = jsxNode
+
+			// The JSX node holds copies of the directive's children, so skip the
+			// stale originals and re-visit the replacement to transform directives
+			// nested inside it.
+			return [SKIP, index]
 		})
 
 		imports.injectIntoTree(tree)
