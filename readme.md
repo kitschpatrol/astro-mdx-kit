@@ -206,7 +206,7 @@ Each feature is also available as a standalone remark plugin:
 ```ts
 import {
   remarkMdxKitAttributes, // Markdown or MDX
-  remarkMdxKitCaptionImages, // Markdown or MDX
+  remarkMdxKitCaptionImages, // MDX
   remarkMdxKitDirectives, // MDX + Astro
   remarkMdxKitElements, // MDX + Astro
   remarkMdxKitFrontmatterInject, // Markdown or MDX + Astro
@@ -339,6 +339,9 @@ mdxKit({
 
 - **Simple overrides** (like `h1`) use MDX's `export const components` mechanism, covering both Markdown syntax and raw HTML/JSX
 - **Auto-import overrides** (like `img`) use direct AST transformation so that asset paths are converted to ESM imports for Vite processing
+
+> [!NOTE]
+> MDX's static optimization (`mdx({ optimize: true })`, which Starlight enables by default) renders static elements as raw HTML and bypasses the `components` export that simple overrides rely on. Exempt the elements you override, for example `mdx({ optimize: { ignoreElementNames: ['h2'] } })`, as the Starlight playgrounds in this repository do.
 
 Element keys aren't limited to standard HTML element names — you can use any JSX tag name, including PascalCase custom components. This lets you auto-import components that use MDX-style markup without an explicit `import` statement in each file:
 
@@ -530,7 +533,7 @@ mdxKit({
 | `{ prop: 'caption', format: 'raw' }`      | `<Picture ... caption="**Bold** caption" />` (raw Markdown)             |
 | `{ prop: 'caption', format: 'rendered' }` | `<Picture ... caption="<p><strong>Bold</strong> caption</p>" />` (HTML) |
 
-If both `captionImages` (global) and per-element `caption` are set, the element override takes precedence for overridden images.
+If both `captionImages` (global) and per-element `caption` are set, the element override takes precedence for overridden images. An `img` override with `autoImport` replaces the image node before the global pass runs, so `captionImages` never sees those images; give the override its own `caption` to caption them.
 
 This might seem a bit fussy, but it can be useful for handling the caption content differently in your custom component.
 
@@ -706,11 +709,11 @@ mdxKit({
   // Inject the MDAST tree as frontmatter.mdast
   mdast: true,
   // Or use a custom key:
-  // rawMdx: 'source',
+  // mdast: 'tree',
   // Inject raw source as frontmatter.rawMdx
   rawMdx: true,
   // Or use a custom key:
-  // mdast: 'tree',
+  // rawMdx: 'source',
 })
 ```
 

@@ -63,8 +63,10 @@ function mdxOnly(transform: Transform): Transform {
  * @example
  * 	import remarkMdxKitPlugin from 'astro-mdx-kit/remark'
  *
- * 	// In Astro MDX config:
- * 	mdx({ remarkPlugins: [[remarkMdxKitPlugin, options]] })
+ * 	// In Astro config:
+ * 	markdown: {
+ * 		processor: unified({ remarkPlugins: [[remarkMdxKitPlugin, options]] })
+ * 	}
  *
  * 	// Or in any unified pipeline:
  * 	unified()
@@ -228,13 +230,14 @@ export default remarkMdxKitPlugin
  * `remarkPlugins` arrays. Provides full autocomplete on the options object.
  *
  * @example
+ * 	import { unified } from '@astrojs/markdown-remark'
  * 	import { remarkMdxKit } from 'astro-mdx-kit'
  *
- * 	export default {
+ * 	export default defineConfig({
  * 	markdown: {
- * 	remarkPlugins: [remarkMdxKit({ directives: { ... } })],
+ * 	processor: unified({ remarkPlugins: [remarkMdxKit({ directives: { ... } })] }),
  * 	},
- * 	}
+ * 	})
  */
 // eslint-disable-next-line ts/no-explicit-any -- interop with Astro's RemarkPlugin type
 export function remarkMdxKit(options: MdxKitOptions = {}): [plugin: any, options: MdxKitOptions] {

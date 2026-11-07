@@ -23,7 +23,7 @@ import { satteriMdxKit } from './satteri-plugin.js'
  *   `remarkMdxKitPlugin` remark plugin is registered.
  *
  * @example
- * 	import { mdxKit } from 'astro-mdx-kit'
+ * 	import mdxKit from 'astro-mdx-kit'
  *
  * 	export default defineConfig({
  * 		integrations: [
