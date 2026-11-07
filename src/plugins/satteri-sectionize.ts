@@ -130,7 +130,7 @@ export function createSatteriSectionizePlugin(): MdastPluginDefinition {
 			seenParents.add(parent)
 
 			const wrap = context.sourceFormat === 'mdx' ? wrapInJsxSection : wrapInHtmlSection
-			context.setProperty(parent, 'children', sectionizeSiblings(parent.children, wrap))
+			context.setField(parent, 'children', sectionizeSiblings(parent.children, wrap))
 		},
 		name: PLUGIN_NAME,
 	}

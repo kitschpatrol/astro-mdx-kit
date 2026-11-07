@@ -4,6 +4,7 @@ allowBuilds:
   unrs-resolver: true
 ignoreWorkspaceRootCheck: true
 minimumReleaseAgeExclude:
+  - '@astrojs/starlight@0.42.10'
   - '@kitschpatrol/chagent@0.4.0'
 packages:
   - .

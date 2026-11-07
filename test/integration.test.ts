@@ -122,7 +122,7 @@ describe('mdxKit integration', () => {
 	})
 
 	it('appends to mdast plugins already configured on the satteri processor', () => {
-		const existingSatteriPlugin = { name: 'existing' }
+		const existingSatteriPlugin = { name: 'existing', paragraph: noop }
 		const processor = satteri({ mdastPlugins: [existingSatteriPlugin] })
 
 		const integration = mdxKit({

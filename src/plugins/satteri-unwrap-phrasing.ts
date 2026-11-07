@@ -30,7 +30,7 @@ function visitJsxElement(
 	}
 
 	const newChildren = children.flatMap((child) => (child === only ? [...only.children] : [child]))
-	context.setProperty(node, 'children', newChildren)
+	context.setField(node, 'children', newChildren)
 }
 
 /**

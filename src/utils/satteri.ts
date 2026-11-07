@@ -181,10 +181,10 @@ export function createFireOncePlugin(
 		run(findRootNode(node, context), context)
 	}
 
-	const visitors: Partial<Record<(typeof ROOT_FLOW_TYPES)[number], typeof visitor>> = {}
-	for (const type of ROOT_FLOW_TYPES) {
-		visitors[type] = visitor
-	}
+	const visitors = Object.fromEntries(ROOT_FLOW_TYPES.map((type) => [type, visitor])) as Record<
+		(typeof ROOT_FLOW_TYPES)[number],
+		typeof visitor
+	>
 
 	return { name, ...visitors }
 }

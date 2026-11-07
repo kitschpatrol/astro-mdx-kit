@@ -256,7 +256,7 @@ function createExportMergePlugin(
 
 			const root = findRootNode(node, context)
 			registerComponentImports(overrides, context, root)
-			context.setProperty(
+			context.setField(
 				node,
 				'value',
 				node.value.replace(
