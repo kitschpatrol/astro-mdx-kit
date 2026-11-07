@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-11-07
+
+### Changed
+
+- **Breaking:** Raise the Astro peer requirement from `^7.2.10` to `^7.4.7` to align with the Sätteri processor dependencies.
+
+### Fixed
+
+- Transform directives nested inside container directives, leaf labels, and inline directives on the unified pipeline.
+- Skip directive mapping, element overrides, and image captions in plain Markdown to prevent missing content and invalid output on both processors.
+- Preserve empty image `alt` attributes so decorative images work with the `astroImage` and `astroPicture` presets.
+- Warn when element overrides specify the unsupported directive-only `propMap` option.
+- Keep recognizing `img`, `Image`, and `Picture` when custom image-component names or element overrides are configured for image unwrapping.
+- Pass root-absolute asset paths and protocol-relative URLs through as strings instead of generating imports that Vite cannot resolve.
+- Deduplicate component and asset imports across directive and element transforms on both processors, use deterministic asset identifiers, and warn about conflicting component imports.
+- Install `remark-directive` and `remark-attribute-list` as regular dependencies to prevent import failures when package managers do not automatically install peers.
+
+### Documentation
+
+- Update installation guidance to require `@astrojs/mdx` 8+ and remove obsolete instructions to install `remark-directive` separately.
+- Clarify Markdown versus MDX transform support, caption precedence for auto-import image overrides, and additive image-component names.
+- Explain how MDX static optimization bypasses simple element overrides and how to exempt overridden elements in Starlight.
+- Correct frontmatter custom-key examples, default integration imports, and Astro `markdown.processor` JSDoc samples.
+- Clarify auto-import path rules and shared component-name requirements, and align the full configuration example's `Picture` imports.
+
+### Maintenance
+
+- Refresh runtime dependencies for Astro's Markdown processors, Sätteri, lognow, and Markdown/HTML utilities, adapting plugins to Sätteri 0.11's API requirements.
+- Integrate chagent into the release command and update the GitHub release changelog action.
+- Refresh development dependencies, shared-config, pnpm, and CI actions, and supply the missing `@emnapi/runtime` dependency for Astro's checking tools.
+- Fix the Markdown processor test's file URL to work on Windows.
+
 ## [0.7.1] - 2026-11-02
 
 ### Documentation
@@ -187,3 +219,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.6.0]: https://github.com/kitschpatrol/astro-mdx-kit/compare/v0.5.1...v0.6.0
 [0.7.0]: https://github.com/kitschpatrol/astro-mdx-kit/compare/v0.6.0...v0.7.0
 [0.7.1]: https://github.com/kitschpatrol/astro-mdx-kit/compare/v0.7.0...v0.7.1
+[0.8.0]: https://github.com/kitschpatrol/astro-mdx-kit/compare/v0.7.1...v0.8.0
