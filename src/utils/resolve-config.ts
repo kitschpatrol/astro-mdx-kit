@@ -225,6 +225,12 @@ export function resolveElementConfig(name: string, config: ElementConfig): Resol
 		)
 	}
 
+	if (typeof config !== 'string' && config.propMap !== undefined) {
+		log.warn(
+			`Element override "${name}" has a \`propMap\` config, but prop remapping only applies to directives. The \`propMap\` option will be ignored.`,
+		)
+	}
+
 	if (typeof config === 'string') {
 		return {
 			componentName: `_MdxKit_${toPascalCase(name)}`,

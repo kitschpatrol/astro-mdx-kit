@@ -192,7 +192,8 @@ export type DetailedComponentConfig = {
 
 /**
  * Detailed configuration for mapping an HTML element to a component. Extends
- * directive config with element-specific options like `caption`.
+ * directive config with element-specific options like `caption`. The
+ * directive-only options `label` and `propMap` are ignored here.
  */
 export type DetailedElementConfig = DetailedComponentConfig & {
 	/**

@@ -5,6 +5,7 @@ import { resolveComponentConfig, resolveElementConfig } from '../src/utils/resol
 const CAPTION_IMG_ONLY_REGEX = /caption.*only apply to.*img/v
 const EMPTY_AUTO_IMPORT_REGEX = /empty.*autoImport/v
 const LABEL_DIRECTIVES_ONLY_REGEX = /label.*only apply to.*directives/v
+const PROP_MAP_DIRECTIVES_ONLY_REGEX = /propMap.*only applies to directives/v
 
 describe('resolveComponentConfig', () => {
 	it('resolves a simple string path', () => {
@@ -189,6 +190,19 @@ describe('config validation warnings', () => {
 		})
 		expect(spy).toHaveBeenCalledOnce()
 		expect(spy.mock.calls[0]![0]).toMatch(LABEL_DIRECTIVES_ONLY_REGEX)
+		spy.mockRestore()
+	})
+
+	it('warns when propMap is set on an element override', () => {
+		const spy = vi.spyOn(log, 'warn')
+		resolveElementConfig('img', {
+			autoImport: 'src',
+			component: 'Picture',
+			componentModule: 'astro:assets',
+			propMap: { src: 'source' },
+		})
+		expect(spy).toHaveBeenCalledOnce()
+		expect(spy.mock.calls[0]![0]).toMatch(PROP_MAP_DIRECTIVES_ONLY_REGEX)
 		spy.mockRestore()
 	})
 })
