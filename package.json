@@ -86,7 +86,7 @@
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.5",
 		"@astrojs/check": "^0.9.12",
-		"@kitschpatrol/chagent": "0.5.0",
+		"@kitschpatrol/chagent": "^0.5.0",
 		"@kitschpatrol/shared-config": "^8.14.1",
 		"@types/estree": "^1.0.10",
 		"@types/node": "~24.13.6",
